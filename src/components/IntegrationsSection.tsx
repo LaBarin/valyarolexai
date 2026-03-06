@@ -8,7 +8,7 @@ const integrations = [
 
 const IntegrationsSection = () => {
   return (
-    <section className="relative py-32 px-6">
+    <section id="integrations" className="relative py-32 px-6">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.03] to-transparent" />
       <div className="container max-w-5xl mx-auto relative">
         <motion.div
