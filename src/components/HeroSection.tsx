@@ -5,10 +5,10 @@ import { useNavigate } from "react-router-dom";
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
-      {(() => { const nav = useNavigate(); return null; })()}
-
       {/* Background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full bg-primary/8 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px] pointer-events-none" />
@@ -19,7 +19,6 @@ const HeroSection = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-10 text-center max-w-4xl mx-auto"
       >
-        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -46,13 +45,17 @@ const HeroSection = () => {
             Get Early Access
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
-          <Button variant="hero-outline" size="lg" className="text-base px-8">
+          <Button
+            variant="hero-outline"
+            size="lg"
+            className="text-base px-8"
+            onClick={() => navigate("/demo")}
+          >
             See How It Works
           </Button>
         </div>
       </motion.div>
 
-      {/* Dashboard preview */}
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
