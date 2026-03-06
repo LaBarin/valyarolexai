@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
       {/* Background glow */}
@@ -16,7 +19,6 @@ const HeroSection = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative z-10 text-center max-w-4xl mx-auto"
       >
-        {/* Badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -43,13 +45,17 @@ const HeroSection = () => {
             Get Early Access
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
-          <Button variant="hero-outline" size="lg" className="text-base px-8">
+          <Button
+            variant="hero-outline"
+            size="lg"
+            className="text-base px-8"
+            onClick={() => navigate("/demo")}
+          >
             See How It Works
           </Button>
         </div>
       </motion.div>
 
-      {/* Dashboard preview */}
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         animate={{ opacity: 1, y: 0 }}
