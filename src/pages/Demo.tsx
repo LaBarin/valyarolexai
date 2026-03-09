@@ -7,13 +7,13 @@ import {
   Play,
   Pause,
   RotateCcw,
-  Zap,
   ChevronLeft,
   Volume2,
   VolumeX,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNarrator } from "@/hooks/use-narrator";
+import logo from "@/assets/valyarolex-logo.png";
 
 import demoInbox from "@/assets/demo-inbox.jpg";
 import demoCalendar from "@/assets/demo-calendar.jpg";
@@ -25,10 +25,10 @@ import demoIntegrations from "@/assets/demo-integrations.jpg";
 const steps = [
   {
     id: "welcome",
-    title: "Welcome to Elevance",
-    subtitle: "Your AI Executive Assistant",
+    title: "Welcome to Valyarolex.AI",
+    subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Elevance unifies email, calendar, and team workflows into one intelligent workspace. Let's walk through the key features that will transform how you work.",
+      "Valyarolex.AI unifies email, calendar, and team workflows into one intelligent workspace. Let's walk through the key features that will transform how you work.",
     image: null,
     badge: "Getting Started",
   },
@@ -37,7 +37,7 @@ const steps = [
     title: "Unified Inbox",
     subtitle: "All messages. One intelligent stream.",
     description:
-      "Elevance aggregates emails, Slack messages, and Teams notifications into a single prioritized feed. The AI auto-drafts responses for routine messages, highlights urgent items with smart categorization, and generates thread summaries so you never miss what matters.",
+      "Valyarolex.AI aggregates emails, Slack messages, and Teams notifications into a single prioritized feed. The AI auto-drafts responses for routine messages, highlights urgent items with smart categorization, and generates thread summaries so you never miss what matters.",
     image: demoInbox,
     badge: "Feature 1 of 6",
     highlights: [
@@ -80,9 +80,9 @@ const steps = [
   {
     id: "commands",
     title: "Natural Language Control",
-    subtitle: "Just tell Elevance what you need.",
+    subtitle: "Just tell Valyarolex.AI what you need.",
     description:
-      'Manage your entire workday by typing or speaking natural commands. Say "Move non-urgent meetings to next week" or "Prepare tomorrow\'s schedule with focus blocks" and watch Elevance execute instantly. No menus, no clicks — just results.',
+      'Manage your entire workday by typing or speaking natural commands. Say "Move non-urgent meetings to next week" or "Prepare tomorrow\'s schedule with focus blocks" and watch Valyarolex.AI execute instantly. No menus, no clicks — just results.',
     image: demoCommands,
     badge: "Feature 4 of 6",
     highlights: [
@@ -97,7 +97,7 @@ const steps = [
     title: "Team Workspaces",
     subtitle: "Collaboration without the chaos.",
     description:
-      "Shared workspaces let teams coordinate effortlessly with real-time calendars, project dashboards, and AI-powered workload balancing. When a team member becomes overloaded, Elevance recommends task redistribution to maintain productivity across the entire team.",
+      "Shared workspaces let teams coordinate effortlessly with real-time calendars, project dashboards, and AI-powered workload balancing. When a team member becomes overloaded, Valyarolex.AI recommends task redistribution to maintain productivity across the entire team.",
     image: demoTeam,
     badge: "Feature 5 of 6",
     highlights: [
@@ -112,7 +112,7 @@ const steps = [
     title: "Deep Integrations",
     subtitle: "Connects to everything you use.",
     description:
-      "Elevance integrates with Gmail, Outlook, Slack, Teams, Zoom, Salesforce, HubSpot, Notion, Asana, and more. All connections sync in real-time with secure OAuth, ensuring your data flows seamlessly across every tool your team relies on.",
+      "Valyarolex.AI integrates with Gmail, Outlook, Slack, Teams, Zoom, Salesforce, HubSpot, Notion, Asana, and more. All connections sync in real-time with secure OAuth, ensuring your data flows seamlessly across every tool your team relies on.",
     image: demoIntegrations,
     badge: "Feature 6 of 6",
     highlights: [
@@ -124,10 +124,10 @@ const steps = [
   },
   {
     id: "conclusion",
-    title: "Ready to Elevate?",
-    subtitle: "Replace busywork with intelligence.",
+    title: "Ready to Transform?",
+    subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Elevance replaces six hours of weekly administrative work with one intelligent workspace. Less switching, fewer meetings, smarter scheduling, and improved team alignment — all powered by AI that learns your unique work style.",
+      "Valyarolex.AI replaces six hours of weekly administrative work with one intelligent workspace. Less switching, fewer meetings, smarter scheduling, and improved team alignment — all powered by AI that learns your unique work style.",
     image: null,
     badge: "Get Started",
   },
@@ -216,15 +216,12 @@ const DemoPage = () => {
         >
           <ChevronLeft className="w-4 h-4" />
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-gradient-primary flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-foreground hidden sm:inline">Elevance</span>
+            <img src={logo} alt="Valyarolex.AI" className="w-7 h-7 rounded-md object-cover" />
+            <span className="font-semibold text-foreground hidden sm:inline">Valyarolex.AI</span>
           </div>
         </button>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* Narrator button */}
           <Button
             variant={isNarrating ? "default" : "ghost"}
             size="sm"
@@ -273,7 +270,6 @@ const DemoPage = () => {
           animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         />
-        {/* Narrating pulse indicator */}
         {isNarrating && (
           <motion.div
             className="absolute right-0 top-0 h-full w-2 bg-primary"
@@ -285,7 +281,6 @@ const DemoPage = () => {
 
       {/* Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* Left panel — info */}
         <div className="lg:w-[440px] xl:w-[500px] flex-shrink-0 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-8 lg:py-0 border-b lg:border-b-0 lg:border-r border-border">
           <AnimatePresence mode="wait">
             <motion.div
@@ -336,7 +331,6 @@ const DemoPage = () => {
             </motion.div>
           </AnimatePresence>
 
-          {/* Step navigation */}
           <div className="flex items-center gap-4 mt-8 lg:mt-12">
             <Button
               variant="hero-outline"
@@ -376,7 +370,6 @@ const DemoPage = () => {
           </div>
         </div>
 
-        {/* Right panel — screen preview */}
         <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 relative overflow-hidden">
           <div className="absolute inset-0">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px]" />
@@ -395,7 +388,7 @@ const DemoPage = () => {
                 <div className="relative rounded-xl overflow-hidden glow-border shadow-glow">
                   <img
                     src={step.image}
-                    alt={`${step.title} - Elevance feature screen`}
+                    alt={`${step.title} - Valyarolex.AI feature screen`}
                     className="w-full h-auto"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent pointer-events-none" />
@@ -405,14 +398,14 @@ const DemoPage = () => {
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-primary flex items-center justify-center mb-8 shadow-glow"
+                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mb-8 shadow-glow"
                   >
-                    <Zap className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground" />
+                    <img src={logo} alt="Valyarolex.AI" className="w-full h-full object-cover" />
                   </motion.div>
                   <p className="text-muted-foreground text-base sm:text-lg max-w-md px-4">
                     {isFirst
                       ? 'Click "Next" or press → to begin. Or try the voice narrator!'
-                      : "Start your journey with Elevance today."}
+                      : "Start your journey with Valyarolex.AI today."}
                   </p>
                   {isFirst && (
                     <div className="flex flex-wrap justify-center gap-3 mt-8">
@@ -445,7 +438,6 @@ const DemoPage = () => {
         </div>
       </div>
 
-      {/* Bottom step list (desktop) */}
       <div className="hidden lg:flex items-center justify-center gap-1 py-3 border-t border-border">
         {steps.map((s, i) => (
           <button
