@@ -7,18 +7,18 @@ const workflows = [
     trigger: "Client sends contract request",
     triggerIcon: Mail,
     steps: [
-      { label: "Draft reply email", icon: Mail, color: "hsl(217 91% 60%)" },
-      { label: "Schedule meeting", icon: Calendar, color: "hsl(280 80% 65%)" },
-      { label: "Create proposal doc", icon: FileText, color: "hsl(150 70% 50%)" },
+      { label: "Draft reply email", icon: Mail, color: "hsl(190 100% 50%)" },
+      { label: "Schedule meeting", icon: Calendar, color: "hsl(150 70% 50%)" },
+      { label: "Create proposal doc", icon: FileText, color: "hsl(35 95% 55%)" },
     ],
   },
   {
     trigger: "New lead added to CRM",
     triggerIcon: MessageSquare,
     steps: [
-      { label: "Enrich contact data", icon: Zap, color: "hsl(40 90% 55%)" },
-      { label: "Send welcome email", icon: Mail, color: "hsl(217 91% 60%)" },
-      { label: "Assign to rep", icon: Calendar, color: "hsl(340 75% 55%)" },
+      { label: "Enrich contact data", icon: Zap, color: "hsl(35 95% 55%)" },
+      { label: "Send welcome email", icon: Mail, color: "hsl(190 100% 50%)" },
+      { label: "Assign to rep", icon: Calendar, color: "hsl(150 70% 50%)" },
     ],
   },
   {
@@ -26,8 +26,8 @@ const workflows = [
     triggerIcon: Calendar,
     steps: [
       { label: "Generate summary", icon: FileText, color: "hsl(150 70% 50%)" },
-      { label: "Extract action items", icon: Check, color: "hsl(280 80% 65%)" },
-      { label: "Notify team on Slack", icon: MessageSquare, color: "hsl(40 90% 55%)" },
+      { label: "Extract action items", icon: Check, color: "hsl(190 100% 50%)" },
+      { label: "Notify team on Slack", icon: MessageSquare, color: "hsl(35 95% 55%)" },
     ],
   },
 ];
@@ -75,7 +75,7 @@ const AutomationBuilderSection = () => {
             <span className="text-gradient">Infinite workflows.</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Describe what you need in plain English. Elevance builds cross-platform automations instantly — no drag-and-drop complexity, no code.
+            Describe what you need in plain English. Valyarolex.AI builds cross-platform automations instantly — no drag-and-drop complexity, no code.
           </p>
         </motion.div>
 
@@ -86,7 +86,6 @@ const AutomationBuilderSection = () => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="max-w-3xl mx-auto"
         >
-          {/* Prompt bar */}
           <div className="glass rounded-2xl p-6 mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-3 h-3 rounded-full bg-primary animate-pulse-glow" />
@@ -110,7 +109,6 @@ const AutomationBuilderSection = () => {
             </AnimatePresence>
           </div>
 
-          {/* Workflow visualization */}
           <div className="glass rounded-2xl p-8">
             <AnimatePresence mode="wait">
               <motion.div
@@ -120,7 +118,6 @@ const AutomationBuilderSection = () => {
                 exit={{ opacity: 0 }}
                 className="flex flex-col items-center gap-4"
               >
-                {/* Trigger */}
                 <motion.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -130,7 +127,6 @@ const AutomationBuilderSection = () => {
                   <span className="text-sm font-medium">{wf.trigger}</span>
                 </motion.div>
 
-                {/* Steps */}
                 {wf.steps.map((step, i) => (
                   <div key={i} className="flex flex-col items-center gap-4">
                     <motion.div
@@ -186,7 +182,6 @@ const AutomationBuilderSection = () => {
             </AnimatePresence>
           </div>
 
-          {/* Workflow selector */}
           <div className="flex justify-center gap-2 mt-6">
             {workflows.map((_, i) => (
               <button

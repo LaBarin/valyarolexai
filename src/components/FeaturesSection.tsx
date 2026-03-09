@@ -65,7 +65,7 @@ const FeaturesSection = () => {
             <span className="text-gradient">Every workflow.</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Stop switching between apps. Elevance connects your email, calendar, tasks, and team tools into a single AI-powered command center.
+            Stop switching between apps. Valyarolex.AI connects your email, calendar, tasks, and team tools into a single AI-powered command center.
           </p>
         </motion.div>
 

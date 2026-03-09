@@ -11,7 +11,7 @@ const HeroSection = () => {
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
       {/* Background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full bg-primary/8 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-accent/5 blur-[100px] pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -30,13 +30,13 @@ const HeroSection = () => {
         </motion.div>
 
         <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mb-6">
-          Your AI
+          One Workspace.
           <br />
-          <span className="text-gradient">Executive Assistant</span>
+          <span className="text-gradient">Infinite Intelligence.</span>
         </h1>
 
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-          Elevance replaces six tools with one AI-powered workspace — unified inbox, smart scheduling,
+          Valyarolex.AI replaces six tools with one AI-powered workspace — unified inbox, smart scheduling,
           natural language automation, 50+ integrations, team dashboards, and a voice-guided demo.
           Faster than Zapier. Smarter than the rest.
         </p>
@@ -66,7 +66,7 @@ const HeroSection = () => {
         <div className="relative rounded-xl overflow-hidden glow-border shadow-glow">
           <img
             src={heroDashboard}
-            alt="Elevance AI productivity dashboard showing unified inbox, smart calendar, and task management"
+            alt="Valyarolex.AI productivity dashboard showing unified inbox, smart calendar, and task management"
             className="w-full h-auto"
             loading="eager"
             decoding="async"

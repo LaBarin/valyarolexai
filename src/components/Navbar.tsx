@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/valyarolex-logo.png";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -22,7 +23,7 @@ const Navbar = () => {
     if (el) {
       setTimeout(() => {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 250); // wait for menu close animation
+      }, 250);
     }
   }, []);
 
@@ -35,10 +36,8 @@ const Navbar = () => {
     >
       <div className="container max-w-6xl mx-auto glass rounded-full px-5 sm:px-6 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-            <Zap className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold tracking-tight">Elevance</span>
+          <img src={logo} alt="Valyarolex.AI" className="w-8 h-8 rounded-lg object-cover" />
+          <span className="text-lg font-bold tracking-tight">Valyarolex.AI</span>
         </Link>
 
         {/* Desktop nav */}
