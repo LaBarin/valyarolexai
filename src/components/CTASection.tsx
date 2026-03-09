@@ -17,7 +17,7 @@ const CTASection = () => {
           className="text-center"
         >
           <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            Ready to <span className="text-gradient">elevate</span><br />your workflow?
+            Ready to <span className="text-gradient">transform</span><br />your workflow?
           </h2>
           <p className="text-muted-foreground text-lg mb-10 max-w-lg mx-auto">
             Join thousands of professionals who replaced six hours of weekly busywork with one intelligent workspace.
