@@ -36,8 +36,9 @@ const HeroSection = () => {
         </h1>
 
         <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-          Elevance unifies email, calendar, and team workflows into one intelligent workspace.
-          Stop switching apps. Start doing work that matters.
+          Elevance replaces six tools with one AI-powered workspace — unified inbox, smart scheduling,
+          natural language automation, 50+ integrations, team dashboards, and a voice-guided demo.
+          Faster than Zapier. Smarter than the rest.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-20">
