@@ -1,8 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Play, Pause, RotateCcw, Zap, ChevronLeft } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Play,
+  Pause,
+  RotateCcw,
+  Zap,
+  ChevronLeft,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useNarrator } from "@/hooks/use-narrator";
 
 import demoInbox from "@/assets/demo-inbox.jpg";
 import demoCalendar from "@/assets/demo-calendar.jpg";
@@ -133,6 +144,11 @@ const DemoPage = () => {
   const isFirst = currentStep === 0;
   const isLast = currentStep === steps.length - 1;
 
+  const { isNarrating, startNarration, stopNarration } = useNarrator({
+    onStepChange: setCurrentStep,
+    totalSteps: steps.length,
+  });
+
   const goNext = useCallback(() => {
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
   }, []);
@@ -144,44 +160,58 @@ const DemoPage = () => {
   const restart = useCallback(() => {
     setCurrentStep(0);
     setIsAutoPlaying(false);
-  }, []);
+    stopNarration();
+  }, [stopNarration]);
+
+  const toggleNarration = useCallback(() => {
+    if (isNarrating) {
+      stopNarration();
+    } else {
+      setIsAutoPlaying(false);
+      startNarration(steps, currentStep);
+    }
+  }, [isNarrating, stopNarration, startNarration, currentStep]);
 
   // Autoplay
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || isNarrating) return;
     if (isLast) {
       setIsAutoPlaying(false);
       return;
     }
     const timer = setTimeout(goNext, AUTOPLAY_INTERVAL);
     return () => clearTimeout(timer);
-  }, [isAutoPlaying, currentStep, isLast, goNext]);
+  }, [isAutoPlaying, currentStep, isLast, goNext, isNarrating]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
-        goNext();
+        if (!isNarrating) goNext();
       }
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        goPrev();
+        if (!isNarrating) goPrev();
       }
       if (e.key === "Escape") {
+        stopNarration();
         navigate("/");
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [goNext, goPrev, navigate]);
+  }, [goNext, goPrev, navigate, isNarrating, stopNarration]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-border">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => {
+            stopNarration();
+            navigate("/");
+          }}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -189,23 +219,49 @@ const DemoPage = () => {
             <div className="w-7 h-7 rounded-md bg-gradient-primary flex items-center justify-center">
               <Zap className="w-3.5 h-3.5 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-foreground">Elevance</span>
+            <span className="font-semibold text-foreground hidden sm:inline">Elevance</span>
           </div>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Narrator button */}
+          <Button
+            variant={isNarrating ? "default" : "ghost"}
+            size="sm"
+            onClick={toggleNarration}
+            className="gap-1.5"
+            title="AI Voice Narrator"
+          >
+            {isNarrating ? (
+              <VolumeX className="w-3.5 h-3.5" />
+            ) : (
+              <Volume2 className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">{isNarrating ? "Stop Narrator" : "Narrate"}</span>
+          </Button>
+
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+            onClick={() => {
+              if (isNarrating) stopNarration();
+              setIsAutoPlaying(!isAutoPlaying);
+            }}
             className="gap-1.5"
+            disabled={isNarrating}
           >
-            {isAutoPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            {isAutoPlaying ? "Pause" : "Auto-play"}
+            {isAutoPlaying ? (
+              <Pause className="w-3.5 h-3.5" />
+            ) : (
+              <Play className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">
+              {isAutoPlaying ? "Pause" : "Auto-play"}
+            </span>
           </Button>
           <Button variant="ghost" size="sm" onClick={restart} className="gap-1.5">
             <RotateCcw className="w-3.5 h-3.5" />
-            Restart
+            <span className="hidden sm:inline">Restart</span>
           </Button>
         </div>
       </header>
@@ -217,12 +273,20 @@ const DemoPage = () => {
           animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
           transition={{ duration: 0.4, ease: "easeOut" }}
         />
+        {/* Narrating pulse indicator */}
+        {isNarrating && (
+          <motion.div
+            className="absolute right-0 top-0 h-full w-2 bg-primary"
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+          />
+        )}
       </div>
 
       {/* Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left panel — info */}
-        <div className="lg:w-[440px] xl:w-[500px] flex-shrink-0 flex flex-col justify-center px-8 lg:px-12 py-10 lg:py-0 border-b lg:border-b-0 lg:border-r border-border">
+        <div className="lg:w-[440px] xl:w-[500px] flex-shrink-0 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-8 lg:py-0 border-b lg:border-b-0 lg:border-r border-border">
           <AnimatePresence mode="wait">
             <motion.div
               key={step.id}
@@ -234,11 +298,15 @@ const DemoPage = () => {
               <span className="text-xs font-medium tracking-widest uppercase text-primary mb-4 block">
                 {step.badge}
               </span>
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-2">
                 {step.title}
               </h1>
-              <p className="text-lg text-primary/80 font-medium mb-4">{step.subtitle}</p>
-              <p className="text-muted-foreground leading-relaxed mb-6">{step.description}</p>
+              <p className="text-base sm:text-lg text-primary/80 font-medium mb-4">
+                {step.subtitle}
+              </p>
+              <p className="text-muted-foreground leading-relaxed mb-6 text-sm sm:text-base">
+                {step.description}
+              </p>
 
               {step.highlights && (
                 <ul className="space-y-2.5 mb-8">
@@ -274,7 +342,7 @@ const DemoPage = () => {
               variant="hero-outline"
               size="sm"
               onClick={goPrev}
-              disabled={isFirst}
+              disabled={isFirst || isNarrating}
               className="gap-1.5"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -284,7 +352,7 @@ const DemoPage = () => {
               {steps.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setCurrentStep(i)}
+                  onClick={() => !isNarrating && setCurrentStep(i)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     i === currentStep
                       ? "w-6 bg-primary"
@@ -299,7 +367,7 @@ const DemoPage = () => {
               variant="hero"
               size="sm"
               onClick={goNext}
-              disabled={isLast}
+              disabled={isLast || isNarrating}
               className="gap-1.5"
             >
               Next
@@ -309,7 +377,7 @@ const DemoPage = () => {
         </div>
 
         {/* Right panel — screen preview */}
-        <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative overflow-hidden">
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 relative overflow-hidden">
           <div className="absolute inset-0">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px]" />
           </div>
@@ -333,24 +401,32 @@ const DemoPage = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent pointer-events-none" />
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center text-center py-20">
+                <div className="flex flex-col items-center justify-center text-center py-12 sm:py-20">
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-24 h-24 rounded-2xl bg-gradient-primary flex items-center justify-center mb-8 shadow-glow"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-primary flex items-center justify-center mb-8 shadow-glow"
                   >
-                    <Zap className="w-12 h-12 text-primary-foreground" />
+                    <Zap className="w-10 h-10 sm:w-12 sm:h-12 text-primary-foreground" />
                   </motion.div>
-                  <p className="text-muted-foreground text-lg max-w-md">
+                  <p className="text-muted-foreground text-base sm:text-lg max-w-md px-4">
                     {isFirst
-                      ? 'Click "Next" or press the right arrow key to begin the walkthrough.'
+                      ? 'Click "Next" or press → to begin. Or try the voice narrator!'
                       : "Start your journey with Elevance today."}
                   </p>
                   {isFirst && (
-                    <div className="flex gap-3 mt-8">
+                    <div className="flex flex-wrap justify-center gap-3 mt-8">
                       <Button variant="hero" size="lg" onClick={goNext}>
                         Start Tour
                         <ArrowRight className="ml-2 w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="hero-outline"
+                        size="lg"
+                        onClick={toggleNarration}
+                      >
+                        <Volume2 className="mr-2 w-4 h-4" />
+                        Narrated Tour
                       </Button>
                       <Button
                         variant="hero-outline"
@@ -369,12 +445,12 @@ const DemoPage = () => {
         </div>
       </div>
 
-      {/* Sidebar step list (desktop) */}
+      {/* Bottom step list (desktop) */}
       <div className="hidden lg:flex items-center justify-center gap-1 py-3 border-t border-border">
         {steps.map((s, i) => (
           <button
             key={s.id}
-            onClick={() => setCurrentStep(i)}
+            onClick={() => !isNarrating && setCurrentStep(i)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
               i === currentStep
                 ? "bg-primary/15 text-primary"
