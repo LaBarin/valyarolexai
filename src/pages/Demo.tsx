@@ -37,14 +37,14 @@ const steps = [
     title: "Unified Inbox",
     subtitle: "All messages. One intelligent stream.",
     description:
-      "Valyarolex.AI aggregates emails, Slack messages, and Teams notifications into a single prioritized feed. The AI auto-drafts responses for routine messages, highlights urgent items with smart categorization, and generates thread summaries so you never miss what matters.",
+      "The Unified Inbox is your central communication hub. Valyarolex.AI aggregates emails from Gmail and Outlook, instant messages from Slack and Microsoft Teams, and notifications from project management tools — all into a single, AI-prioritized feed. The AI engine automatically drafts responses for routine messages, highlights urgent items using smart categorization, and generates full thread summaries with a single click. You can convert any email or message into an actionable task instantly. No more switching between five different apps to stay on top of communication.",
     image: demoInbox,
     badge: "Feature 1 of 6",
     highlights: [
       "AI-drafted replies for routine emails",
-      "Smart priority categorization",
-      "Thread summaries in one click",
-      "Convert emails to actionable tasks",
+      "Smart priority categorization with urgency scoring",
+      "One-click thread summaries for long conversations",
+      "Convert emails to tasks with a single action",
     ],
   },
   {
