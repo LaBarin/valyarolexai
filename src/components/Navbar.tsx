@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "#features", label: "Features" },
