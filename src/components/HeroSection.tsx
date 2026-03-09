@@ -68,6 +68,8 @@ const HeroSection = () => {
             alt="Elevance AI productivity dashboard showing unified inbox, smart calendar, and task management"
             className="w-full h-auto"
             loading="eager"
+            decoding="async"
+            fetchPriority="high"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent pointer-events-none" />
         </div>
