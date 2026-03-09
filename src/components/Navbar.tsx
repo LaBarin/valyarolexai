@@ -55,15 +55,23 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-            Sign In
-          </a>
-          <a
-            href="#"
-            className="text-sm font-medium bg-gradient-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-90 transition-opacity hidden sm:block"
-          >
-            Get Access
-          </a>
+          {user ? (
+            <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:flex items-center gap-1.5">
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                Sign In
+              </Link>
+              <Link
+                to="/signup"
+                className="text-sm font-medium bg-gradient-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-90 transition-opacity hidden sm:block"
+              >
+                Get Access
+              </Link>
+            </>
+          )}
 
           {/* Mobile hamburger */}
           <button
