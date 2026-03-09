@@ -28,7 +28,7 @@ const steps = [
     title: "Welcome to Valyarolex.AI",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Valyarolex.AI unifies email, calendar, and team workflows into one intelligent workspace. Let's walk through the key features that will transform how you work.",
+      "Welcome to the Valyarolex.AI interactive product tour. Valyarolex.AI is a next-generation AI productivity platform that unifies your email, calendar, task management, and team collaboration into one intelligent workspace. Over the next few slides, we'll walk you through every major feature in detail, showing you exactly how Valyarolex.AI eliminates workflow fragmentation and saves you hours every week. Let's get started.",
     image: null,
     badge: "Getting Started",
   },
