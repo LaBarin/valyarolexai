@@ -89,7 +89,7 @@ const Navbar = () => {
               <a
                 key={l.href}
                 href={l.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={(e) => handleAnchorClick(e, l.href)}
                 className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               >
                 {l.label}
