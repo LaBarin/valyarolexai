@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "#features", label: "Features" },
@@ -14,6 +15,7 @@ const navLinks = [
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const handleAnchorClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
@@ -53,15 +55,23 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-            Sign In
-          </a>
-          <a
-            href="#"
-            className="text-sm font-medium bg-gradient-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-90 transition-opacity hidden sm:block"
-          >
-            Get Access
-          </a>
+          {user ? (
+            <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:flex items-center gap-1.5">
+              <LogOut className="w-4 h-4" /> Sign Out
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                Sign In
+              </Link>
+              <Link
+                to="/signup"
+                className="text-sm font-medium bg-gradient-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-90 transition-opacity hidden sm:block"
+              >
+                Get Access
+              </Link>
+            </>
+          )}
 
           {/* Mobile hamburger */}
           <button
@@ -102,15 +112,24 @@ const Navbar = () => {
               Demo
             </Link>
             <div className="border-t border-border my-2" />
-            <a href="#" className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-              Sign In
-            </a>
-            <a
-              href="#"
-              className="mx-4 mt-1 text-center text-sm font-medium bg-gradient-primary text-primary-foreground px-4 py-2.5 rounded-full hover:opacity-90 transition-opacity"
-            >
-              Get Access
-            </a>
+            {user ? (
+              <button onClick={() => { setMobileOpen(false); signOut(); }} className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center gap-2">
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                  Sign In
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setMobileOpen(false)}
+                  className="mx-4 mt-1 text-center text-sm font-medium bg-gradient-primary text-primary-foreground px-4 py-2.5 rounded-full hover:opacity-90 transition-opacity"
+                >
+                  Get Access
+                </Link>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
