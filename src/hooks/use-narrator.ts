@@ -10,6 +10,18 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   const [currentNarrationStep, setCurrentNarrationStep] = useState(0);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const isNarratingRef = useRef(false);
+  const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+
+  // Preload and cache a good voice
+  const loadVoice = useCallback(() => {
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(
+      (v) =>
+        v.lang.startsWith("en") &&
+        (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Daniel"))
+    );
+    voiceRef.current = preferred || voices.find((v) => v.lang.startsWith("en")) || null;
+  }, []);
 
   const stopNarration = useCallback(() => {
     isNarratingRef.current = false;
@@ -21,22 +33,16 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
     (stepIndex: number, text: string, onDone: () => void) => {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.05;
+      utterance.rate = 0.95;
       utterance.pitch = 1;
       utterance.volume = 1;
 
-      // Pick a good English voice
-      const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(
-        (v) =>
-          v.lang.startsWith("en") &&
-          (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Daniel"))
-      );
-      if (preferred) utterance.voice = preferred;
+      if (!voiceRef.current) loadVoice();
+      if (voiceRef.current) utterance.voice = voiceRef.current;
 
       utterance.onend = () => {
         if (isNarratingRef.current) {
-          setTimeout(onDone, 600);
+          setTimeout(onDone, 800);
         }
       };
       utterance.onerror = () => {
@@ -48,7 +54,7 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
       setCurrentNarrationStep(stepIndex);
       window.speechSynthesis.speak(utterance);
     },
-    [onStepChange]
+    [onStepChange, loadVoice]
   );
 
   const startNarration = useCallback(
@@ -57,6 +63,7 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
 
       isNarratingRef.current = true;
       setIsNarrating(true);
+      loadVoice();
 
       const narrateSequence = (index: number) => {
         if (index >= steps.length || !isNarratingRef.current) {
@@ -67,7 +74,7 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
         const s = steps[index];
         let text = `${s.title}. ${s.subtitle}. ${s.description}`;
         if (s.highlights?.length) {
-          text += " Key highlights: " + s.highlights.join(". ") + ".";
+          text += " Key highlights include: " + s.highlights.join(". ") + ".";
         }
 
         narrateStep(index, text, () => narrateSequence(index + 1));
@@ -75,16 +82,17 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
 
       narrateSequence(fromStep);
     },
-    [narrateStep, stopNarration]
+    [narrateStep, stopNarration, loadVoice]
   );
 
   useEffect(() => {
-    // Preload voices
     window.speechSynthesis?.getVoices();
+    window.speechSynthesis?.addEventListener?.("voiceschanged", loadVoice);
     return () => {
       window.speechSynthesis?.cancel();
+      window.speechSynthesis?.removeEventListener?.("voiceschanged", loadVoice);
     };
-  }, []);
+  }, [loadVoice]);
 
   return {
     isNarrating,
