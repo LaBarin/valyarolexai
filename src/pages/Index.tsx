@@ -1,19 +1,47 @@
+import { lazy, Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import FeaturesSection from "@/components/FeaturesSection";
-import IntegrationsSection from "@/components/IntegrationsSection";
-import CTASection from "@/components/CTASection";
-import Footer from "@/components/Footer";
+
+const FeaturesSection = lazy(() => import("@/components/FeaturesSection"));
+const AutomationBuilderSection = lazy(() => import("@/components/AutomationBuilderSection"));
+const IntegrationsSection = lazy(() => import("@/components/IntegrationsSection"));
+const ComparisonSection = lazy(() => import("@/components/ComparisonSection"));
+const PricingSection = lazy(() => import("@/components/PricingSection"));
+const CTASection = lazy(() => import("@/components/CTASection"));
+const Footer = lazy(() => import("@/components/Footer"));
+
+const SectionFallback = () => (
+  <div className="py-32 flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroSection />
-      <FeaturesSection />
-      <IntegrationsSection />
-      <CTASection />
-      <Footer />
+      <Suspense fallback={<SectionFallback />}>
+        <FeaturesSection />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <AutomationBuilderSection />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <IntegrationsSection />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <ComparisonSection />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <PricingSection />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <CTASection />
+      </Suspense>
+      <Suspense fallback={<SectionFallback />}>
+        <Footer />
+      </Suspense>
     </div>
   );
 };
