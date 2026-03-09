@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
