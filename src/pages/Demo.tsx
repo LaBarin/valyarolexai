@@ -216,7 +216,7 @@ const DemoPage = () => {
         >
           <ChevronLeft className="w-4 h-4" />
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Valyarolex.AI" className="w-7 h-7 rounded-md object-cover" />
+            <img src={logo} alt="Valyarolex.AI" className="w-14 h-14 rounded-md object-cover" />
             <span className="font-semibold text-foreground hidden sm:inline">Valyarolex.AI</span>
           </div>
         </button>
