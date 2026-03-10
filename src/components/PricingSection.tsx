@@ -6,7 +6,7 @@ const plans = [
   {
     name: "Starter",
     price: "Free",
-    period: "",
+    period: " for 14 days",
     description: "For individuals getting started with AI productivity.",
     features: [
       "Unified inbox (1 account)",
