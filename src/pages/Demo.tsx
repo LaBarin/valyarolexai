@@ -52,14 +52,14 @@ const steps = [
     title: "Smart Scheduling",
     subtitle: "AI that understands your rhythm.",
     description:
-      "The scheduling engine scans all participants' calendars and proposes optimal meeting times based on availability, time zones, and workload balance. Focus blocks are automatically protected during your peak energy hours, and the AI dynamically reorganizes your day when changes occur.",
+      "The Smart Scheduling engine is powered by AI that understands your energy cycles and work patterns. It scans all participants' calendars across time zones and proposes optimal meeting times based on availability, workload balance, and energy levels. Focus blocks are automatically protected during your peak productivity hours, and the AI dynamically reorganizes your entire day when unexpected changes occur. It even prevents meeting fatigue by spacing out back-to-back calls and suggesting breaks when your schedule gets too dense.",
     image: demoCalendar,
     badge: "Feature 2 of 6",
     highlights: [
-      "Cross-timezone availability scanning",
-      "Energy-based focus block protection",
-      "Dynamic schedule reorganization",
-      "Meeting fatigue prevention",
+      "Cross-timezone availability scanning for all participants",
+      "Energy-based focus block protection during peak hours",
+      "Dynamic schedule reorganization when plans change",
+      "Meeting fatigue prevention with smart spacing",
     ],
   },
   {
@@ -67,14 +67,14 @@ const steps = [
     title: "Workflow Automation",
     subtitle: "Natural language triggers. Zero code.",
     description:
-      'Create powerful cross-platform workflows using simple natural language. For example: "When a client sends a contract request, draft a reply, schedule a meeting, and create a proposal document." The visual automation builder connects your tools without any technical complexity.',
+      'The Workflow Automation engine lets you create powerful cross-platform automations using simple natural language. For example, you can say: "When a client sends a contract request, draft a reply, schedule a follow-up meeting, create a proposal document in Google Docs, and notify the sales team on Slack." The visual automation builder displays your workflow as a drag-and-drop flowchart, connecting your tools without any coding or technical complexity. You can chain actions across email, calendar, CRM, document tools, and team messaging platforms seamlessly.',
     image: demoAutomation,
     badge: "Feature 3 of 6",
     highlights: [
-      "Visual flow builder with drag & drop",
-      "Natural language workflow creation",
-      "Cross-platform action chains",
-      "CRM and document automation",
+      "Visual drag-and-drop flow builder",
+      "Natural language workflow creation with AI",
+      "Cross-platform action chains across 12+ tools",
+      "CRM, document, and communication automation",
     ],
   },
   {
@@ -82,14 +82,14 @@ const steps = [
     title: "Natural Language Control",
     subtitle: "Just tell Valyarolex.AI what you need.",
     description:
-      'Manage your entire workday by typing or speaking natural commands. Say "Move non-urgent meetings to next week" or "Prepare tomorrow\'s schedule with focus blocks" and watch Valyarolex.AI execute instantly. No menus, no clicks — just results.',
+      'Natural Language Control puts the full power of Valyarolex.AI at your fingertips through voice or text commands. Simply type or speak commands like "Move all non-urgent meetings to next week," "Prepare tomorrow\'s schedule with two-hour focus blocks in the morning," or "Summarize all unread Slack messages from the engineering channel." The AI understands context, handles batch operations with a single sentence, and executes instantly. No menus to navigate, no buttons to click — just tell the AI what you need and watch it happen.',
     image: demoCommands,
     badge: "Feature 4 of 6",
     highlights: [
-      "Voice and text command support",
-      "Instant schedule reorganization",
-      "Batch operations with one sentence",
-      "Context-aware AI understanding",
+      "Voice and text command support with natural language",
+      "Instant schedule reorganization with smart reasoning",
+      "Batch operations across tools with one sentence",
+      "Context-aware AI that learns your preferences",
     ],
   },
   {
@@ -97,14 +97,14 @@ const steps = [
     title: "Team Workspaces",
     subtitle: "Collaboration without the chaos.",
     description:
-      "Shared workspaces let teams coordinate effortlessly with real-time calendars, project dashboards, and AI-powered workload balancing. When a team member becomes overloaded, Valyarolex.AI recommends task redistribution to maintain productivity across the entire team.",
+      "Team Workspaces bring your entire team into a shared productivity environment. Real-time shared calendars, project dashboards with progress tracking, and AI-powered workload balancing ensure no one is overloaded. When a team member's task queue becomes too heavy, Valyarolex.AI automatically recommends task redistribution to maintain productivity across the entire team. Managers get a bird's-eye view of team capacity, project timelines, and potential bottlenecks — all updated in real-time without manual status updates.",
     image: demoTeam,
     badge: "Feature 5 of 6",
     highlights: [
-      "Real-time team calendars",
-      "Workload monitoring & balancing",
-      "Automated progress tracking",
-      "Smart task redistribution",
+      "Real-time shared team calendars with live sync",
+      "Workload monitoring with automatic balancing alerts",
+      "Automated progress tracking without manual updates",
+      "Smart task redistribution based on team capacity",
     ],
   },
   {
@@ -112,14 +112,14 @@ const steps = [
     title: "Deep Integrations",
     subtitle: "Connects to everything you use.",
     description:
-      "Valyarolex.AI integrates with Gmail, Outlook, Slack, Teams, Zoom, Salesforce, HubSpot, Notion, Asana, and more. All connections sync in real-time with secure OAuth, ensuring your data flows seamlessly across every tool your team relies on.",
+      "Valyarolex.AI integrates deeply with over twelve enterprise tools including Gmail, Outlook, Slack, Microsoft Teams, Zoom, Google Meet, Salesforce, HubSpot, Notion, Asana, Jira, and more. All connections use secure OAuth authentication and sync bidirectionally in real-time, ensuring your data flows seamlessly across every tool your team relies on. Setup requires zero configuration — just connect your accounts and Valyarolex.AI handles the rest. Data stays encrypted in transit and at rest, meeting enterprise security standards.",
     image: demoIntegrations,
     badge: "Feature 6 of 6",
     highlights: [
-      "12+ enterprise tool integrations",
-      "Real-time bidirectional sync",
-      "Secure OAuth connections",
-      "Zero-configuration setup",
+      "12+ enterprise tool integrations out of the box",
+      "Real-time bidirectional sync across all platforms",
+      "Secure OAuth connections with encrypted data",
+      "Zero-configuration setup — connect and go",
     ],
   },
   {
@@ -127,7 +127,7 @@ const steps = [
     title: "Ready to Transform?",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Valyarolex.AI replaces six hours of weekly administrative work with one intelligent workspace. Less switching, fewer meetings, smarter scheduling, and improved team alignment — all powered by AI that learns your unique work style.",
+      "That concludes our tour of Valyarolex.AI. To recap: Valyarolex.AI replaces six or more hours of weekly administrative work with one intelligent workspace. You get less app-switching, fewer unnecessary meetings, smarter AI-powered scheduling, and improved team alignment — all powered by an AI engine that continuously learns your unique work style and preferences. Sign up today for early access and experience the future of productivity.",
     image: null,
     badge: "Get Started",
   },
