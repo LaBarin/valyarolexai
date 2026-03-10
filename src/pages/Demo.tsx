@@ -216,7 +216,7 @@ const DemoPage = () => {
         >
           <ChevronLeft className="w-4 h-4" />
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Valyarolex.AI" className="w-7 h-7 rounded-md object-cover" />
+            <img src={logo} alt="Valyarolex.AI" className="w-14 h-14 rounded-md object-cover" />
             <span className="font-semibold text-foreground hidden sm:inline">Valyarolex.AI</span>
           </div>
         </button>
@@ -398,7 +398,7 @@ const DemoPage = () => {
                   <motion.div
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden mb-8 shadow-glow"
+                    className="w-48 h-48 sm:w-56 sm:h-56 rounded-2xl overflow-hidden mb-8 shadow-glow"
                   >
                     <img src={logo} alt="Valyarolex.AI" className="w-full h-full object-cover" />
                   </motion.div>

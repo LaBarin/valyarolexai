@@ -38,7 +38,7 @@ const Navbar = () => {
     >
       <div className="container max-w-6xl mx-auto glass rounded-full px-5 sm:px-6 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Valyarolex.AI" className="w-8 h-8 rounded-lg object-cover" />
+          <img src={logo} alt="Valyarolex.AI" className="w-16 h-16 rounded-lg object-cover" />
           <span className="text-lg font-bold tracking-tight">Valyarolex.AI</span>
         </Link>
 

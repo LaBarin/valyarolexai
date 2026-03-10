@@ -61,7 +61,7 @@ const Signup = () => {
         </Link>
         <div className="glass rounded-2xl p-8">
           <div className="flex items-center gap-3 mb-6">
-            <img src={logo} alt="Valyarolex.AI" className="w-10 h-10 rounded-lg object-cover" />
+            <img src={logo} alt="Valyarolex.AI" className="w-20 h-20 rounded-lg object-cover" />
             <h1 className="text-2xl font-bold">Get Access</h1>
           </div>
 

@@ -25,7 +25,7 @@ const LandingPage = () => {
             <img
               src={logo}
               alt="Valyarolex.AI Logo"
-              className="w-36 h-36 sm:w-44 sm:h-44 md:w-52 md:h-52 rounded-3xl object-cover shadow-glow"
+              className="w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-3xl object-cover shadow-glow"
             />
             <div className="absolute inset-0 rounded-3xl glow-border" />
           </div>
@@ -121,7 +121,7 @@ const LandingPage = () => {
       <footer className="border-t border-border py-8 px-6">
         <div className="container max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Valyarolex.AI" className="w-5 h-5 rounded object-cover" />
+            <img src={logo} alt="Valyarolex.AI" className="w-10 h-10 rounded object-cover" />
             <span>© 2026 Valyarolex.AI. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-4">
