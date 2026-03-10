@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroDashboard from "@/assets/hero-dashboard.jpg";
+import logo from "@/assets/valyarolex-logo.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
