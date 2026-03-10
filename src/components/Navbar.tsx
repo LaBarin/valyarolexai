@@ -56,9 +56,14 @@ const Navbar = () => {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:flex items-center gap-1.5">
-              <LogOut className="w-4 h-4" /> Sign Out
-            </button>
+            <>
+              <Link to="/workspace" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                Workspace
+              </Link>
+              <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:flex items-center gap-1.5">
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            </>
           ) : (
             <>
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
