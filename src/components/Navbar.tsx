@@ -56,9 +56,14 @@ const Navbar = () => {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:flex items-center gap-1.5">
-              <LogOut className="w-4 h-4" /> Sign Out
-            </button>
+            <>
+              <Link to="/workspace" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
+                Workspace
+              </Link>
+              <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:flex items-center gap-1.5">
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            </>
           ) : (
             <>
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
@@ -113,9 +118,14 @@ const Navbar = () => {
             </Link>
             <div className="border-t border-border my-2" />
             {user ? (
-              <button onClick={() => { setMobileOpen(false); signOut(); }} className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center gap-2">
-                <LogOut className="w-4 h-4" /> Sign Out
-              </button>
+              <>
+                <Link to="/workspace" onClick={() => setMobileOpen(false)} className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                  Workspace
+                </Link>
+                <button onClick={() => { setMobileOpen(false); signOut(); }} className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-left flex items-center gap-2">
+                  <LogOut className="w-4 h-4" /> Sign Out
+                </button>
+              </>
             ) : (
               <>
                 <Link to="/login" onClick={() => setMobileOpen(false)} className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
