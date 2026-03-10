@@ -9,6 +9,16 @@ import {
 
 const categories = ["All", "Communication", "Productivity", "CRM & Sales", "Development", "Storage"] as const;
 
+type CategoryColor = "text-primary" | "text-accent" | "text-[hsl(35,95%,55%)]";
+
+const catColorMap: Record<string, { icon: CategoryColor; border: string }> = {
+  Communication: { icon: "text-primary", border: "border-primary/30" },
+  Productivity: { icon: "text-accent", border: "border-accent/30" },
+  "CRM & Sales": { icon: "text-[hsl(35,95%,55%)]", border: "border-[hsl(35,95%,55%)]/30" },
+  Development: { icon: "text-primary", border: "border-primary/30" },
+  Storage: { icon: "text-accent", border: "border-accent/30" },
+};
+
 const integrations = [
   { name: "Gmail", icon: Mail, cat: "Communication" },
   { name: "Google Calendar", icon: Calendar, cat: "Productivity" },
@@ -132,22 +142,25 @@ const IntegrationsSection = () => {
           layout
           className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3"
         >
-          {filtered.map((int, i) => (
-            <motion.div
-              key={int.name}
-              layout
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.85 }}
-              transition={{ duration: 0.25, delay: i * 0.02 }}
-              className="glass rounded-xl p-4 flex flex-col items-center gap-2 hover:border-primary/30 hover:shadow-glow transition-all duration-300 cursor-default group"
-            >
-              <int.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              <span className="text-xs font-medium text-center text-secondary-foreground group-hover:text-foreground transition-colors">
-                {int.name}
-              </span>
-            </motion.div>
-          ))}
+          {filtered.map((int, i) => {
+            const colors = catColorMap[int.cat] || { icon: "text-primary" as CategoryColor, border: "border-primary/30" };
+            return (
+              <motion.div
+                key={int.name}
+                layout
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.25, delay: i * 0.02 }}
+                className={`glass rounded-xl p-4 flex flex-col items-center gap-2 hover:${colors.border} hover:shadow-glow transition-all duration-300 cursor-default group`}
+              >
+                <int.icon className={`w-5 h-5 ${colors.icon} transition-colors`} />
+                <span className="text-xs font-medium text-center text-secondary-foreground group-hover:text-foreground transition-colors">
+                  {int.name}
+                </span>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {filtered.length === 0 && (
