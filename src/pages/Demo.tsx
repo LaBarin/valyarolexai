@@ -28,18 +28,63 @@ const steps = [
     title: "Welcome to Valyarolex.AI",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Welcome to the Valyarolex.AI interactive product tour. Valyarolex.AI is a next-generation AI productivity platform that unifies your email, calendar, task management, and team collaboration into one intelligent workspace. Over the next few slides, we'll walk you through every major feature in detail, showing you exactly how Valyarolex.AI eliminates workflow fragmentation and saves you hours every week. Let's get started.",
+      "Welcome to the Valyarolex.AI interactive product tour. Valyarolex.AI is a next-generation AI productivity platform that unifies your email, calendar, task management, team collaboration, and AI-powered automation into one intelligent workspace. Over the next slides, we'll walk you through every major feature — including our live AI Assistant and Workflow Builder — showing you exactly how Valyarolex.AI eliminates workflow fragmentation and saves you hours every week. Let's get started.",
     image: null,
     badge: "Getting Started",
+  },
+  {
+    id: "ai-assistant",
+    title: "AI Assistant",
+    subtitle: "Your always-on productivity co-pilot.",
+    description:
+      "The Valyarolex.AI Assistant is a real-time, streaming AI chat interface built directly into your dashboard and workspace. Powered by advanced language models, it can draft emails, summarize meeting notes, create task lists, brainstorm ideas, answer questions about your workflow, and execute commands — all through natural conversation. The assistant renders responses with rich markdown formatting, supports quick-prompt shortcuts for common actions, and streams responses token-by-token for instant feedback. It's available on your dashboard for quick queries and in the full workspace for deep work sessions.",
+    image: null,
+    badge: "Feature 1 of 8",
+    highlights: [
+      "Streaming AI responses with real-time token rendering",
+      "Rich markdown output with code blocks and formatting",
+      "Quick-prompt shortcuts for common productivity tasks",
+      "Available on dashboard and dedicated workspace page",
+    ],
+  },
+  {
+    id: "workflow-builder",
+    title: "AI Workflow Builder",
+    subtitle: "Describe it. Build it. Automate it.",
+    description:
+      "The AI Workflow Builder transforms plain English descriptions into visual, executable automation sequences. Simply type what you want automated — like 'When a client emails, draft a reply, schedule a follow-up, and notify the team' — and the AI generates a structured workflow with a trigger event and sequential steps. Each step is visualized with branded icons and animated execution, showing you exactly how your automation will flow. The builder supports email, calendar, document, messaging, and custom automation step types, all generated from a single natural language prompt.",
+    image: null,
+    badge: "Feature 2 of 8",
+    highlights: [
+      "Natural language to structured workflow generation",
+      "Visual step-by-step execution animation",
+      "Supports email, calendar, document, and messaging steps",
+      "Quick suggestion prompts for common automation patterns",
+    ],
+  },
+  {
+    id: "workspace",
+    title: "Unified Workspace",
+    subtitle: "Chat + Build, side by side.",
+    description:
+      "The Workspace page is your dedicated productivity command center, accessible to authenticated users from the navbar or dashboard. It presents the AI Assistant and Workflow Builder in a side-by-side layout, allowing you to have a conversation with your AI co-pilot while simultaneously building automated workflows. This dual-pane design enables a seamless loop: ask the assistant for advice, then immediately translate that advice into an automated workflow — all without switching pages or losing context.",
+    image: null,
+    badge: "Feature 3 of 8",
+    highlights: [
+      "Side-by-side AI chat and workflow builder",
+      "Authenticated access with protected routes",
+      "Seamless context switching between chat and automation",
+      "Accessible from navbar and dashboard CTA",
+    ],
   },
   {
     id: "inbox",
     title: "Unified Inbox",
     subtitle: "All messages. One intelligent stream.",
     description:
-      "The Unified Inbox is your central communication hub. Valyarolex.AI aggregates emails from Gmail and Outlook, instant messages from Slack and Microsoft Teams, and notifications from project management tools — all into a single, AI-prioritized feed. The AI engine automatically drafts responses for routine messages, highlights urgent items using smart categorization, and generates full thread summaries with a single click. You can convert any email or message into an actionable task instantly. No more switching between five different apps to stay on top of communication.",
+      "The Unified Inbox is your central communication hub. Valyarolex.AI aggregates emails from Gmail and Outlook, instant messages from Slack and Microsoft Teams, and notifications from project management tools — all into a single, AI-prioritized feed. The AI engine automatically drafts responses for routine messages, highlights urgent items using smart categorization, and generates full thread summaries with a single click. You can convert any email or message into an actionable task instantly.",
     image: demoInbox,
-    badge: "Feature 1 of 6",
+    badge: "Feature 4 of 8",
     highlights: [
       "AI-drafted replies for routine emails",
       "Smart priority categorization with urgency scoring",
@@ -52,9 +97,9 @@ const steps = [
     title: "Smart Scheduling",
     subtitle: "AI that understands your rhythm.",
     description:
-      "The Smart Scheduling engine is powered by AI that understands your energy cycles and work patterns. It scans all participants' calendars across time zones and proposes optimal meeting times based on availability, workload balance, and energy levels. Focus blocks are automatically protected during your peak productivity hours, and the AI dynamically reorganizes your entire day when unexpected changes occur. It even prevents meeting fatigue by spacing out back-to-back calls and suggesting breaks when your schedule gets too dense.",
+      "The Smart Scheduling engine is powered by AI that understands your energy cycles and work patterns. It scans all participants' calendars across time zones and proposes optimal meeting times based on availability, workload balance, and energy levels. Focus blocks are automatically protected during your peak productivity hours, and the AI dynamically reorganizes your entire day when unexpected changes occur.",
     image: demoCalendar,
-    badge: "Feature 2 of 6",
+    badge: "Feature 5 of 8",
     highlights: [
       "Cross-timezone availability scanning for all participants",
       "Energy-based focus block protection during peak hours",
@@ -64,17 +109,17 @@ const steps = [
   },
   {
     id: "automation",
-    title: "Workflow Automation",
+    title: "Visual Automation Engine",
     subtitle: "Natural language triggers. Zero code.",
     description:
-      'The Workflow Automation engine lets you create powerful cross-platform automations using simple natural language. For example, you can say: "When a client sends a contract request, draft a reply, schedule a follow-up meeting, create a proposal document in Google Docs, and notify the sales team on Slack." The visual automation builder displays your workflow as a drag-and-drop flowchart, connecting your tools without any coding or technical complexity. You can chain actions across email, calendar, CRM, document tools, and team messaging platforms seamlessly.',
+      'Beyond the AI Workflow Builder, the Visual Automation Engine provides a full drag-and-drop interface for creating complex, multi-step automations that chain actions across email, calendar, CRM, document tools, and team messaging platforms. The landing page showcases a live interactive demo of this engine, allowing visitors to experience the power of automation before signing up.',
     image: demoAutomation,
-    badge: "Feature 3 of 6",
+    badge: "Feature 6 of 8",
     highlights: [
       "Visual drag-and-drop flow builder",
       "Natural language workflow creation with AI",
       "Cross-platform action chains across 12+ tools",
-      "CRM, document, and communication automation",
+      "Live interactive demo on the landing page",
     ],
   },
   {
@@ -82,9 +127,9 @@ const steps = [
     title: "Natural Language Control",
     subtitle: "Just tell Valyarolex.AI what you need.",
     description:
-      'Natural Language Control puts the full power of Valyarolex.AI at your fingertips through voice or text commands. Simply type or speak commands like "Move all non-urgent meetings to next week," "Prepare tomorrow\'s schedule with two-hour focus blocks in the morning," or "Summarize all unread Slack messages from the engineering channel." The AI understands context, handles batch operations with a single sentence, and executes instantly. No menus to navigate, no buttons to click — just tell the AI what you need and watch it happen.',
+      'Natural Language Control puts the full power of Valyarolex.AI at your fingertips through voice or text commands. Type or speak commands like "Move all non-urgent meetings to next week," "Prepare tomorrow\'s schedule with two-hour focus blocks," or "Summarize all unread Slack messages." The AI understands context, handles batch operations with a single sentence, and executes instantly.',
     image: demoCommands,
-    badge: "Feature 4 of 6",
+    badge: "Feature 7 of 8",
     highlights: [
       "Voice and text command support with natural language",
       "Instant schedule reorganization with smart reasoning",
@@ -93,28 +138,13 @@ const steps = [
     ],
   },
   {
-    id: "team",
-    title: "Team Workspaces",
-    subtitle: "Collaboration without the chaos.",
-    description:
-      "Team Workspaces bring your entire team into a shared productivity environment. Real-time shared calendars, project dashboards with progress tracking, and AI-powered workload balancing ensure no one is overloaded. When a team member's task queue becomes too heavy, Valyarolex.AI automatically recommends task redistribution to maintain productivity across the entire team. Managers get a bird's-eye view of team capacity, project timelines, and potential bottlenecks — all updated in real-time without manual status updates.",
-    image: demoTeam,
-    badge: "Feature 5 of 6",
-    highlights: [
-      "Real-time shared team calendars with live sync",
-      "Workload monitoring with automatic balancing alerts",
-      "Automated progress tracking without manual updates",
-      "Smart task redistribution based on team capacity",
-    ],
-  },
-  {
     id: "integrations",
     title: "Deep Integrations",
     subtitle: "Connects to everything you use.",
     description:
-      "Valyarolex.AI integrates deeply with over twelve enterprise tools including Gmail, Outlook, Slack, Microsoft Teams, Zoom, Google Meet, Salesforce, HubSpot, Notion, Asana, Jira, and more. All connections use secure OAuth authentication and sync bidirectionally in real-time, ensuring your data flows seamlessly across every tool your team relies on. Setup requires zero configuration — just connect your accounts and Valyarolex.AI handles the rest. Data stays encrypted in transit and at rest, meeting enterprise security standards.",
+      "Valyarolex.AI integrates deeply with over twelve enterprise tools including Gmail, Outlook, Slack, Microsoft Teams, Zoom, Google Meet, Salesforce, HubSpot, Notion, Asana, Jira, and more. All connections use secure OAuth authentication and sync bidirectionally in real-time. Setup requires zero configuration — just connect your accounts and Valyarolex.AI handles the rest.",
     image: demoIntegrations,
-    badge: "Feature 6 of 6",
+    badge: "Feature 8 of 8",
     highlights: [
       "12+ enterprise tool integrations out of the box",
       "Real-time bidirectional sync across all platforms",
@@ -127,7 +157,7 @@ const steps = [
     title: "Ready to Transform?",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "That concludes our tour of Valyarolex.AI. To recap: Valyarolex.AI replaces six or more hours of weekly administrative work with one intelligent workspace. You get less app-switching, fewer unnecessary meetings, smarter AI-powered scheduling, and improved team alignment — all powered by an AI engine that continuously learns your unique work style and preferences. Sign up today for early access and experience the future of productivity.",
+      "That concludes our tour of Valyarolex.AI. To recap: a live AI Assistant for instant productivity, an AI Workflow Builder that turns plain English into automations, a unified Workspace for chat + build side by side, smart scheduling, unified inbox, deep integrations, and natural language control — all powered by an AI engine that continuously learns your work style. Sign up today for early access.",
     image: null,
     badge: "Get Started",
   },
@@ -172,7 +202,6 @@ const DemoPage = () => {
     }
   }, [isNarrating, stopNarration, startNarration, currentStep]);
 
-  // Autoplay
   useEffect(() => {
     if (!isAutoPlaying || isNarrating) return;
     if (isLast) {
@@ -183,7 +212,6 @@ const DemoPage = () => {
     return () => clearTimeout(timer);
   }, [isAutoPlaying, currentStep, isLast, goNext, isNarrating]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === " ") {
@@ -322,7 +350,7 @@ const DemoPage = () => {
 
               {isLast && (
                 <div className="flex gap-3 mt-4">
-                  <Button variant="hero" size="lg" onClick={() => navigate("/")}>
+                  <Button variant="hero" size="lg" onClick={() => navigate("/signup")}>
                     Get Early Access
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Button>
@@ -405,7 +433,9 @@ const DemoPage = () => {
                   <p className="text-muted-foreground text-base sm:text-lg max-w-md px-4">
                     {isFirst
                       ? 'Click "Next" or press → to begin. Or try the voice narrator!'
-                      : "Start your journey with Valyarolex.AI today."}
+                      : isLast
+                      ? "Start your journey with Valyarolex.AI today."
+                      : "This feature is built into your live workspace."}
                   </p>
                   {isFirst && (
                     <div className="flex flex-wrap justify-center gap-3 mt-8">
