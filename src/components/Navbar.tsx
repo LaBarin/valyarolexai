@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -16,18 +16,26 @@ const navLinks = [
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const handleAnchorClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setMobileOpen(false);
     const id = href.replace("#", "");
+
+    if (location.pathname !== "/") {
+      navigate("/" + href);
+      return;
+    }
+
     const el = document.getElementById(id);
     if (el) {
       setTimeout(() => {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 250);
     }
-  }, []);
+  }, [location.pathname, navigate]);
 
   return (
     <motion.nav
@@ -45,7 +53,7 @@ const Navbar = () => {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           {navLinks.map((l) => (
-            <a key={l.href} href={l.href} className="hover:text-foreground transition-colors">
+            <a key={l.href} href={l.href} onClick={(e) => handleAnchorClick(e, l.href)} className="hover:text-foreground transition-colors">
               {l.label}
             </a>
           ))}
