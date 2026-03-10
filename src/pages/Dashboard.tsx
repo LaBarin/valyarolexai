@@ -1,7 +1,11 @@
 import { lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
+import AIChatWidget from "@/components/AIChatWidget";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const FeaturesSection = lazy(() => import("@/components/FeaturesSection"));
 const AutomationBuilderSection = lazy(() => import("@/components/AutomationBuilderSection"));
@@ -32,11 +36,32 @@ const Dashboard = () => {
           className="container max-w-6xl mx-auto"
         >
           <div className="glass rounded-2xl p-8 md:p-10">
-            <p className="text-sm text-muted-foreground mb-1">Welcome back,</p>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              {displayName} <span className="text-gradient">👋</span>
-            </h1>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Welcome back,</p>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  {displayName} <span className="text-gradient">👋</span>
+                </h1>
+              </div>
+              <Link to="/workspace">
+                <Button className="gap-2">
+                  Open Workspace <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
           </div>
+        </motion.div>
+      </div>
+
+      {/* Quick AI Chat on Dashboard */}
+      <div className="px-6 pb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="container max-w-6xl mx-auto"
+        >
+          <AIChatWidget className="max-h-[450px]" />
         </motion.div>
       </div>
 
