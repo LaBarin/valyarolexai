@@ -1,49 +1,19 @@
-import { lazy, Suspense } from "react";
-import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-
-const FeaturesSection = lazy(() => import("@/components/FeaturesSection"));
-const AutomationBuilderSection = lazy(() => import("@/components/AutomationBuilderSection"));
-const IntegrationsSection = lazy(() => import("@/components/IntegrationsSection"));
-const ComparisonSection = lazy(() => import("@/components/ComparisonSection"));
-const PricingSection = lazy(() => import("@/components/PricingSection"));
-const CTASection = lazy(() => import("@/components/CTASection"));
-const Footer = lazy(() => import("@/components/Footer"));
-
-const SectionFallback = () => (
-  <div className="py-32 flex items-center justify-center">
-    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-  </div>
-);
+import { useAuth } from "@/contexts/AuthContext";
+import LandingPage from "./LandingPage";
+import Dashboard from "./Dashboard";
 
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <HeroSection />
-      <Suspense fallback={<SectionFallback />}>
-        <FeaturesSection />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <AutomationBuilderSection />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <IntegrationsSection />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <ComparisonSection />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <PricingSection />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <CTASection />
-      </Suspense>
-      <Suspense fallback={<SectionFallback />}>
-        <Footer />
-      </Suspense>
-    </div>
-  );
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return user ? <Dashboard /> : <LandingPage />;
 };
 
 export default Index;
