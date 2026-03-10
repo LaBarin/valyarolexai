@@ -9,6 +9,7 @@ import logo from "@/assets/valyarolex-logo.png";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 
 const Signup = () => {
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
