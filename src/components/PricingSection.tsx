@@ -20,7 +20,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$24",
+    price: "$29",
     period: "/mo",
     description: "For professionals who want full AI power across all tools.",
     features: [
