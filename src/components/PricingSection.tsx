@@ -6,7 +6,7 @@ const plans = [
   {
     name: "Starter",
     price: "Free",
-    period: "",
+    period: " for 14 days",
     description: "For individuals getting started with AI productivity.",
     features: [
       "Unified inbox (1 account)",
@@ -20,7 +20,7 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "$24",
+    price: "$29",
     period: "/mo",
     description: "For professionals who want full AI power across all tools.",
     features: [
