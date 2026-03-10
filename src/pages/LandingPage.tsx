@@ -121,7 +121,7 @@ const LandingPage = () => {
       <footer className="border-t border-border py-8 px-6">
         <div className="container max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Valyarolex.AI" className="w-5 h-5 rounded object-cover" />
+            <img src={logo} alt="Valyarolex.AI" className="w-10 h-10 rounded object-cover" />
             <span>© 2026 Valyarolex.AI. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-4">
