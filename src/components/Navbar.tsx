@@ -53,7 +53,7 @@ const Navbar = () => {
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           {navLinks.map((l) => (
-            <a key={l.href} href={l.href} className="hover:text-foreground transition-colors">
+            <a key={l.href} href={l.href} onClick={(e) => handleAnchorClick(e, l.href)} className="hover:text-foreground transition-colors">
               {l.label}
             </a>
           ))}
