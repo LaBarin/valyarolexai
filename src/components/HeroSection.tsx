@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroDashboard from "@/assets/hero-dashboard.jpg";
+import logo from "@/assets/valyarolex-logo.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -20,9 +21,18 @@ const HeroSection = () => {
         className="relative z-10 text-center max-w-4xl mx-auto"
       >
         <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="mb-6"
+        >
+          <img src={logo} alt="Valyarolex.AI" className="w-20 h-20 rounded-2xl object-cover mx-auto shadow-glow" />
+        </motion.div>
+
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
           className="inline-flex items-center gap-2 glass rounded-full px-4 py-2 mb-8 text-sm"
         >
           <Sparkles className="w-4 h-4 text-primary" />
