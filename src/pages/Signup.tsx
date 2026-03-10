@@ -20,6 +20,8 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  if (user) return <Navigate to="/" replace />;
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

@@ -31,16 +31,6 @@ const LandingPage = () => {
           </div>
         </motion.div>
 
-        {/* Brand name */}
-        <motion.h2
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="relative z-10 text-2xl sm:text-3xl font-bold tracking-tight mb-6 text-gradient"
-        >
-          Valyarolex.AI
-        </motion.h2>
-
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

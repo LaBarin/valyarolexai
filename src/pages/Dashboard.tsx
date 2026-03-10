@@ -1,5 +1,7 @@
 import { lazy, Suspense } from "react";
+import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const FeaturesSection = lazy(() => import("@/components/FeaturesSection"));
 const AutomationBuilderSection = lazy(() => import("@/components/AutomationBuilderSection"));
@@ -16,19 +18,28 @@ const SectionFallback = () => (
 );
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "there";
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="pt-24 px-6">
-        <div className="container max-w-6xl mx-auto mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-            Welcome to <span className="text-gradient">Valyarolex.AI</span>
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Explore features, integrations, and everything your workspace has to offer.
-          </p>
-        </div>
+      <div className="pt-28 pb-6 px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="container max-w-6xl mx-auto"
+        >
+          <div className="glass rounded-2xl p-8 md:p-10">
+            <p className="text-sm text-muted-foreground mb-1">Welcome back,</p>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+              {displayName} <span className="text-gradient">👋</span>
+            </h1>
+          </div>
+        </motion.div>
       </div>
+
       <Suspense fallback={<SectionFallback />}>
         <FeaturesSection />
       </Suspense>
