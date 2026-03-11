@@ -39,6 +39,14 @@ serve(async (req) => {
       });
     }
 
+    // Reject anon key — only authenticated users allowed
+    if (claimsData.claims.role !== "authenticated") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // --- Input Validation ---
     const { messages, mode } = await req.json();
 
