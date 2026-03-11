@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,11 +7,68 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MAX_MESSAGES = 20;
+const MAX_MSG_LENGTH = 4000;
+const ALLOWED_MODES = ["chat", "workflow"];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // --- Authentication ---
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Input Validation ---
     const { messages, mode } = await req.json();
+
+    if (!ALLOWED_MODES.includes(mode)) {
+      return new Response(JSON.stringify({ error: "Invalid mode" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
+      return new Response(JSON.stringify({ error: "Invalid or too many messages" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Sanitize: only allow user/assistant roles, trim content length
+    const sanitized = messages
+      .filter((m: any) => m.role === "user" || m.role === "assistant")
+      .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, MAX_MSG_LENGTH) }));
+
+    if (sanitized.length === 0) {
+      return new Response(JSON.stringify({ error: "No valid messages" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- AI Request ---
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -27,7 +85,7 @@ serve(async (req) => {
 Always respond with valid JSON only, no other text.`,
     };
 
-    const systemContent = systemPrompts[mode] || systemPrompts.chat;
+    const systemContent = systemPrompts[mode];
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -39,7 +97,7 @@ Always respond with valid JSON only, no other text.`,
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemContent },
-          ...messages,
+          ...sanitized,
         ],
         stream: mode !== "workflow",
       }),
@@ -79,7 +137,7 @@ Always respond with valid JSON only, no other text.`,
     });
   } catch (e) {
     console.error("chat error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
