@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Search } from "lucide-react";
+import IntegrationDetailModal from "./IntegrationDetailModal";
 
 const categories = ["All", "Communication", "Productivity", "CRM & Sales", "Development", "Storage"] as const;
 
