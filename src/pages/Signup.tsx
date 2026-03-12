@@ -35,7 +35,8 @@ const Signup = () => {
     });
     setLoading(false);
     if (error) {
-      toast({ title: "Signup failed", description: error.message, variant: "destructive" });
+      console.error("Signup error:", error.message);
+      toast({ title: "Signup failed", description: "Please check your details and try again.", variant: "destructive" });
     } else {
       toast({ title: "Check your email", description: "We sent you a confirmation link to verify your account." });
       navigate("/login");
