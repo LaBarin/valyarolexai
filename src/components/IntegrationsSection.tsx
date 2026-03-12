@@ -397,6 +397,7 @@ const IntegrationsSection = () => {
               className="glass rounded-xl p-4 flex flex-col items-center gap-2.5 hover:shadow-glow transition-all duration-300 cursor-pointer group"
               onClick={() => setSelectedIntegration(int)}
               style={{ borderColor: 'transparent' }}
+              onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.borderColor = `${int.color}40`;
                 (e.currentTarget as HTMLElement).style.boxShadow = `0 0 20px ${int.color}15`;
               }}
