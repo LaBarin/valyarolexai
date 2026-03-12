@@ -318,6 +318,7 @@ const integrations: Integration[] = [
 const IntegrationsSection = () => {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
 
   const filtered = integrations.filter((int) => {
     const matchesCat = activeCategory === "All" || int.cat === activeCategory;
