@@ -394,8 +394,8 @@ const IntegrationsSection = () => {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ duration: 0.25, delay: i * 0.02 }}
-              className="glass rounded-xl p-4 flex flex-col items-center gap-2.5 hover:shadow-glow transition-all duration-300 cursor-default group"
-              style={{ borderColor: 'transparent' }}
+              className="glass rounded-xl p-4 flex flex-col items-center gap-2.5 hover:shadow-glow transition-all duration-300 cursor-pointer group"
+              onClick={() => setSelectedIntegration(int)}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.borderColor = `${int.color}40`;
                 (e.currentTarget as HTMLElement).style.boxShadow = `0 0 20px ${int.color}15`;
