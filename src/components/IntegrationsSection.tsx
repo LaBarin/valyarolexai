@@ -432,6 +432,12 @@ const IntegrationsSection = () => {
           + dozens more via API and webhook connectors
         </motion.p>
       </div>
+
+      <IntegrationDetailModal
+        open={!!selectedIntegration}
+        onOpenChange={(open) => !open && setSelectedIntegration(null)}
+        integration={selectedIntegration}
+      />
     </section>
   );
 };
