@@ -412,14 +412,26 @@ const CampaignManager = () => {
                     </div>
                   </div>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="opacity-0 group-hover:opacity-100"
-                  onClick={(e) => { e.stopPropagation(); deleteCampaign(c.id); }}
-                >
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
+                <div className="flex gap-1">
+                  {c.share_token && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100"
+                      onClick={(e) => { e.stopPropagation(); copyShareLink(c.share_token!); }}
+                    >
+                      <Link2 className="w-4 h-4 text-primary" />
+                    </Button>
+                  )}
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100"
+                    onClick={(e) => { e.stopPropagation(); deleteCampaign(c.id); }}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
               {c.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{c.description}</p>}
             </motion.div>
