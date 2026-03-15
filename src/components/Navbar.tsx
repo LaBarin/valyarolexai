@@ -6,7 +6,7 @@ import logo from "@/assets/valyarolex-logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
-  { href: "#features", label: "Features" },
+  { href: "#tools", label: "Tools" },
   { href: "#automation", label: "Automation" },
   { href: "#integrations", label: "Integrations" },
   { href: "#comparison", label: "Compare" },
