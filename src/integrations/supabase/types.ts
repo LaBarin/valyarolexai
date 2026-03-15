@@ -445,6 +445,65 @@ export type Database = {
         }
         Relationships: []
       }
+      video_projects: {
+        Row: {
+          ai_generated: boolean
+          campaign_id: string | null
+          created_at: string
+          description: string | null
+          duration_type: string
+          format: string
+          id: string
+          platform: string
+          script: Json | null
+          status: string
+          storyboard: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_type?: string
+          format?: string
+          id?: string
+          platform?: string
+          script?: Json | null
+          status?: string
+          storyboard?: Json | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_generated?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_type?: string
+          format?: string
+          id?: string
+          platform?: string
+          script?: Json | null
+          status?: string
+          storyboard?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_projects_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
