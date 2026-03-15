@@ -196,7 +196,7 @@ Generate 3-8 scenes depending on duration. Include specific visual directions, t
       });
     }
 
-    if (mode === "workflow" || mode === "pitch_deck" || mode === "campaign") {
+    if (mode === "workflow" || mode === "pitch_deck" || mode === "campaign" || mode === "video") {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || "{}";
       return new Response(JSON.stringify({ result: content }), {
