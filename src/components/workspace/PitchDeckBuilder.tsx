@@ -137,58 +137,79 @@ const PitchDeckBuilder = () => {
       } catch {
         throw new Error("Failed to parse AI response");
       }
+      // Show preview instead of saving directly
+      setPreviewData({
+        deck_title: parsed.deck_title || "AI Pitch Deck",
+        deck_description: parsed.deck_description,
+        slides: (parsed.slides || []).map((s: any) => ({
+          slide_type: s.slide_type || "content",
+          title: s.title || "",
+          content: s.content || {},
+          notes: s.notes || undefined,
+        })),
+      });
+    } catch (e: any) {
+      toast({ title: "Generation Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
-      // Save deck
+  const approveDeckPreview = async () => {
+    if (!previewData || !user) return;
+    setIsSavingPreview(true);
+    try {
       const { data: newDeck, error: deckErr } = await supabase
         .from("pitch_decks")
-        .insert({ user_id: user.id, title: parsed.deck_title || "AI Pitch Deck", description: parsed.deck_description })
+        .insert({ user_id: user.id, title: previewData.deck_title, description: previewData.deck_description })
         .select()
         .single();
       if (deckErr) throw deckErr;
 
-      // Save slides
-      const slidesData = (parsed.slides || []).map((s: any, i: number) => ({
+      const slidesData = previewData.slides.map((s, i) => ({
         deck_id: newDeck.id,
         user_id: user.id,
         slide_order: i,
-        slide_type: s.slide_type || "content",
+        slide_type: s.slide_type,
         title: s.title,
         content: s.content || {},
         notes: s.notes || null,
       }));
       await supabase.from("pitch_deck_slides").insert(slidesData);
 
+      setPreviewData(null);
       setPrompt("");
       await loadDecks();
-      const loaded = decks.find((d) => d.id === newDeck.id);
-      if (!loaded) {
-        // Re-fetch to get the new deck
-        const { data: slides } = await supabase
-          .from("pitch_deck_slides")
-          .select("*")
-          .eq("deck_id", newDeck.id)
-          .order("slide_order", { ascending: true });
-        setActiveDeck({
-          id: newDeck.id,
-          title: newDeck.title,
-          description: newDeck.description ?? undefined,
-          slides: (slides ?? []).map((s) => ({
-            id: s.id,
-            slide_type: (s.content as any)?.slide_type || s.slide_type,
-            title: s.title || "",
-            content: (s.content as any) || {},
-            notes: s.notes ?? undefined,
-            slide_order: s.slide_order,
-          })),
-        });
-      }
+      const { data: slides } = await supabase
+        .from("pitch_deck_slides")
+        .select("*")
+        .eq("deck_id", newDeck.id)
+        .order("slide_order", { ascending: true });
+      setActiveDeck({
+        id: newDeck.id,
+        title: newDeck.title,
+        description: newDeck.description ?? undefined,
+        slides: (slides ?? []).map((s) => ({
+          id: s.id,
+          slide_type: s.slide_type,
+          title: s.title || "",
+          content: (s.content as any) || {},
+          notes: s.notes ?? undefined,
+          slide_order: s.slide_order,
+        })),
+      });
       setCurrentSlide(0);
-      toast({ title: "Deck Generated", description: `Created ${slidesData.length} slides` });
+      toast({ title: "Deck Approved", description: `Created ${slidesData.length} slides` });
     } catch (e: any) {
-      toast({ title: "Generation Failed", description: e.message, variant: "destructive" });
+      toast({ title: "Save Failed", description: e.message, variant: "destructive" });
     } finally {
-      setIsGenerating(false);
+      setIsSavingPreview(false);
     }
+  };
+
+  const rejectDeckPreview = () => {
+    setPreviewData(null);
+    toast({ title: "Deck Rejected", description: "The draft was discarded." });
   };
 
   const deleteDeck = async (deckId: string) => {
