@@ -129,7 +129,7 @@ const ToolBreakdown = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-base font-semibold">{tool.title}</h3>
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                      Replaces {tool.replaces}
+                      {tool.category}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
