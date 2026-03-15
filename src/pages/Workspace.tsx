@@ -6,14 +6,14 @@ import AIChatWidget from "@/components/AIChatWidget";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { 
-  MessageSquare, Workflow, ListTodo, Calendar, BarChart3, Plug,
+  MessageSquare, Bot, ListTodo, Calendar, BarChart3, Plug,
   Presentation, Megaphone
 } from "lucide-react";
 import TaskManager from "@/components/workspace/TaskManager";
 import ScheduleView from "@/components/workspace/ScheduleView";
 import TeamDashboard from "@/components/workspace/TeamDashboard";
 import IntegrationHub from "@/components/workspace/IntegrationHub";
-import SavedWorkflows from "@/components/workspace/SavedWorkflows";
+import AgentManager from "@/components/workspace/AgentManager";
 import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
 
@@ -22,7 +22,7 @@ const tabs = [
   { id: "chat", label: "AI Assistant", icon: MessageSquare },
   { id: "tasks", label: "Tasks", icon: ListTodo },
   { id: "schedule", label: "Schedule", icon: Calendar },
-  { id: "workflows", label: "Workflows", icon: Workflow },
+  { id: "agents", label: "AI Agents", icon: Bot },
   { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
   { id: "campaigns", label: "Campaigns", icon: Megaphone },
   { id: "integrations", label: "Integrations", icon: Plug },
@@ -110,9 +110,9 @@ const Workspace = () => {
                 <ScheduleView />
               </div>
             )}
-            {activeTab === "workflows" && (
+            {activeTab === "agents" && (
               <div className="max-w-3xl">
-                <SavedWorkflows />
+                <AgentManager />
               </div>
             )}
             {activeTab === "pitchdeck" && <PitchDeckBuilder />}
