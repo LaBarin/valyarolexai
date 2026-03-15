@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 import {
   Zap, Mail, Brain, ListTodo, Calendar, BarChart3, Check, ArrowDown,
-  Bell, Users, ChevronRight, Sparkles
+  Bell, Users, ChevronRight, Sparkles, FormInput, MessageSquare, Database
 } from "lucide-react";
 import WorkflowBuilder from "@/components/WorkflowBuilder";
 
