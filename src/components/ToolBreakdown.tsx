@@ -29,7 +29,7 @@ const tools = [
     title: "Workflow Automation",
     description: "Natural language triggers create cross-platform workflows. No code, no drag-and-drop complexity — just results.",
     color: "hsl(35 95% 55%)",
-    replaces: "Zapier, Make",
+    category: "Automation",
     capabilities: ["Natural language triggers", "50+ integrations", "Multi-step chains", "Conditional logic"],
   },
   {
