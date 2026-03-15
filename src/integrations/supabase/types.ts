@@ -128,6 +128,140 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_campaigns: {
+        Row: {
+          ai_generated: boolean
+          assets: Json | null
+          campaign_type: string
+          channels: Json | null
+          content_plan: Json | null
+          created_at: string
+          description: string | null
+          goals: Json | null
+          id: string
+          name: string
+          schedule: Json | null
+          status: string
+          target_audience: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          assets?: Json | null
+          campaign_type?: string
+          channels?: Json | null
+          content_plan?: Json | null
+          created_at?: string
+          description?: string | null
+          goals?: Json | null
+          id?: string
+          name: string
+          schedule?: Json | null
+          status?: string
+          target_audience?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_generated?: boolean
+          assets?: Json | null
+          campaign_type?: string
+          channels?: Json | null
+          content_plan?: Json | null
+          created_at?: string
+          description?: string | null
+          goals?: Json | null
+          id?: string
+          name?: string
+          schedule?: Json | null
+          status?: string
+          target_audience?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pitch_deck_slides: {
+        Row: {
+          content: Json | null
+          created_at: string
+          deck_id: string
+          id: string
+          notes: string | null
+          slide_order: number
+          slide_type: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          deck_id: string
+          id?: string
+          notes?: string | null
+          slide_order?: number
+          slide_type?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          deck_id?: string
+          id?: string
+          notes?: string | null
+          slide_order?: number
+          slide_type?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pitch_deck_slides_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "pitch_decks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pitch_decks: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          theme: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          theme?: Json | null
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          theme?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
