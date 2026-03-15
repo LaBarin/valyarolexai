@@ -21,7 +21,7 @@ const tools = [
     title: "Smart Scheduling",
     description: "AI scans all calendars, proposes optimal times, protects focus blocks, and dynamically reorganizes your day.",
     color: "hsl(150 70% 50%)",
-    replaces: "Calendly, Motion",
+    category: "Scheduling",
     capabilities: ["Cross-timezone scan", "Energy-based blocks", "Auto-reschedule", "Meeting fatigue prevention"],
   },
   {
