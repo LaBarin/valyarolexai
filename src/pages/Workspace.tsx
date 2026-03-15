@@ -36,6 +36,7 @@ const navItems = [
   { id: "analytics", label: "Analytics", icon: BarChart3, group: "automation" },
   { id: "pitchdeck", label: "Pitch Deck", icon: Presentation, group: "tools" },
   { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
+  { id: "videos", label: "Video Studio", icon: Video, group: "tools" },
   { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
 ] as const;
 
