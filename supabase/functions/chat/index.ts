@@ -12,7 +12,6 @@ const MAX_MSG_LENGTH = 4000;
 const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign"];
 
 serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -56,7 +55,6 @@ serve(async (req) => {
       });
     }
 
-    // Sanitize: only allow user/assistant roles, trim content length
     const sanitized = messages
       .filter((m: any) => m.role === "user" || m.role === "assistant")
       .map((m: any) => ({ role: m.role, content: String(m.content).slice(0, MAX_MSG_LENGTH) }));
@@ -83,11 +81,15 @@ serve(async (req) => {
   "summary": "brief one-line summary of the workflow"
 }
 Always respond with valid JSON only, no other text.`,
-      pitch_deck: `You are Valyarolex.AI's pitch deck generator. When a user describes their business, product, or idea, generate a professional pitch deck as a JSON array of slides. Each slide should have this format:
+      pitch_deck: `You are Valyarolex.AI's pitch deck and ad campaign generator. When a user describes their business, product, idea, or ad campaign, generate a professional presentation as JSON. Support all use cases: investor pitches, product launches, and advertising campaigns for all major platforms (Facebook, Instagram, TikTok, YouTube, LinkedIn, X/Twitter, Google Ads, Snapchat, Pinterest, Reddit).
+
+For ad campaigns, include platform-specific slides with ad copy, targeting suggestions, creative direction, budget allocation, and KPIs per platform.
+
+Each slide should have this format:
 {
   "slides": [
     {
-      "slide_type": "title|problem|solution|market|product|traction|business_model|team|financials|ask|closing",
+      "slide_type": "title|problem|solution|market|product|traction|business_model|team|financials|ask|closing|ad_strategy|platform_breakdown|creative_brief|targeting|budget",
       "title": "Slide Title",
       "content": {
         "headline": "Main headline text",
@@ -101,21 +103,24 @@ Always respond with valid JSON only, no other text.`,
   "deck_title": "Name of the deck",
   "deck_description": "One-line description"
 }
-Generate 8-12 slides for a compelling investor pitch. Always respond with valid JSON only.`,
-      campaign: `You are Valyarolex.AI's marketing campaign strategist. When a user describes their campaign goals, generate a comprehensive marketing campaign plan as JSON:
+Generate 8-15 slides. For ad campaigns, include slides for each requested platform with specific ad copy, targeting, and creative specs. Always respond with valid JSON only.`,
+      campaign: `You are Valyarolex.AI's marketing campaign strategist and ad planner. When a user describes their campaign goals, generate a comprehensive multi-platform marketing and advertising campaign plan as JSON.
+
+Support ALL major advertising platforms: Facebook Ads, Instagram Ads, TikTok Ads, YouTube Ads, LinkedIn Ads, X/Twitter Ads, Google Ads (Search + Display), Snapchat Ads, Pinterest Ads, Reddit Ads. Include platform-specific ad copy, creative specs, targeting parameters, and budget recommendations for each requested platform.
+
 {
   "name": "Campaign name",
   "description": "Campaign overview",
-  "campaign_type": "product_launch|brand_awareness|lead_gen|event|seasonal|content",
+  "campaign_type": "product_launch|brand_awareness|lead_gen|event|seasonal|content|ad_campaign",
   "target_audience": "Audience description",
   "goals": [{"goal": "description", "metric": "KPI", "target": "target value"}],
-  "channels": [{"channel": "social|email|content|paid_ads|pr|events", "strategy": "channel strategy", "budget_pct": 25}],
+  "channels": [{"channel": "facebook|instagram|tiktok|youtube|linkedin|twitter|google_ads|snapchat|pinterest|reddit|email|content|pr|events", "strategy": "platform-specific strategy with ad format recommendations", "budget_pct": 25}],
   "content_plan": [
-    {"title": "Content piece title", "type": "blog|social_post|email|video|ad|infographic", "channel": "channel name", "description": "what this content covers", "week": 1}
+    {"title": "Content/Ad piece title", "type": "blog|social_post|email|video|ad|infographic|story_ad|reel|carousel|search_ad|display_ad|sponsored_post", "channel": "platform name", "description": "ad copy or content description with creative direction and specs (dimensions, duration, format)", "week": 1}
   ],
   "schedule": {"duration_weeks": 8, "phases": [{"name": "Phase name", "weeks": "1-2", "focus": "phase focus"}]}
 }
-Generate a detailed, actionable campaign. Always respond with valid JSON only.`,
+For each platform, include specific ad formats (e.g. Facebook: carousel, story, reel; TikTok: in-feed, spark ads; Google: search, display, shopping). Generate a detailed, actionable campaign with real ad copy examples. Always respond with valid JSON only.`,
     };
 
     const systemContent = systemPrompts[mode];
