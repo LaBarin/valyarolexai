@@ -459,6 +459,24 @@ const CampaignManager = () => {
         </div>
       )}
     </div>
+
+    <CampaignPreviewDialog
+      open={!!previewData}
+      data={previewData ? {
+        name: previewData.name || "AI Campaign",
+        description: previewData.description,
+        campaign_type: previewData.campaign_type,
+        target_audience: previewData.target_audience,
+        goals: previewData.goals || [],
+        channels: previewData.channels || [],
+        content_plan: previewData.content_plan || [],
+        schedule: previewData.schedule || {},
+      } : null}
+      onApprove={approvePreview}
+      onReject={rejectPreview}
+      loading={isSavingPreview}
+    />
+    </>
   );
 };
 
