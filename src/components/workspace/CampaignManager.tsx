@@ -31,6 +31,24 @@ type Campaign = {
   channels: Channel[];
   content_plan: ContentItem[];
   schedule: { duration_weeks?: number; phases?: Phase[] };
+  share_token?: string;
+};
+
+const PLATFORM_COLORS: Record<string, string> = {
+  facebook: "bg-blue-600/20 text-blue-400",
+  instagram: "bg-pink-500/20 text-pink-400",
+  tiktok: "bg-foreground/20 text-foreground",
+  youtube: "bg-red-500/20 text-red-400",
+  linkedin: "bg-blue-500/20 text-blue-300",
+  twitter: "bg-sky-500/20 text-sky-400",
+  google_ads: "bg-yellow-500/20 text-yellow-400",
+  snapchat: "bg-yellow-400/20 text-yellow-300",
+  pinterest: "bg-red-400/20 text-red-300",
+  reddit: "bg-orange-500/20 text-orange-400",
+  social: "bg-primary/20 text-primary",
+  email: "bg-accent/20 text-accent",
+  content: "bg-muted text-muted-foreground",
+  paid_ads: "bg-primary/20 text-primary",
 };
 
 const CHANNEL_ICONS: Record<string, any> = {
