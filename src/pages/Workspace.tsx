@@ -27,7 +27,13 @@ type TabId = typeof tabs[number]["id"];
 
 const Workspace = () => {
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabId>("dashboard");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabId>((searchParams.get("tab") as TabId) || "dashboard");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab") as TabId;
+    if (tab && tabs.some((t) => t.id === tab)) setActiveTab(tab);
+  }, [searchParams]);
 
   if (loading) {
     return (
