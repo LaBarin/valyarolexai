@@ -194,6 +194,11 @@ const WorkspaceContent = () => {
                   <IntegrationHub />
                 </div>
               )}
+              {activeTab === "videos" && (
+                <div className="max-w-4xl">
+                  <VideoStudio />
+                </div>
+              )}
             </motion.div>
           </div>
         </main>
