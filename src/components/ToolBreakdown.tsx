@@ -45,7 +45,7 @@ const tools = [
     title: "Natural Language Control",
     description: "Type or speak commands. \"Move non-urgent meetings to next week\" — and watch it happen instantly.",
     color: "hsl(350 70% 55%)",
-    replaces: "None — unique",
+    category: "Control",
     capabilities: ["Voice commands", "Batch operations", "Context-aware", "Cross-tool execution"],
   },
   {
