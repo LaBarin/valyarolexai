@@ -13,7 +13,7 @@ const tools = [
     title: "Unified Inbox",
     description: "Aggregate Gmail, Outlook, Slack, and Teams into one AI-prioritized feed. Auto-draft replies, smart categorization, one-click summaries.",
     color: "hsl(190 100% 50%)",
-    replaces: "Superhuman, Front",
+    category: "Communication",
     capabilities: ["AI auto-drafts", "Priority scoring", "Thread summaries", "Email → Task conversion"],
   },
   {
