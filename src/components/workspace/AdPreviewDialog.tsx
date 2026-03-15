@@ -177,6 +177,8 @@ export const CampaignPreviewDialog = ({
 
         {/* Action buttons */}
         <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
+          <CampaignNarrator data={data} />
+          <div className="flex-1" />
           <Button variant="outline" onClick={onReject} disabled={loading}>
             <X className="w-4 h-4 mr-1.5" /> Reject
           </Button>
@@ -188,6 +190,43 @@ export const CampaignPreviewDialog = ({
     </Dialog>
   );
 };
+
+/* ── Campaign Narrator Helper ── */
+
+function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
+  const [, setDummy] = useState(0);
+  const slides = useMemo(() => {
+    const items: { title: string; body: string }[] = [];
+    items.push({
+      title: data.name,
+      body: `${data.description || ""}. Campaign type: ${data.campaign_type || "general"}. Target audience: ${data.target_audience || "broad audience"}.`,
+    });
+    if (data.goals.length > 0) {
+      items.push({
+        title: "Campaign Goals",
+        body: data.goals.map((g) => `${g.goal}: target ${g.target} measured by ${g.metric}`).join(". "),
+      });
+    }
+    if (data.channels.length > 0) {
+      items.push({
+        title: "Channel Strategy",
+        body: data.channels.map((ch) => `${ch.channel} at ${ch.budget_pct}% budget: ${ch.strategy}`).join(". "),
+      });
+    }
+    data.content_plan.forEach((item) => {
+      items.push({ title: item.title, body: `${item.type} on ${item.channel}. ${item.description}` });
+    });
+    if (data.schedule.phases && data.schedule.phases.length > 0) {
+      items.push({
+        title: "Timeline",
+        body: data.schedule.phases.map((p) => `${p.name}, weeks ${p.weeks}: ${p.focus}`).join(". "),
+      });
+    }
+    return items;
+  }, [data]);
+
+  return <NarratorControls slides={slides} onSlideChange={() => setDummy((d) => d + 1)} currentSlide={0} />;
+}
 
 /* ── Pitch Deck Preview ── */
 
