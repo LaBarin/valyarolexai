@@ -327,6 +327,17 @@ export const PitchDeckPreviewDialog = ({
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const narratorSlides = useMemo(() => {
+    if (!data) return [];
+    return data.slides.map((s) => {
+      const c = s.content;
+      let body = c.body || "";
+      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+      return { title: c.headline || s.title, body };
+    });
+  }, [data]);
+
   if (!data || data.slides.length === 0) return null;
   const slide = data.slides[currentSlide];
 
