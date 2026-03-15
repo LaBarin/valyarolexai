@@ -133,6 +133,7 @@ const WorkspaceContent = () => {
     analytics: "Analytics & Insights",
     pitchdeck: "Pitch Deck Studio",
     campaigns: "Campaign Manager",
+    videos: "Video Studio",
     integrations: "Integrations",
   };
 
