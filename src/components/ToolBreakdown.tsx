@@ -53,7 +53,7 @@ const tools = [
     title: "Team Workspaces",
     description: "Shared calendars, project dashboards, goal tracking, and AI-powered workload balancing for entire teams.",
     color: "hsl(210 70% 60%)",
-    replaces: "Asana, Monday.com",
+    category: "Collaboration",
     capabilities: ["Shared dashboards", "Goal tracking", "Workload balancing", "Team analytics"],
   },
   {
