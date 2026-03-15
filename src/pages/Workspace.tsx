@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import AIChatWidget from "@/components/AIChatWidget";
 import { useAuth } from "@/contexts/AuthContext";
