@@ -413,6 +413,9 @@ const IntegrationsSection = () => {
               <span className="text-xs font-medium text-center text-secondary-foreground group-hover:text-foreground transition-colors leading-tight">
                 {int.name}
               </span>
+              <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                Connect
+              </span>
             </motion.div>
           ))}
         </motion.div>
