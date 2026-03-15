@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      connected_integrations: {
+        Row: {
+          config: Json | null
+          connected_at: string
+          id: string
+          integration_name: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          config?: Json | null
+          connected_at?: string
+          id?: string
+          integration_name: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          config?: Json | null
+          connected_at?: string
+          id?: string
+          integration_name?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -128,6 +155,93 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_workflows: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          name: string
+          run_count: number
+          steps: Json
+          trigger_text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name: string
+          run_count?: number
+          steps?: Json
+          trigger_text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name?: string
+          run_count?: number
+          steps?: Json
+          trigger_text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      schedule_events: {
+        Row: {
+          ai_suggested: boolean
+          attendees: string[] | null
+          created_at: string
+          description: string | null
+          end_time: string
+          event_type: string
+          id: string
+          is_focus_block: boolean
+          start_time: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_suggested?: boolean
+          attendees?: string[] | null
+          created_at?: string
+          description?: string | null
+          end_time: string
+          event_type?: string
+          id?: string
+          is_focus_block?: boolean
+          start_time: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_suggested?: boolean
+          attendees?: string[] | null
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          event_type?: string
+          id?: string
+          is_focus_block?: boolean
+          start_time?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -149,6 +263,48 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reason?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
