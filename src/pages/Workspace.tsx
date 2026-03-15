@@ -6,13 +6,16 @@ import AIChatWidget from "@/components/AIChatWidget";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { 
-  MessageSquare, Workflow, ListTodo, Calendar, BarChart3, Plug
+  MessageSquare, Workflow, ListTodo, Calendar, BarChart3, Plug,
+  Presentation, Megaphone
 } from "lucide-react";
 import TaskManager from "@/components/workspace/TaskManager";
 import ScheduleView from "@/components/workspace/ScheduleView";
 import TeamDashboard from "@/components/workspace/TeamDashboard";
 import IntegrationHub from "@/components/workspace/IntegrationHub";
 import SavedWorkflows from "@/components/workspace/SavedWorkflows";
+import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
+import CampaignManager from "@/components/workspace/CampaignManager";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -20,6 +23,8 @@ const tabs = [
   { id: "tasks", label: "Tasks", icon: ListTodo },
   { id: "schedule", label: "Schedule", icon: Calendar },
   { id: "workflows", label: "Workflows", icon: Workflow },
+  { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
+  { id: "campaigns", label: "Campaigns", icon: Megaphone },
   { id: "integrations", label: "Integrations", icon: Plug },
 ] as const;
 
@@ -108,6 +113,12 @@ const Workspace = () => {
             {activeTab === "workflows" && (
               <div className="max-w-3xl">
                 <SavedWorkflows />
+              </div>
+            )}
+            {activeTab === "pitchdeck" && <PitchDeckBuilder />}
+            {activeTab === "campaigns" && (
+              <div className="max-w-4xl">
+                <CampaignManager />
               </div>
             )}
             {activeTab === "integrations" && (

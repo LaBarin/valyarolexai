@@ -152,7 +152,7 @@ Generate a detailed, actionable campaign. Always respond with valid JSON only.`,
           { role: "system", content: systemContent },
           ...sanitized,
         ],
-        stream: mode !== "workflow",
+        stream: mode === "chat",
       }),
     });
 
