@@ -20,7 +20,7 @@ function getCorsHeaders(req: Request) {
 
 const MAX_MESSAGES = 20;
 const MAX_MSG_LENGTH = 4000;
-const ALLOWED_MODES = ["chat", "workflow"];
+const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign"];
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
