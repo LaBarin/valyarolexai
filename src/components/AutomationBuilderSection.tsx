@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 import {
   Zap, Mail, Brain, ListTodo, Calendar, BarChart3, Check, ArrowDown,
-  Bell, Users, ChevronRight, Sparkles
+  Bell, Users, ChevronRight, Sparkles, FormInput, MessageSquare, Database
 } from "lucide-react";
 import WorkflowBuilder from "@/components/WorkflowBuilder";
 
@@ -24,8 +24,20 @@ type WorkflowDemo = {
 
 const demos: WorkflowDemo[] = [
   {
-    title: "Lead → Meeting → CRM",
+    title: "Lead Form → CRM",
     prompt: "When a new lead arrives, schedule a meeting and notify sales.",
+    trigger: { label: "New Lead Form", sublabel: "Trigger: Form submission received", icon: FormInput },
+    steps: [
+      { label: "AI Analyzes Lead", sublabel: "Scores intent, extracts company & role", icon: Brain, colorVar: "primary", color: "hsl(190 100% 50%)" },
+      { label: "Schedule Meeting", sublabel: "Best available slot booked in 0.6s", icon: Calendar, colorVar: "accent", color: "hsl(150 70% 50%)" },
+      { label: "Send Slack Message", sublabel: "#sales-leads → new qualified lead", icon: MessageSquare, colorVar: "primary", color: "hsl(35 95% 55%)" },
+      { label: "Create Salesforce Record", sublabel: "Contact + opportunity created", icon: Database, colorVar: "primary", color: "hsl(280 70% 60%)" },
+    ],
+    result: "4 actions completed in 1.4 seconds",
+  },
+  {
+    title: "Email → Tasks → CRM",
+    prompt: "When a lead emails, extract info, create follow-up tasks, and update CRM.",
     trigger: { label: "New Lead Email", sublabel: "Trigger: Inbox receives lead", icon: Mail },
     steps: [
       { label: "AI Reads Email", sublabel: "Extracts name, company, intent", icon: Brain, colorVar: "primary", color: "hsl(190 100% 50%)" },
@@ -49,7 +61,7 @@ const demos: WorkflowDemo[] = [
     result: "4 actions completed in 1.8 seconds",
   },
   {
-    title: "Daily Standup Automation",
+    title: "Daily Standup",
     prompt: "Every morning, compile team updates and send a digest.",
     trigger: { label: "9:00 AM Daily", sublabel: "Trigger: Scheduled cron", icon: Zap },
     steps: [
