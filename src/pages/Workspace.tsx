@@ -24,6 +24,7 @@ import AIInsights from "@/components/workspace/AIInsights";
 import IntegrationHub from "@/components/workspace/IntegrationHub";
 import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
+import VideoStudio from "@/components/workspace/VideoStudio";
 
 const navItems = [
   { id: "command", label: "Command Center", icon: LayoutDashboard, group: "core" },
