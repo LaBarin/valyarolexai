@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, X, ChevronLeft, ChevronRight, Megaphone, Target,
   Share2, Mail, FileText, Calendar, BarChart3, Eye
 } from "lucide-react";
+import { NarratorControls } from "./NarratorControls";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from "@/components/ui/dialog";
