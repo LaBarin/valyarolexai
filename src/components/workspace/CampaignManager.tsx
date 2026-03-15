@@ -201,8 +201,20 @@ const CampaignManager = () => {
               <p className="text-sm text-muted-foreground">{c.description}</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Badge className={STATUS_COLORS[c.status] || STATUS_COLORS.draft}>{c.status}</Badge>
+            {c.share_token && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => copyShareLink(c.share_token!)}>
+                  <Copy className="w-3.5 h-3.5 mr-1" /> Copy Link
+                </Button>
+                <a href={getShareUrl(c.share_token)} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline">
+                    <ExternalLink className="w-3.5 h-3.5 mr-1" /> View
+                  </Button>
+                </a>
+              </>
+            )}
             {c.status === "draft" && (
               <Button size="sm" onClick={() => updateStatus(c.id, "active")}>
                 <Zap className="w-4 h-4 mr-1" /> Launch
@@ -214,12 +226,36 @@ const CampaignManager = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs defaultValue="ads" className="space-y-4">
           <TabsList className="glass">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="ads">Ad Creatives</TabsTrigger>
+            <TabsTrigger value="overview">Strategy</TabsTrigger>
             <TabsTrigger value="content">Content Plan</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
           </TabsList>
+
+          {/* Ad Creatives Tab */}
+          <TabsContent value="ads" className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {c.content_plan.map((item, i) => {
+                const colorClass = PLATFORM_COLORS[item.channel] || PLATFORM_COLORS.social;
+                return (
+                  <div key={i} className="glass rounded-xl p-5 space-y-3 hover:border-primary/30 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <Badge className={colorClass}>{item.channel}</Badge>
+                      <Badge variant="outline" className="text-[10px]">Week {item.week}</Badge>
+                    </div>
+                    <h3 className="font-semibold text-sm">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
+                    <Badge variant="outline" className="text-[10px]">{item.type.replace(/_/g, " ")}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+            {c.content_plan.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground text-sm">No ad creatives in this campaign.</div>
+            )}
+          </TabsContent>
 
           <TabsContent value="overview" className="space-y-4">
             {/* Goals */}
