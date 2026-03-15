@@ -37,7 +37,7 @@ const tools = [
     title: "Adaptive AI Engine",
     description: "Learns your energy cycles, work patterns, and preferences. Your workspace gets smarter every day.",
     color: "hsl(280 70% 60%)",
-    replaces: "No equivalent",
+    category: "Intelligence",
     capabilities: ["Behavioral learning", "Pattern recognition", "Predictive suggestions", "Continuous optimization"],
   },
   {
