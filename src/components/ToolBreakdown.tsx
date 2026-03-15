@@ -13,7 +13,7 @@ const tools = [
     title: "Unified Inbox",
     description: "Aggregate Gmail, Outlook, Slack, and Teams into one AI-prioritized feed. Auto-draft replies, smart categorization, one-click summaries.",
     color: "hsl(190 100% 50%)",
-    replaces: "Superhuman, Front",
+    category: "Communication",
     capabilities: ["AI auto-drafts", "Priority scoring", "Thread summaries", "Email → Task conversion"],
   },
   {
@@ -21,7 +21,7 @@ const tools = [
     title: "Smart Scheduling",
     description: "AI scans all calendars, proposes optimal times, protects focus blocks, and dynamically reorganizes your day.",
     color: "hsl(150 70% 50%)",
-    replaces: "Calendly, Motion",
+    category: "Scheduling",
     capabilities: ["Cross-timezone scan", "Energy-based blocks", "Auto-reschedule", "Meeting fatigue prevention"],
   },
   {
@@ -29,7 +29,7 @@ const tools = [
     title: "Workflow Automation",
     description: "Natural language triggers create cross-platform workflows. No code, no drag-and-drop complexity — just results.",
     color: "hsl(35 95% 55%)",
-    replaces: "Zapier, Make",
+    category: "Automation",
     capabilities: ["Natural language triggers", "50+ integrations", "Multi-step chains", "Conditional logic"],
   },
   {
@@ -37,7 +37,7 @@ const tools = [
     title: "Adaptive AI Engine",
     description: "Learns your energy cycles, work patterns, and preferences. Your workspace gets smarter every day.",
     color: "hsl(280 70% 60%)",
-    replaces: "No equivalent",
+    category: "Intelligence",
     capabilities: ["Behavioral learning", "Pattern recognition", "Predictive suggestions", "Continuous optimization"],
   },
   {
@@ -45,7 +45,7 @@ const tools = [
     title: "Natural Language Control",
     description: "Type or speak commands. \"Move non-urgent meetings to next week\" — and watch it happen instantly.",
     color: "hsl(350 70% 55%)",
-    replaces: "None — unique",
+    category: "Control",
     capabilities: ["Voice commands", "Batch operations", "Context-aware", "Cross-tool execution"],
   },
   {
@@ -53,7 +53,7 @@ const tools = [
     title: "Team Workspaces",
     description: "Shared calendars, project dashboards, goal tracking, and AI-powered workload balancing for entire teams.",
     color: "hsl(210 70% 60%)",
-    replaces: "Asana, Monday.com",
+    category: "Collaboration",
     capabilities: ["Shared dashboards", "Goal tracking", "Workload balancing", "Team analytics"],
   },
   {
@@ -61,7 +61,7 @@ const tools = [
     title: "Document Intelligence",
     description: "AI generates meeting notes, proposals, and reports. Extracts action items automatically from any conversation.",
     color: "hsl(150 70% 50%)",
-    replaces: "Notion AI, Otter.ai",
+    category: "Documents",
     capabilities: ["Meeting summaries", "Action extraction", "Auto-reports", "Template generation"],
   },
   {
@@ -69,7 +69,7 @@ const tools = [
     title: "Integration Hub",
     description: "Deep, bidirectional integrations with 50+ tools. Real-time sync, zero configuration, secure OAuth.",
     color: "hsl(190 100% 50%)",
-    replaces: "Zapier integrations",
+    category: "Connectivity",
     capabilities: ["50+ native integrations", "Bidirectional sync", "Zero-config setup", "Webhook support"],
   },
 ];
@@ -129,7 +129,7 @@ const ToolBreakdown = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-base font-semibold">{tool.title}</h3>
                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                      Replaces {tool.replaces}
+                      {tool.category}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3 leading-relaxed">

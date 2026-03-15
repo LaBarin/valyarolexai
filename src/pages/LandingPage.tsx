@@ -71,8 +71,8 @@ const LandingPage = () => {
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Valyarolex.AI replaces six tools with one AI-powered workspace. Faster than Zapier. 
-            Smarter than the rest. No drag-and-drop — just plain English.
+            Valyarolex.AI unifies six tools into one AI-powered workspace. 
+            No drag-and-drop complexity — just plain English.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
