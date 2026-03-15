@@ -69,7 +69,7 @@ const tools = [
     title: "Integration Hub",
     description: "Deep, bidirectional integrations with 50+ tools. Real-time sync, zero configuration, secure OAuth.",
     color: "hsl(190 100% 50%)",
-    replaces: "Zapier integrations",
+    category: "Connectivity",
     capabilities: ["50+ native integrations", "Bidirectional sync", "Zero-config setup", "Webhook support"],
   },
 ];
