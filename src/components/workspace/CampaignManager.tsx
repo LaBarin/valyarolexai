@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Megaphone, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Target,
-  Calendar, BarChart3, Mail, Share2, FileText, Zap, Eye
+  Calendar, BarChart3, Mail, Share2, FileText, Zap, Eye, Link2, Copy, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +31,24 @@ type Campaign = {
   channels: Channel[];
   content_plan: ContentItem[];
   schedule: { duration_weeks?: number; phases?: Phase[] };
+  share_token?: string;
+};
+
+const PLATFORM_COLORS: Record<string, string> = {
+  facebook: "bg-blue-600/20 text-blue-400",
+  instagram: "bg-pink-500/20 text-pink-400",
+  tiktok: "bg-foreground/20 text-foreground",
+  youtube: "bg-red-500/20 text-red-400",
+  linkedin: "bg-blue-500/20 text-blue-300",
+  twitter: "bg-sky-500/20 text-sky-400",
+  google_ads: "bg-yellow-500/20 text-yellow-400",
+  snapchat: "bg-yellow-400/20 text-yellow-300",
+  pinterest: "bg-red-400/20 text-red-300",
+  reddit: "bg-orange-500/20 text-orange-400",
+  social: "bg-primary/20 text-primary",
+  email: "bg-accent/20 text-accent",
+  content: "bg-muted text-muted-foreground",
+  paid_ads: "bg-primary/20 text-primary",
 };
 
 const CHANNEL_ICONS: Record<string, any> = {
@@ -90,9 +108,20 @@ const CampaignManager = () => {
         channels: (c.channels as any) || [],
         content_plan: (c.content_plan as any) || [],
         schedule: (c.schedule as any) || {},
+        share_token: (c as any).share_token ?? undefined,
       })));
     }
     setLoading(false);
+  };
+
+  const getShareUrl = (token: string) => {
+    const base = window.location.origin;
+    return `${base}/campaign/${token}`;
+  };
+
+  const copyShareLink = (token: string) => {
+    navigator.clipboard.writeText(getShareUrl(token));
+    toast({ title: "Link Copied!", description: "Share this link to let others view the campaign." });
   };
 
   const generateCampaign = async () => {
@@ -172,8 +201,20 @@ const CampaignManager = () => {
               <p className="text-sm text-muted-foreground">{c.description}</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Badge className={STATUS_COLORS[c.status] || STATUS_COLORS.draft}>{c.status}</Badge>
+            {c.share_token && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => copyShareLink(c.share_token!)}>
+                  <Copy className="w-3.5 h-3.5 mr-1" /> Copy Link
+                </Button>
+                <a href={getShareUrl(c.share_token)} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" variant="outline">
+                    <ExternalLink className="w-3.5 h-3.5 mr-1" /> View
+                  </Button>
+                </a>
+              </>
+            )}
             {c.status === "draft" && (
               <Button size="sm" onClick={() => updateStatus(c.id, "active")}>
                 <Zap className="w-4 h-4 mr-1" /> Launch
@@ -185,12 +226,36 @@ const CampaignManager = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs defaultValue="ads" className="space-y-4">
           <TabsList className="glass">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="ads">Ad Creatives</TabsTrigger>
+            <TabsTrigger value="overview">Strategy</TabsTrigger>
             <TabsTrigger value="content">Content Plan</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
           </TabsList>
+
+          {/* Ad Creatives Tab */}
+          <TabsContent value="ads" className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {c.content_plan.map((item, i) => {
+                const colorClass = PLATFORM_COLORS[item.channel] || PLATFORM_COLORS.social;
+                return (
+                  <div key={i} className="glass rounded-xl p-5 space-y-3 hover:border-primary/30 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <Badge className={colorClass}>{item.channel}</Badge>
+                      <Badge variant="outline" className="text-[10px]">Week {item.week}</Badge>
+                    </div>
+                    <h3 className="font-semibold text-sm">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
+                    <Badge variant="outline" className="text-[10px]">{item.type.replace(/_/g, " ")}</Badge>
+                  </div>
+                );
+              })}
+            </div>
+            {c.content_plan.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground text-sm">No ad creatives in this campaign.</div>
+            )}
+          </TabsContent>
 
           <TabsContent value="overview" className="space-y-4">
             {/* Goals */}
@@ -347,14 +412,26 @@ const CampaignManager = () => {
                     </div>
                   </div>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="opacity-0 group-hover:opacity-100"
-                  onClick={(e) => { e.stopPropagation(); deleteCampaign(c.id); }}
-                >
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                </Button>
+                <div className="flex gap-1">
+                  {c.share_token && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="opacity-0 group-hover:opacity-100"
+                      onClick={(e) => { e.stopPropagation(); copyShareLink(c.share_token!); }}
+                    >
+                      <Link2 className="w-4 h-4 text-primary" />
+                    </Button>
+                  )}
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="opacity-0 group-hover:opacity-100"
+                    onClick={(e) => { e.stopPropagation(); deleteCampaign(c.id); }}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
               </div>
               {c.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{c.description}</p>}
             </motion.div>

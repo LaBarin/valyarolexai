@@ -141,6 +141,7 @@ export type Database = {
           id: string
           name: string
           schedule: Json | null
+          share_token: string | null
           status: string
           target_audience: string | null
           updated_at: string
@@ -158,6 +159,7 @@ export type Database = {
           id?: string
           name: string
           schedule?: Json | null
+          share_token?: string | null
           status?: string
           target_audience?: string | null
           updated_at?: string
@@ -175,6 +177,7 @@ export type Database = {
           id?: string
           name?: string
           schedule?: Json | null
+          share_token?: string | null
           status?: string
           target_audience?: string | null
           updated_at?: string
