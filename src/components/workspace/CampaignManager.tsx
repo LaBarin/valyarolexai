@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Megaphone, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Target,
-  Calendar, BarChart3, Mail, Share2, FileText, Zap, Eye
+  Calendar, BarChart3, Mail, Share2, FileText, Zap, Eye, Link2, Copy, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
