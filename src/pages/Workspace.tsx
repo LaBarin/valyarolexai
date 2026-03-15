@@ -1,44 +1,115 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
-import Navbar from "@/components/Navbar";
-import AIChatWidget from "@/components/AIChatWidget";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
-import { 
-  MessageSquare, Bot, ListTodo, Calendar, BarChart3, Plug,
-  Presentation, Megaphone
+import {
+  LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
+  Plug, Presentation, Megaphone, MessageSquare, Menu
 } from "lucide-react";
+import {
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
+  SidebarGroupContent, SidebarMenu, SidebarMenuItem,
+  SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar,
+} from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
+
+import CommandCenter from "@/components/workspace/CommandCenter";
+import InboxView from "@/components/workspace/InboxView";
+import AIChatWidget from "@/components/AIChatWidget";
 import TaskManager from "@/components/workspace/TaskManager";
 import ScheduleView from "@/components/workspace/ScheduleView";
-import TeamDashboard from "@/components/workspace/TeamDashboard";
-import IntegrationHub from "@/components/workspace/IntegrationHub";
 import AgentManager from "@/components/workspace/AgentManager";
+import AIInsights from "@/components/workspace/AIInsights";
+import IntegrationHub from "@/components/workspace/IntegrationHub";
 import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
 
-const tabs = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "chat", label: "AI Assistant", icon: MessageSquare },
-  { id: "tasks", label: "Tasks", icon: ListTodo },
-  { id: "schedule", label: "Schedule", icon: Calendar },
-  { id: "agents", label: "AI Agents", icon: Bot },
-  { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
-  { id: "campaigns", label: "Campaigns", icon: Megaphone },
-  { id: "integrations", label: "Integrations", icon: Plug },
+const navItems = [
+  { id: "command", label: "Command Center", icon: LayoutDashboard, group: "core" },
+  { id: "inbox", label: "Inbox", icon: Inbox, group: "core", badge: "3" },
+  { id: "chat", label: "AI Assistant", icon: MessageSquare, group: "core" },
+  { id: "tasks", label: "Tasks", icon: ListTodo, group: "productivity" },
+  { id: "schedule", label: "Calendar", icon: Calendar, group: "productivity" },
+  { id: "agents", label: "AI Agents", icon: Bot, group: "automation" },
+  { id: "analytics", label: "Analytics", icon: BarChart3, group: "automation" },
+  { id: "pitchdeck", label: "Pitch Deck", icon: Presentation, group: "tools" },
+  { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
+  { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
 ] as const;
 
-type TabId = typeof tabs[number]["id"];
+type TabId = typeof navItems[number]["id"];
 
-const Workspace = () => {
+const groups = [
+  { key: "core", label: "Command" },
+  { key: "productivity", label: "Productivity" },
+  { key: "automation", label: "Automation" },
+  { key: "tools", label: "Tools" },
+  { key: "settings", label: "Settings" },
+];
+
+const WorkspaceSidebar = ({ activeTab, onNavigate }: { activeTab: TabId; onNavigate: (id: TabId) => void }) => {
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
+
+  return (
+    <Sidebar collapsible="icon" className="border-r border-border/30">
+      <SidebarContent className="pt-20">
+        {groups.map((group) => {
+          const items = navItems.filter((i) => i.group === group.key);
+          if (items.length === 0) return null;
+          return (
+            <SidebarGroup key={group.key}>
+              {!collapsed && <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">{group.label}</SidebarGroupLabel>}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton
+                        onClick={() => onNavigate(item.id)}
+                        className={`transition-all ${
+                          activeTab === item.id
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4 flex-shrink-0" />
+                        {!collapsed && (
+                          <span className="flex-1 flex items-center justify-between">
+                            <span>{item.label}</span>
+                            {"badge" in item && item.badge && (
+                              <Badge className="bg-primary/20 text-primary text-[9px] px-1.5 py-0 ml-auto">{item.badge}</Badge>
+                            )}
+                          </span>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
+      </SidebarContent>
+    </Sidebar>
+  );
+};
+
+const WorkspaceContent = () => {
   const { user, loading } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<TabId>((searchParams.get("tab") as TabId) || "dashboard");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabId>((searchParams.get("tab") as TabId) || "command");
 
   useEffect(() => {
     const tab = searchParams.get("tab") as TabId;
-    if (tab && tabs.some((t) => t.id === tab)) setActiveTab(tab);
+    if (tab && navItems.some((i) => i.id === tab)) setActiveTab(tab);
   }, [searchParams]);
+
+  const navigate = (id: TabId | string) => {
+    const validId = id as TabId;
+    setActiveTab(validId);
+    setSearchParams({ tab: validId });
+  };
 
   if (loading) {
     return (
@@ -50,86 +121,91 @@ const Workspace = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
+  const titles: Record<string, string> = {
+    command: "Command Center",
+    inbox: "Inbox",
+    chat: "AI Assistant",
+    tasks: "Tasks",
+    schedule: "Calendar",
+    agents: "AI Agents",
+    analytics: "Analytics & Insights",
+    pitchdeck: "Pitch Deck Studio",
+    campaigns: "Campaign Manager",
+    integrations: "Integrations",
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <div className="pt-28 pb-16 px-4 sm:px-6">
-        <div className="container max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6"
-          >
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-              Your <span className="text-gradient">Workspace</span>
-            </h1>
-            <p className="text-muted-foreground">
-              AI assistant, tasks, scheduling, automations, and integrations — all in one place.
-            </p>
-          </motion.div>
-
-          {/* Tab navigation */}
-          <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-shrink-0 ${
-                  activeTab === tab.id
-                    ? "bg-primary text-primary-foreground shadow-glow"
-                    : "glass text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <tab.icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            ))}
+    <>
+      <WorkspaceSidebar activeTab={activeTab} onNavigate={navigate} />
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <header className="h-14 flex items-center gap-3 border-b border-border/30 px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground">
+            <Menu className="w-5 h-5" />
+          </SidebarTrigger>
+          <div className="flex-1">
+            <h1 className="text-sm font-semibold">{titles[activeTab]}</h1>
           </div>
+        </header>
 
-          {/* Tab content */}
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {activeTab === "dashboard" && <TeamDashboard />}
-            {activeTab === "chat" && (
-              <div className="max-w-3xl">
-                <AIChatWidget className="h-[calc(100vh-320px)] min-h-[400px]" />
-              </div>
-            )}
-            {activeTab === "tasks" && (
-              <div className="max-w-3xl">
-                <TaskManager />
-              </div>
-            )}
-            {activeTab === "schedule" && (
-              <div className="max-w-3xl">
-                <ScheduleView />
-              </div>
-            )}
-            {activeTab === "agents" && (
-              <div className="max-w-3xl">
-                <AgentManager />
-              </div>
-            )}
-            {activeTab === "pitchdeck" && <PitchDeckBuilder />}
-            {activeTab === "campaigns" && (
-              <div className="max-w-4xl">
-                <CampaignManager />
-              </div>
-            )}
-            {activeTab === "integrations" && (
-              <div className="max-w-4xl">
-                <IntegrationHub />
-              </div>
-            )}
-          </motion.div>
-        </div>
+        {/* Content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-4 sm:p-6">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === "command" && <CommandCenter onNavigate={navigate} />}
+              {activeTab === "inbox" && <InboxView />}
+              {activeTab === "chat" && (
+                <div className="max-w-3xl">
+                  <AIChatWidget className="h-[calc(100vh-160px)] min-h-[400px]" />
+                </div>
+              )}
+              {activeTab === "tasks" && (
+                <div className="max-w-3xl">
+                  <TaskManager />
+                </div>
+              )}
+              {activeTab === "schedule" && (
+                <div className="max-w-3xl">
+                  <ScheduleView />
+                </div>
+              )}
+              {activeTab === "agents" && (
+                <div className="max-w-3xl">
+                  <AgentManager />
+                </div>
+              )}
+              {activeTab === "analytics" && <AIInsights />}
+              {activeTab === "pitchdeck" && <PitchDeckBuilder />}
+              {activeTab === "campaigns" && (
+                <div className="max-w-4xl">
+                  <CampaignManager />
+                </div>
+              )}
+              {activeTab === "integrations" && (
+                <div className="max-w-4xl">
+                  <IntegrationHub />
+                </div>
+              )}
+            </motion.div>
+          </div>
+        </main>
       </div>
-    </div>
+    </>
+  );
+};
+
+const Workspace = () => {
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <WorkspaceContent />
+      </div>
+    </SidebarProvider>
   );
 };
 
