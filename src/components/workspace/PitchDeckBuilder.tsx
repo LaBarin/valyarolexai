@@ -51,6 +51,11 @@ const SLIDE_TYPE_COLORS: Record<string, string> = {
   ask: "from-primary to-accent",
   closing: "from-accent to-primary",
   content: "from-primary/40 to-muted/20",
+  ad_strategy: "from-blue-500/50 to-primary/30",
+  platform_breakdown: "from-accent/50 to-blue-500/30",
+  creative_brief: "from-primary/60 to-accent/30",
+  targeting: "from-green-500/40 to-primary/30",
+  budget: "from-primary/50 to-green-500/30",
 };
 
 const PitchDeckBuilder = () => {

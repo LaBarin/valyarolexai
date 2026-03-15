@@ -40,6 +40,16 @@ const CHANNEL_ICONS: Record<string, any> = {
   paid_ads: Target,
   pr: Megaphone,
   events: Calendar,
+  facebook: Share2,
+  instagram: Share2,
+  tiktok: Share2,
+  youtube: Share2,
+  linkedin: Share2,
+  twitter: Share2,
+  google_ads: Target,
+  snapchat: Share2,
+  pinterest: Share2,
+  reddit: Share2,
 };
 
 const STATUS_COLORS: Record<string, string> = {
