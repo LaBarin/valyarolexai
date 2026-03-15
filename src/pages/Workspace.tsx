@@ -2,16 +2,31 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import AIChatWidget from "@/components/AIChatWidget";
-import WorkflowBuilder from "@/components/WorkflowBuilder";
 import { useAuth } from "@/contexts/AuthContext";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Navigate } from "react-router-dom";
-import { MessageSquare, Workflow } from "lucide-react";
+import { 
+  MessageSquare, Workflow, ListTodo, Calendar, BarChart3, Plug
+} from "lucide-react";
+import TaskManager from "@/components/workspace/TaskManager";
+import ScheduleView from "@/components/workspace/ScheduleView";
+import TeamDashboard from "@/components/workspace/TeamDashboard";
+import IntegrationHub from "@/components/workspace/IntegrationHub";
+import SavedWorkflows from "@/components/workspace/SavedWorkflows";
+
+const tabs = [
+  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+  { id: "chat", label: "AI Assistant", icon: MessageSquare },
+  { id: "tasks", label: "Tasks", icon: ListTodo },
+  { id: "schedule", label: "Schedule", icon: Calendar },
+  { id: "workflows", label: "Workflows", icon: Workflow },
+  { id: "integrations", label: "Integrations", icon: Plug },
+] as const;
+
+type TabId = typeof tabs[number]["id"];
 
 const Workspace = () => {
   const { user, loading } = useAuth();
-  const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<"chat" | "workflow">("chat");
+  const [activeTab, setActiveTab] = useState<TabId>("dashboard");
 
   if (loading) {
     return (
@@ -38,73 +53,62 @@ const Workspace = () => {
               Your <span className="text-gradient">Workspace</span>
             </h1>
             <p className="text-muted-foreground">
-              Chat with your AI assistant or build automated workflows.
+              AI assistant, tasks, scheduling, automations, and integrations — all in one place.
             </p>
           </motion.div>
 
-          {/* Mobile tab switcher */}
-          {isMobile && (
-            <div className="flex gap-2 mb-4">
+          {/* Tab navigation */}
+          <div className="flex gap-1.5 mb-6 overflow-x-auto pb-2">
+            {tabs.map((tab) => (
               <button
-                onClick={() => setActiveTab("chat")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all ${
-                  activeTab === "chat"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex-shrink-0 ${
+                  activeTab === tab.id
                     ? "bg-primary text-primary-foreground shadow-glow"
-                    : "glass text-muted-foreground"
+                    : "glass text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <MessageSquare className="w-4 h-4" />
-                AI Assistant
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
               </button>
-              <button
-                onClick={() => setActiveTab("workflow")}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium transition-all ${
-                  activeTab === "workflow"
-                    ? "bg-primary text-primary-foreground shadow-glow"
-                    : "glass text-muted-foreground"
-                }`}
-              >
-                <Workflow className="w-4 h-4" />
-                Workflow Builder
-              </button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* AI Assistant - show on desktop always, on mobile only when active */}
-            {(!isMobile || activeTab === "chat") && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-              >
-                {!isMobile && (
-                  <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    AI Assistant
-                  </h2>
-                )}
-                <AIChatWidget className="h-[calc(100vh-320px)] min-h-[400px]" />
-              </motion.div>
-            )}
-
-            {/* Workflow Builder - show on desktop always, on mobile only when active */}
-            {(!isMobile || activeTab === "workflow") && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-              >
-                {!isMobile && (
-                  <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-accent" />
-                    Workflow Builder
-                  </h2>
-                )}
-                <WorkflowBuilder className="min-h-[calc(100vh-320px)]" />
-              </motion.div>
-            )}
+            ))}
           </div>
+
+          {/* Tab content */}
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === "dashboard" && <TeamDashboard />}
+            {activeTab === "chat" && (
+              <div className="max-w-3xl">
+                <AIChatWidget className="h-[calc(100vh-320px)] min-h-[400px]" />
+              </div>
+            )}
+            {activeTab === "tasks" && (
+              <div className="max-w-3xl">
+                <TaskManager />
+              </div>
+            )}
+            {activeTab === "schedule" && (
+              <div className="max-w-3xl">
+                <ScheduleView />
+              </div>
+            )}
+            {activeTab === "workflows" && (
+              <div className="max-w-3xl">
+                <SavedWorkflows />
+              </div>
+            )}
+            {activeTab === "integrations" && (
+              <div className="max-w-4xl">
+                <IntegrationHub />
+              </div>
+            )}
+          </motion.div>
         </div>
       </div>
     </div>
