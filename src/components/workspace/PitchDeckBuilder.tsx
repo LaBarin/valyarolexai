@@ -70,6 +70,8 @@ const PitchDeckBuilder = () => {
   const [prompt, setPrompt] = useState("");
   const [editingSlide, setEditingSlide] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [previewData, setPreviewData] = useState<PitchDeckPreviewData | null>(null);
+  const [isSavingPreview, setIsSavingPreview] = useState(false);
   const presentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
