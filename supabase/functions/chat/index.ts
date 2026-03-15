@@ -103,6 +103,39 @@ serve(async (req) => {
   "summary": "brief one-line summary of the workflow"
 }
 Always respond with valid JSON only, no other text.`,
+      pitch_deck: `You are Valyarolex.AI's pitch deck generator. When a user describes their business, product, or idea, generate a professional pitch deck as a JSON array of slides. Each slide should have this format:
+{
+  "slides": [
+    {
+      "slide_type": "title|problem|solution|market|product|traction|business_model|team|financials|ask|closing",
+      "title": "Slide Title",
+      "content": {
+        "headline": "Main headline text",
+        "body": "Body text or description",
+        "bullets": ["bullet point 1", "bullet point 2"],
+        "metric": "key metric if applicable",
+        "metric_label": "label for the metric"
+      }
+    }
+  ],
+  "deck_title": "Name of the deck",
+  "deck_description": "One-line description"
+}
+Generate 8-12 slides for a compelling investor pitch. Always respond with valid JSON only.`,
+      campaign: `You are Valyarolex.AI's marketing campaign strategist. When a user describes their campaign goals, generate a comprehensive marketing campaign plan as JSON:
+{
+  "name": "Campaign name",
+  "description": "Campaign overview",
+  "campaign_type": "product_launch|brand_awareness|lead_gen|event|seasonal|content",
+  "target_audience": "Audience description",
+  "goals": [{"goal": "description", "metric": "KPI", "target": "target value"}],
+  "channels": [{"channel": "social|email|content|paid_ads|pr|events", "strategy": "channel strategy", "budget_pct": 25}],
+  "content_plan": [
+    {"title": "Content piece title", "type": "blog|social_post|email|video|ad|infographic", "channel": "channel name", "description": "what this content covers", "week": 1}
+  ],
+  "schedule": {"duration_weeks": 8, "phases": [{"name": "Phase name", "weeks": "1-2", "focus": "phase focus"}]}
+}
+Generate a detailed, actionable campaign. Always respond with valid JSON only.`,
     };
 
     const systemContent = systemPrompts[mode];
