@@ -22,7 +22,7 @@ const tabs = [
   { id: "chat", label: "AI Assistant", icon: MessageSquare },
   { id: "tasks", label: "Tasks", icon: ListTodo },
   { id: "schedule", label: "Schedule", icon: Calendar },
-  { id: "workflows", label: "Workflows", icon: Workflow },
+  { id: "agents", label: "AI Agents", icon: Bot },
   { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
   { id: "campaigns", label: "Campaigns", icon: Megaphone },
   { id: "integrations", label: "Integrations", icon: Plug },
