@@ -152,29 +152,46 @@ const CampaignManager = () => {
       } catch {
         throw new Error("Failed to parse AI response");
       }
-
-      const { error } = await supabase.from("marketing_campaigns").insert({
-        user_id: user.id,
-        name: parsed.name || "AI Campaign",
-        description: parsed.description,
-        campaign_type: parsed.campaign_type || "general",
-        target_audience: parsed.target_audience,
-        goals: parsed.goals || [],
-        channels: parsed.channels || [],
-        content_plan: parsed.content_plan || [],
-        schedule: parsed.schedule || {},
-        ai_generated: true,
-      });
-      if (error) throw error;
-
-      setPrompt("");
-      await loadCampaigns();
-      toast({ title: "Campaign Created", description: `"${parsed.name}" is ready for review` });
+      // Show preview instead of saving directly
+      setPreviewData(parsed);
     } catch (e: any) {
       toast({ title: "Generation Failed", description: e.message, variant: "destructive" });
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const approvePreview = async () => {
+    if (!previewData || !user) return;
+    setIsSavingPreview(true);
+    try {
+      const { error } = await supabase.from("marketing_campaigns").insert({
+        user_id: user.id,
+        name: previewData.name || "AI Campaign",
+        description: previewData.description,
+        campaign_type: previewData.campaign_type || "general",
+        target_audience: previewData.target_audience,
+        goals: previewData.goals || [],
+        channels: previewData.channels || [],
+        content_plan: previewData.content_plan || [],
+        schedule: previewData.schedule || {},
+        ai_generated: true,
+      });
+      if (error) throw error;
+      setPreviewData(null);
+      setPrompt("");
+      await loadCampaigns();
+      toast({ title: "Campaign Approved", description: `"${previewData.name}" has been saved.` });
+    } catch (e: any) {
+      toast({ title: "Save Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setIsSavingPreview(false);
+    }
+  };
+
+  const rejectPreview = () => {
+    setPreviewData(null);
+    toast({ title: "Campaign Rejected", description: "The draft was discarded." });
   };
 
   const updateStatus = async (id: string, status: string) => {
