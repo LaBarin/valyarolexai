@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
-  Plug, Presentation, Megaphone, MessageSquare, Menu
+  Plug, Presentation, Megaphone, MessageSquare, Menu, Video
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
@@ -24,6 +24,7 @@ import AIInsights from "@/components/workspace/AIInsights";
 import IntegrationHub from "@/components/workspace/IntegrationHub";
 import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
+import VideoStudio from "@/components/workspace/VideoStudio";
 
 const navItems = [
   { id: "command", label: "Command Center", icon: LayoutDashboard, group: "core" },
@@ -35,6 +36,7 @@ const navItems = [
   { id: "analytics", label: "Analytics", icon: BarChart3, group: "automation" },
   { id: "pitchdeck", label: "Pitch Deck", icon: Presentation, group: "tools" },
   { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
+  { id: "videos", label: "Video Studio", icon: Video, group: "tools" },
   { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
 ] as const;
 
@@ -131,6 +133,7 @@ const WorkspaceContent = () => {
     analytics: "Analytics & Insights",
     pitchdeck: "Pitch Deck Studio",
     campaigns: "Campaign Manager",
+    videos: "Video Studio",
     integrations: "Integrations",
   };
 
@@ -189,6 +192,11 @@ const WorkspaceContent = () => {
               {activeTab === "integrations" && (
                 <div className="max-w-4xl">
                   <IntegrationHub />
+                </div>
+              )}
+              {activeTab === "videos" && (
+                <div className="max-w-4xl">
+                  <VideoStudio />
                 </div>
               )}
             </motion.div>

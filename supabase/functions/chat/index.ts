@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const MAX_MESSAGES = 20;
 const MAX_MSG_LENGTH = 4000;
-const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign"];
+const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign", "video"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -121,6 +121,40 @@ Support ALL major advertising platforms: Facebook Ads, Instagram Ads, TikTok Ads
   "schedule": {"duration_weeks": 8, "phases": [{"name": "Phase name", "weeks": "1-2", "focus": "phase focus"}]}
 }
 For each platform, include specific ad formats (e.g. Facebook: carousel, story, reel; TikTok: in-feed, spark ads; Google: search, display, shopping). Generate a detailed, actionable campaign with real ad copy examples. Always respond with valid JSON only.`,
+      video: `You are Valyarolex.AI's video ad creative director. Generate professional video ad scripts and storyboards for any platform. When a user describes their video concept, generate a detailed production plan as JSON.
+
+Support ALL formats: shorts (5-15s for TikTok/Reels/Shorts), square (1:1 for feed ads), landscape (16:9 for YouTube/web), and commercial-length (30-60s for TV/pre-roll).
+
+{
+  "title": "Video title",
+  "description": "Video concept overview",
+  "format": "9:16|1:1|16:9",
+  "duration_seconds": 15,
+  "duration_type": "short|square|landscape|commercial",
+  "platform": "tiktok|instagram|youtube|facebook|linkedin|twitter|snapchat|pinterest|general",
+  "target_audience": "audience description",
+  "hook": "opening hook text (first 3 seconds)",
+  "cta": "call to action text",
+  "music_mood": "upbeat|dramatic|calm|energetic|inspiring|corporate",
+  "scenes": [
+    {
+      "scene_number": 1,
+      "duration_seconds": 3,
+      "visual": "detailed visual description of what's on screen",
+      "text_overlay": "any text shown on screen",
+      "voiceover": "narration or dialogue",
+      "transition": "cut|fade|swipe|zoom|none",
+      "notes": "production notes"
+    }
+  ],
+  "ad_copy": {
+    "headline": "ad headline",
+    "description": "ad description for the platform",
+    "hashtags": ["relevant", "hashtags"]
+  }
+}
+
+Generate 3-8 scenes depending on duration. Include specific visual directions, text overlays, voiceover scripts, and transitions. Make it platform-native (e.g. TikTok = casual/trending, LinkedIn = professional, YouTube = polished). Always respond with valid JSON only.`,
     };
 
     const systemContent = systemPrompts[mode];
@@ -162,7 +196,7 @@ For each platform, include specific ad formats (e.g. Facebook: carousel, story, 
       });
     }
 
-    if (mode === "workflow" || mode === "pitch_deck" || mode === "campaign") {
+    if (mode === "workflow" || mode === "pitch_deck" || mode === "campaign" || mode === "video") {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || "{}";
       return new Response(JSON.stringify({ result: content }), {
