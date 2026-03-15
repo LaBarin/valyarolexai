@@ -108,9 +108,20 @@ const CampaignManager = () => {
         channels: (c.channels as any) || [],
         content_plan: (c.content_plan as any) || [],
         schedule: (c.schedule as any) || {},
+        share_token: (c as any).share_token ?? undefined,
       })));
     }
     setLoading(false);
+  };
+
+  const getShareUrl = (token: string) => {
+    const base = window.location.origin;
+    return `${base}/campaign/${token}`;
+  };
+
+  const copyShareLink = (token: string) => {
+    navigator.clipboard.writeText(getShareUrl(token));
+    toast({ title: "Link Copied!", description: "Share this link to let others view the campaign." });
   };
 
   const generateCampaign = async () => {
