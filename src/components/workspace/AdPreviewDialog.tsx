@@ -394,6 +394,12 @@ export const PitchDeckPreviewDialog = ({
 
         {/* Action buttons */}
         <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
+          <NarratorControls
+            slides={narratorSlides}
+            onSlideChange={setCurrentSlide}
+            currentSlide={currentSlide}
+          />
+          <div className="flex-1" />
           <Button variant="outline" onClick={onReject} disabled={loading}>
             <X className="w-4 h-4 mr-1.5" /> Reject
           </Button>
