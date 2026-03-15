@@ -177,7 +177,7 @@ Generate a detailed, actionable campaign. Always respond with valid JSON only.`,
       });
     }
 
-    if (mode === "workflow") {
+    if (mode === "workflow" || mode === "pitch_deck" || mode === "campaign") {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || "{}";
       return new Response(JSON.stringify({ result: content }), {
