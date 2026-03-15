@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
-  Plug, Presentation, Megaphone, MessageSquare, Menu
+  Plug, Presentation, Megaphone, MessageSquare, Menu, Video
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
