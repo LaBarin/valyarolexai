@@ -61,7 +61,7 @@ const tools = [
     title: "Document Intelligence",
     description: "AI generates meeting notes, proposals, and reports. Extracts action items automatically from any conversation.",
     color: "hsl(150 70% 50%)",
-    replaces: "Notion AI, Otter.ai",
+    category: "Documents",
     capabilities: ["Meeting summaries", "Action extraction", "Auto-reports", "Template generation"],
   },
   {
