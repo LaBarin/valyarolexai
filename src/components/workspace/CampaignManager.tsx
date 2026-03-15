@@ -86,6 +86,8 @@ const CampaignManager = () => {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [isSavingPreview, setIsSavingPreview] = useState(false);
 
   useEffect(() => {
     if (user) loadCampaigns();
