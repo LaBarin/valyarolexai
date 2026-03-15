@@ -12,7 +12,7 @@ type SavedWorkflow = {
   name: string;
   description: string | null;
   trigger_text: string;
-  steps: any[];
+  steps: any;
   is_active: boolean;
   run_count: number;
   last_run_at: string | null;
