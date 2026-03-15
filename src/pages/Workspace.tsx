@@ -110,9 +110,9 @@ const Workspace = () => {
                 <ScheduleView />
               </div>
             )}
-            {activeTab === "workflows" && (
+            {activeTab === "agents" && (
               <div className="max-w-3xl">
-                <SavedWorkflows />
+                <AgentManager />
               </div>
             )}
             {activeTab === "pitchdeck" && <PitchDeckBuilder />}
