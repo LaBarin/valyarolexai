@@ -376,6 +376,7 @@ const CampaignManager = () => {
 
   // List view
   return (
+    <>
     <div className="space-y-6">
       {/* AI Generator */}
       <div className="glass rounded-2xl p-6 space-y-4">
