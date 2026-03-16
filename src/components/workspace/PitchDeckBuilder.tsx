@@ -421,7 +421,7 @@ const PitchDeckBuilder = () => {
             <div className="grid gap-4 xl:grid-cols-12 xl:items-start">
               {/* Main slide view */}
               <div className="order-1 flex flex-col gap-3 xl:col-span-9">
-                <div className="rounded-2xl border border-border/30 bg-muted/10 p-1.5 sm:p-2 flex-shrink-0" style={{ maxHeight: "min(38vh, 260px)" }}>
+                <div className="rounded-2xl border border-border/30 bg-muted/10 p-1 sm:p-1.5 flex-shrink-0" style={{ maxHeight: "min(28vh, 180px)" }}>
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={currentSlide}
@@ -430,7 +430,7 @@ const PitchDeckBuilder = () => {
                       transition={{ duration: 0.2 }}
                       className="flex h-full items-center justify-center overflow-hidden"
                     >
-                      <div className="w-full max-h-full aspect-video" style={{ maxHeight: "min(35vh, 240px)" }}>
+                      <div className="w-full max-h-full aspect-video" style={{ maxHeight: "min(24vh, 150px)" }}>
                         {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
                       </div>
                     </motion.div>
