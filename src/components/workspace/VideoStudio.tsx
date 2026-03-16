@@ -1002,13 +1002,23 @@ const VideoStudio = () => {
                       <Badge variant="outline" className="absolute top-2 left-2 text-[10px] bg-black/50 text-white border-white/20 backdrop-blur-sm">
                         Scene {scene.scene_number || i + 1}
                       </Badge>
-                      {/* Edit button */}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); startEditScene(i, scene); }}
-                        className="absolute top-2 right-2 w-6 h-6 rounded-md bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
-                      >
-                        <Pencil className="w-3 h-3" />
-                      </button>
+                      {/* Download + Edit buttons */}
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        {sceneImg && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); downloadSceneImage(sceneImg, `${p.title}-scene-${scene.scene_number || i + 1}.png`); }}
+                            className="w-6 h-6 rounded-md bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+                          >
+                            <Download className="w-3 h-3" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startEditScene(i, scene); }}
+                          className="w-6 h-6 rounded-md bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                     <div className="p-3 space-y-1">
                       <div className="flex items-center justify-between">
