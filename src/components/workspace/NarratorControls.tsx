@@ -1,36 +1,30 @@
-import { Volume2, VolumeX, SkipForward } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNarrator } from "@/hooks/use-narrator";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 interface NarratorControlsProps {
   slides: { title: string; body: string }[];
-  onSlideChange: (index: number) => void;
   currentSlide: number;
   compact?: boolean;
+  // External narrator state (lifted up)
+  isNarrating: boolean;
+  onStart: (slides: { title: string; subtitle: string; description: string }[], fromStep: number) => void;
+  onStop: () => void;
 }
 
-export function NarratorControls({ slides, onSlideChange, currentSlide, compact }: NarratorControlsProps) {
-  const { isNarrating, currentNarrationStep, startNarration, stopNarration } = useNarrator({
-    onStepChange: onSlideChange,
-    totalSteps: slides.length,
-  });
-
+export function NarratorControls({ slides, currentSlide, compact, isNarrating, onStart, onStop }: NarratorControlsProps) {
   const handleToggle = useCallback(() => {
     if (isNarrating) {
-      stopNarration();
+      onStop();
     } else {
       const narratorSlides = slides.map((s) => ({
         title: s.title,
         subtitle: "",
         description: s.body,
       }));
-      startNarration(narratorSlides, currentSlide);
+      onStart(narratorSlides, currentSlide);
     }
-  }, [isNarrating, stopNarration, startNarration, slides, currentSlide]);
-
-  // Stop narration on unmount
-  useEffect(() => () => { stopNarration(); }, [stopNarration]);
+  }, [isNarrating, onStop, onStart, slides, currentSlide]);
 
   return (
     <Button

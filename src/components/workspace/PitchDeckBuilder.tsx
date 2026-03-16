@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Presentation, Plus, Sparkles, ChevronLeft, ChevronRight, Maximize2,
@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNarrator } from "@/hooks/use-narrator";
 import { PitchDeckPreviewDialog, type PitchDeckPreviewData } from "./AdPreviewDialog";
 import logoImg from "@/assets/valyarolex-logo.png";
 
@@ -75,6 +76,25 @@ const PitchDeckBuilder = () => {
   const [previewData, setPreviewData] = useState<PitchDeckPreviewData | null>(null);
   const [isSavingPreview, setIsSavingPreview] = useState(false);
   const presentRef = useRef<HTMLDivElement>(null);
+
+  const narratorSlides = useMemo(() => {
+    if (!activeDeck) return [];
+    return activeDeck.slides.map((s) => {
+      const c = s.content;
+      let body = c.body || "";
+      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+      return { title: c.headline || s.title, body };
+    });
+  }, [activeDeck]);
+
+  const { isNarrating, startNarration, stopNarration } = useNarrator({
+    onStepChange: setCurrentSlide,
+    totalSteps: narratorSlides.length,
+  });
+
+  // Stop narration when leaving deck
+  useEffect(() => () => { stopNarration(); }, [stopNarration]);
 
   useEffect(() => {
     if (user) loadDecks();
@@ -222,7 +242,6 @@ const PitchDeckBuilder = () => {
 
   const enterPresentation = () => {
     setIsPresenting(true);
-    setCurrentSlide(0);
     presentRef.current?.requestFullscreen?.();
   };
 
@@ -335,18 +354,14 @@ const PitchDeckBuilder = () => {
             <ChevronRight className="w-5 h-5" />
           </Button>
           <div onClick={(e) => e.stopPropagation()}>
-            <NarratorControls
-              slides={activeDeck.slides.map((s) => {
-                const c = s.content;
-                let body = c.body || "";
-                if (c.bullets?.length) body += ". " + c.bullets.join(". ");
-                if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
-                return { title: c.headline || s.title, body };
-              })}
-              onSlideChange={setCurrentSlide}
-              currentSlide={currentSlide}
-              compact
-            />
+             <NarratorControls
+               slides={narratorSlides}
+               currentSlide={currentSlide}
+               compact
+               isNarrating={isNarrating}
+               onStart={startNarration}
+               onStop={stopNarration}
+             />
           </div>
           <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); exitPresentation(); }}>
             <Minimize2 className="w-4 h-4" />
@@ -423,15 +438,11 @@ const PitchDeckBuilder = () => {
               </Button>
               <div className="flex items-center gap-3">
                 <NarratorControls
-                  slides={activeDeck.slides.map((s) => {
-                    const c = s.content;
-                    let body = c.body || "";
-                    if (c.bullets?.length) body += ". " + c.bullets.join(". ");
-                    if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
-                    return { title: c.headline || s.title, body };
-                  })}
-                  onSlideChange={setCurrentSlide}
+                  slides={narratorSlides}
                   currentSlide={currentSlide}
+                  isNarrating={isNarrating}
+                  onStart={startNarration}
+                  onStop={stopNarration}
                 />
                 <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
               </div>

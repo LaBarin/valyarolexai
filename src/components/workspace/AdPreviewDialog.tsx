@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useNarrator } from "@/hooks/use-narrator";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, X, ChevronLeft, ChevronRight, Megaphone, Target,
@@ -197,7 +198,6 @@ export const CampaignPreviewDialog = ({
 /* ── Campaign Narrator Helper ── */
 
 function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
-  const [, setDummy] = useState(0);
   const slides = useMemo(() => {
     const items: { title: string; body: string }[] = [];
     items.push({
@@ -228,7 +228,22 @@ function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
     return items;
   }, [data]);
 
-  return <NarratorControls slides={slides} onSlideChange={() => setDummy((d) => d + 1)} currentSlide={0} />;
+  const { isNarrating, startNarration, stopNarration } = useNarrator({
+    onStepChange: () => {},
+    totalSteps: slides.length,
+  });
+
+  useEffect(() => () => { stopNarration(); }, [stopNarration]);
+
+  return (
+    <NarratorControls
+      slides={slides}
+      currentSlide={0}
+      isNarrating={isNarrating}
+      onStart={startNarration}
+      onStop={stopNarration}
+    />
+  );
 }
 
 /* ── Pitch Deck Preview ── */
@@ -343,6 +358,13 @@ export const PitchDeckPreviewDialog = ({
     });
   }, [data]);
 
+  const { isNarrating, startNarration, stopNarration } = useNarrator({
+    onStepChange: setCurrentSlide,
+    totalSteps: narratorSlides.length,
+  });
+
+  useEffect(() => () => { stopNarration(); }, [stopNarration]);
+
   if (!data || data.slides.length === 0) return null;
   const slide = data.slides[currentSlide];
 
@@ -401,8 +423,10 @@ export const PitchDeckPreviewDialog = ({
         <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
           <NarratorControls
             slides={narratorSlides}
-            onSlideChange={setCurrentSlide}
             currentSlide={currentSlide}
+            isNarrating={isNarrating}
+            onStart={startNarration}
+            onStop={stopNarration}
           />
           <div className="flex-1" />
           <Button variant="outline" onClick={onReject} disabled={loading}>
