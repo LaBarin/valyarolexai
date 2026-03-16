@@ -394,10 +394,10 @@ const PitchDeckBuilder = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-4">
+        <div className="grid grid-cols-12 gap-4" style={{ maxHeight: "calc(100vh - 180px)" }}>
           {/* Slide thumbnails */}
           <div className="col-span-3">
-            <ScrollArea className="h-[60vh]">
+            <ScrollArea className="h-full max-h-[calc(100vh-200px)]">
               <div className="space-y-2 pr-2">
                 {activeDeck.slides.map((slide, i) => (
                   <button
@@ -407,10 +407,12 @@ const PitchDeckBuilder = () => {
                       currentSlide === i ? "border-primary shadow-glow" : "border-border/30 hover:border-border"
                     }`}
                   >
-                    <div className="scale-[0.25] origin-top-left w-[400%] pointer-events-none">
-                      {renderSlide(slide, i)}
+                    <div className="relative w-full aspect-video overflow-hidden">
+                      <div className="absolute inset-0 origin-top-left scale-[0.25] w-[400%] h-[400%] pointer-events-none">
+                        {renderSlide(slide, i)}
+                      </div>
                     </div>
-                    <div className="p-2 bg-background/80 -mt-[75%]">
+                    <div className="p-2 bg-background/80">
                       <p className="text-xs font-medium truncate">{slide.title || `Slide ${i + 1}`}</p>
                       <p className="text-[10px] text-muted-foreground">{slide.slide_type.replace(/_/g, " ")}</p>
                     </div>
@@ -421,20 +423,27 @@ const PitchDeckBuilder = () => {
           </div>
 
           {/* Main slide view */}
-          <div className="col-span-9 space-y-4">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentSlide}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-              >
-                {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
-              </motion.div>
-            </AnimatePresence>
+          <div className="col-span-9 flex flex-col gap-3 min-h-0">
+            <div className="flex-1 min-h-0 max-h-[calc(100vh-300px)]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentSlide}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full"
+                >
+                  <div className="h-full flex items-center justify-center">
+                    <div className="w-full max-h-full" style={{ aspectRatio: "16/9" }}>
+                      {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-shrink-0">
               <Button size="sm" variant="outline" disabled={currentSlide === 0} onClick={() => setCurrentSlide(currentSlide - 1)}>
                 <ChevronLeft className="w-4 h-4" /> Previous
               </Button>
@@ -457,9 +466,9 @@ const PitchDeckBuilder = () => {
 
             {/* Speaker notes */}
             {activeDeck.slides[currentSlide]?.notes && (
-              <div className="glass rounded-xl p-4">
+              <div className="glass rounded-xl p-3 flex-shrink-0">
                 <p className="text-xs font-semibold text-muted-foreground mb-1">Speaker Notes</p>
-                <p className="text-sm text-foreground/80">{activeDeck.slides[currentSlide].notes}</p>
+                <p className="text-sm text-foreground/80 line-clamp-3">{activeDeck.slides[currentSlide].notes}</p>
               </div>
             )}
           </div>
