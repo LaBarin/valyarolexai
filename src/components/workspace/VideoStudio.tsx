@@ -152,7 +152,7 @@ const PublishingLinks = ({ project, script, onUpdate }: { project: VideoProject;
           </Button>
         )}
       </div>
-      <p className="text-[10px] text-muted-foreground">Paste the published video URL for each platform.</p>
+      <p className="text-[10px] text-muted-foreground">Paste the published video URL for each platform. {!hasChanges && Object.keys(links).some(k => links[k]) && <span className="text-accent">✓ Links saved</span>}</p>
       <div className="space-y-2">
         {PUBLISHING_PLATFORMS.map(({ key, label, placeholder }) => (
           <div key={key} className="flex items-center gap-2">
