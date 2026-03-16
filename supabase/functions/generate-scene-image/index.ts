@@ -34,9 +34,32 @@ serve(async (req) => {
       });
     }
 
+    const MAX_VISUAL_LEN = 2000;
+    const MAX_OVERLAY_LEN = 200;
+    const ALLOWED_FORMATS = ["9:16", "1:1", "16:9"];
+    const ALLOWED_PLATFORMS = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "twitter", "snapchat", "pinterest", "general"];
+
     const { visual, text_overlay, format, platform } = await req.json();
-    if (!visual) {
-      return new Response(JSON.stringify({ error: "Missing visual description" }), {
+    if (!visual || typeof visual !== "string" || visual.length > MAX_VISUAL_LEN) {
+      return new Response(JSON.stringify({ error: "Invalid or too-long visual description" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (text_overlay && String(text_overlay).length > MAX_OVERLAY_LEN) {
+      return new Response(JSON.stringify({ error: "text_overlay too long" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (format && !ALLOWED_FORMATS.includes(format)) {
+      return new Response(JSON.stringify({ error: "Invalid format" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (platform && !ALLOWED_PLATFORMS.includes(platform)) {
+      return new Response(JSON.stringify({ error: "Invalid platform" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

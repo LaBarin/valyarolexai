@@ -611,7 +611,10 @@ const VideoStudio = () => {
       toast({ title: "Link Copied!", description: url });
       return;
     }
-    const token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+    // Generate 128-bit token (32 hex chars) to match campaign token strength
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    const token = Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
     const { error } = await supabase.from("video_projects").update({ share_token: token } as any).eq("id", id);
     if (error) {
       toast({ title: "Share Failed", description: error.message, variant: "destructive" });
