@@ -113,6 +113,81 @@ const PUBLISHING_PLATFORMS = [
   { key: "snapchat", label: "Snapchat", placeholder: "https://www.snapchat.com/..." },
 ];
 
+const normalizeVideoScript = (value: unknown): VideoData | null => {
+  if (!value || Array.isArray(value) || typeof value !== "object") return null;
+
+  const script = value as Partial<VideoData>;
+  const rawLinks = script.publishing_links;
+
+  return {
+    title: script.title ?? "Untitled Video",
+    description: script.description,
+    format: script.format ?? "9:16",
+    duration_seconds: typeof script.duration_seconds === "number" ? script.duration_seconds : 0,
+    duration_type: script.duration_type ?? "short",
+    platform: script.platform ?? "general",
+    target_audience: script.target_audience,
+    hook: script.hook,
+    cta: script.cta,
+    music_mood: script.music_mood,
+    scenes: Array.isArray(script.scenes) ? (script.scenes as Scene[]) : [],
+    ad_copy: script.ad_copy,
+    publishing_links:
+      rawLinks && typeof rawLinks === "object" && !Array.isArray(rawLinks)
+        ? Object.fromEntries(Object.entries(rawLinks).map(([key, link]) => [key, String(link ?? "")]))
+        : {},
+  };
+};
+
+const getStoryboardScenes = (value: unknown): Scene[] => {
+  return Array.isArray(value) ? (value as Scene[]) : [];
+};
+
+const getSceneDuration = (scenes: Scene[]): number => {
+  return scenes.reduce((total, scene) => total + (scene.duration_seconds || 0), 0);
+};
+
+const mergeVideoScript = (
+  project: Pick<VideoProject, "title" | "description" | "format" | "duration_type" | "platform" | "storyboard">,
+  currentScript: VideoData | null,
+  overrides: Partial<VideoData> = {},
+): VideoData => {
+  const fallbackScenes = currentScript?.scenes?.length ? currentScript.scenes : project.storyboard || [];
+  const nextScenes = overrides.scenes ?? fallbackScenes;
+
+  return {
+    title: currentScript?.title ?? project.title,
+    description: currentScript?.description ?? project.description,
+    format: currentScript?.format ?? project.format,
+    duration_seconds: currentScript?.duration_seconds ?? getSceneDuration(nextScenes),
+    duration_type: currentScript?.duration_type ?? project.duration_type,
+    platform: currentScript?.platform ?? project.platform,
+    target_audience: currentScript?.target_audience,
+    hook: currentScript?.hook,
+    cta: currentScript?.cta,
+    music_mood: currentScript?.music_mood,
+    scenes: nextScenes,
+    ad_copy: currentScript?.ad_copy,
+    publishing_links: currentScript?.publishing_links ?? {},
+    ...overrides,
+  };
+};
+
+const mapVideoProject = (row: any): VideoProject => ({
+  id: row.id,
+  title: row.title,
+  description: row.description ?? undefined,
+  format: row.format,
+  duration_type: row.duration_type,
+  platform: row.platform,
+  status: row.status,
+  script: normalizeVideoScript(row.script),
+  storyboard: getStoryboardScenes(row.storyboard),
+  ai_generated: row.ai_generated,
+  created_at: row.created_at,
+  share_token: row.share_token ?? null,
+});
+
 const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; script: VideoData | null; onUpdate: (project: VideoProject) => void }>(
   ({ project, script, onUpdate }, ref) => {
     const { toast } = useToast();
@@ -136,20 +211,9 @@ const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; scri
           .filter(([, value]) => Boolean(value)),
       ) as Record<string, string>;
 
-      const currentScript = script && !Array.isArray(script) ? script : null;
-      const updatedScript = {
-        title: currentScript?.title ?? project.title,
-        description: currentScript?.description ?? project.description,
-        format: currentScript?.format ?? project.format,
-        duration_seconds:
-          currentScript?.duration_seconds ??
-          (project.storyboard || []).reduce((total, scene) => total + (scene.duration_seconds || 0), 0),
-        duration_type: currentScript?.duration_type ?? project.duration_type,
-        platform: currentScript?.platform ?? project.platform,
-        scenes: currentScript?.scenes?.length ? currentScript.scenes : project.storyboard || [],
-        ...currentScript,
+      const updatedScript = mergeVideoScript(project, script, {
         publishing_links: cleanLinks,
-      } as VideoData;
+      });
 
       const { data, error } = await supabase
         .from("video_projects")
@@ -158,31 +222,18 @@ const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; scri
         .select("*")
         .single();
 
-      if (error) {
-        toast({ title: "Save Failed", description: error.message, variant: "destructive" });
+      if (error || !data) {
+        toast({ title: "Save Failed", description: error?.message || "Unable to save publishing links.", variant: "destructive" });
         setSaving(false);
         return;
       }
 
-      const persistedScript = (data.script && !Array.isArray(data.script) ? (data.script as VideoData) : null);
-      const persistedLinks = persistedScript?.publishing_links || cleanLinks;
+      const persistedProject = mapVideoProject(data);
+      const persistedLinks = persistedProject.script?.publishing_links || cleanLinks;
 
       setEditingLinks(persistedLinks);
       setLastSaved(persistedLinks);
-      onUpdate({
-        id: data.id,
-        title: data.title,
-        description: data.description ?? undefined,
-        format: data.format,
-        duration_type: data.duration_type,
-        platform: data.platform,
-        status: data.status,
-        script: persistedScript,
-        storyboard: ((data.storyboard as any) || []) as Scene[],
-        ai_generated: data.ai_generated,
-        created_at: data.created_at,
-        share_token: data.share_token ?? null,
-      });
+      onUpdate(persistedProject);
       toast({ title: "Links Saved", description: "Publishing links updated successfully." });
       setSaving(false);
     };
@@ -287,22 +338,11 @@ const VideoStudio = () => {
       .from("video_projects")
       .select("*")
       .order("updated_at", { ascending: false });
+
     if (data) {
-      setProjects(data.map((v: any) => ({
-        id: v.id,
-        title: v.title,
-        description: v.description ?? undefined,
-        format: v.format,
-        duration_type: v.duration_type,
-        platform: v.platform,
-        status: v.status,
-        script: (v.script && !Array.isArray(v.script) ? (v.script as VideoData) : null),
-        storyboard: ((v.storyboard as any) || []) as Scene[],
-        ai_generated: v.ai_generated,
-        created_at: v.created_at,
-        share_token: v.share_token ?? null,
-      })));
+      setProjects(data.map(mapVideoProject));
     }
+
     setLoading(false);
   };
 
@@ -365,20 +405,27 @@ const VideoStudio = () => {
     const updatedScenes = [...(activeProject.storyboard || [])];
     updatedScenes[editingScene] = { ...updatedScenes[editingScene], ...editForm } as Scene;
 
-    // Update in DB
-    const updatedScript = activeProject.script
-      ? { ...activeProject.script, scenes: updatedScenes }
-      : null;
+    const updatedScript = mergeVideoScript(activeProject, activeProject.script, {
+      scenes: updatedScenes,
+      duration_seconds: getSceneDuration(updatedScenes),
+    });
 
-    const { error } = await supabase.from("video_projects").update({
-      storyboard: updatedScenes as any,
-      script: updatedScript as any,
-    }).eq("id", activeProject.id);
+    const { data, error } = await supabase
+      .from("video_projects")
+      .update({
+        storyboard: updatedScenes as any,
+        script: updatedScript as any,
+      })
+      .eq("id", activeProject.id)
+      .select("*")
+      .single();
 
-    if (error) {
-      toast({ title: "Save Failed", description: error.message, variant: "destructive" });
+    if (error || !data) {
+      toast({ title: "Save Failed", description: error?.message || "Unable to save scene updates.", variant: "destructive" });
       return;
     }
+
+    const persistedProject = mapVideoProject(data);
 
     // Clear the old generated image for this scene since content changed
     const imgKey = `${activeProject.id}-${updatedScenes[editingScene].scene_number}`;
@@ -388,8 +435,8 @@ const VideoStudio = () => {
       return next;
     });
 
-    setActiveProject(prev => prev ? { ...prev, storyboard: updatedScenes, script: updatedScript } : null);
-    setProjects(prev => prev.map(p => p.id === activeProject.id ? { ...p, storyboard: updatedScenes, script: updatedScript } : p));
+    setActiveProject(persistedProject);
+    setProjects(prev => prev.map(p => p.id === activeProject.id ? persistedProject : p));
     setEditingScene(null);
     setEditForm({});
     toast({ title: "Scene Updated", description: `Scene ${updatedScenes[editingScene].scene_number} saved.` });
