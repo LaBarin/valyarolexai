@@ -117,27 +117,39 @@ const PublishingLinks = ({ project, script, onUpdate }: { project: VideoProject;
   const links = script?.publishing_links || {};
   const [editingLinks, setEditingLinks] = useState<Record<string, string>>(links);
   const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Record<string, string>>(links);
 
+  // Reload from script when it changes (e.g. project re-opened)
   useEffect(() => {
-    setEditingLinks(script?.publishing_links || {});
-  }, [script?.publishing_links]);
+    const fresh = script?.publishing_links || {};
+    setEditingLinks(fresh);
+    setLastSaved(fresh);
+  }, [project.id, JSON.stringify(script?.publishing_links)]);
 
   const saveLinks = async () => {
     setSaving(true);
-    const updatedScript = { ...script, publishing_links: editingLinks } as VideoData;
+    // Filter out empty strings
+    const cleanLinks: Record<string, string> = {};
+    Object.entries(editingLinks).forEach(([k, v]) => { if (v.trim()) cleanLinks[k] = v.trim(); });
+
+    const baseScript = script || { title: project.title, format: project.format, duration_seconds: 0, duration_type: project.duration_type, platform: project.platform, scenes: project.storyboard || [] };
+    const updatedScript = { ...baseScript, publishing_links: cleanLinks } as VideoData;
+
     const { error } = await supabase.from("video_projects").update({
       script: updatedScript as any,
     }).eq("id", project.id);
     if (error) {
       toast({ title: "Save Failed", description: error.message, variant: "destructive" });
     } else {
+      setLastSaved(cleanLinks);
       onUpdate(updatedScript);
-      toast({ title: "Links Saved", description: "Publishing links updated." });
+      toast({ title: "Links Saved", description: "Publishing links updated successfully." });
     }
     setSaving(false);
   };
 
-  const hasChanges = JSON.stringify(editingLinks) !== JSON.stringify(links);
+  const hasChanges = JSON.stringify(editingLinks) !== JSON.stringify(lastSaved);
+  const hasSavedLinks = Object.values(lastSaved).some(v => v.trim());
 
   return (
     <div className="glass rounded-xl p-4 mt-4 space-y-3">
@@ -145,44 +157,52 @@ const PublishingLinks = ({ project, script, onUpdate }: { project: VideoProject;
         <h4 className="font-semibold text-sm flex items-center gap-1.5">
           <Link className="w-3.5 h-3.5 text-primary" /> Publishing Links
         </h4>
-        {hasChanges && (
-          <Button size="sm" onClick={saveLinks} disabled={saving}>
-            {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
-            Save Links
-          </Button>
-        )}
+        <Button size="sm" onClick={saveLinks} disabled={saving || !hasChanges}>
+          {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
+          {hasChanges ? "Save Links" : "Saved"}
+        </Button>
       </div>
-      <p className="text-[10px] text-muted-foreground">Paste the published video URL for each platform. {!hasChanges && Object.keys(links).some(k => links[k]) && <span className="text-accent">✓ Links saved</span>}</p>
+      <p className="text-[10px] text-muted-foreground">
+        Paste the published video URL for each platform.
+        {hasSavedLinks && !hasChanges && <span className="text-accent ml-1">✓ {Object.values(lastSaved).filter(v => v.trim()).length} link(s) saved</span>}
+        {hasChanges && <span className="text-primary ml-1">• Unsaved changes</span>}
+      </p>
       <div className="space-y-2">
-        {PUBLISHING_PLATFORMS.map(({ key, label, placeholder }) => (
-          <div key={key} className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground w-20 flex-shrink-0 capitalize">{label}</span>
-            <Input
-              placeholder={placeholder}
-              value={editingLinks[key] || ""}
-              onChange={(e) => setEditingLinks(prev => ({ ...prev, [key]: e.target.value }))}
-              className="text-xs bg-background/50 flex-1"
-            />
-            {editingLinks[key] && (
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => {
-                    navigator.clipboard.writeText(editingLinks[key]);
-                    toast({ title: "Copied!", description: `${label} link copied to clipboard.` });
-                  }}
-                >
-                  <Link className="w-3 h-3" />
-                </Button>
-                <a href={editingLinks[key]} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+        {PUBLISHING_PLATFORMS.map(({ key, label, placeholder }) => {
+          const isSaved = lastSaved[key]?.trim() && lastSaved[key] === editingLinks[key];
+          return (
+            <div key={key} className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground w-20 flex-shrink-0 capitalize">{label}</span>
+              <div className="relative flex-1">
+                <Input
+                  placeholder={placeholder}
+                  value={editingLinks[key] || ""}
+                  onChange={(e) => setEditingLinks(prev => ({ ...prev, [key]: e.target.value }))}
+                  className={`text-xs bg-background/50 ${isSaved ? "border-accent/30" : ""}`}
+                />
               </div>
-            )}
-          </div>
-        ))}
+              {editingLinks[key] && (
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => {
+                      navigator.clipboard.writeText(editingLinks[key]);
+                      toast({ title: "Copied!", description: `${label} link copied to clipboard.` });
+                    }}
+                  >
+                    <Link className="w-3 h-3" />
+                  </Button>
+                  <a href={editingLinks[key]} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  {isSaved && <Check className="w-3 h-3 text-accent" />}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
