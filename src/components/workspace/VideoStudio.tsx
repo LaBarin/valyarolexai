@@ -639,59 +639,6 @@ const VideoStudio = () => {
   // Preview dialog - defined before conditional returns so it's accessible everywhere
   const PreviewDialogComponent = () => {
     const [previewScene, setPreviewScene] = useState(0);
-    const [previewImages, setPreviewImages] = useState<Record<number, string>>({});
-    const [generatingPreviewImages, setGeneratingPreviewImages] = useState<Record<number, boolean>>({});
-    const [autoGenStarted, setAutoGenStarted] = useState(false);
-
-    // Auto-generate images for all scenes when preview opens
-    useEffect(() => {
-      if (!previewData || autoGenStarted) return;
-      setAutoGenStarted(true);
-      const generateAll = async () => {
-        const scenes = previewData.scenes || [];
-        for (let i = 0; i < scenes.length; i++) {
-          const scene = scenes[i];
-          setGeneratingPreviewImages(prev => ({ ...prev, [i]: true }));
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const resp = await fetch(SCENE_IMAGE_URL, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${session?.access_token}`,
-              },
-              body: JSON.stringify({
-                visual: scene.visual,
-                text_overlay: scene.text_overlay,
-                format: previewData.format,
-                platform: previewData.platform,
-              }),
-            });
-            if (resp.ok) {
-              const { image_url } = await resp.json();
-              if (image_url) {
-                setPreviewImages(prev => ({ ...prev, [i]: image_url }));
-              }
-            }
-          } catch {
-            // silently skip failed images
-          } finally {
-            setGeneratingPreviewImages(prev => ({ ...prev, [i]: false }));
-          }
-        }
-      };
-      generateAll();
-    }, [previewData, autoGenStarted]);
-
-    // Reset state when preview closes
-    useEffect(() => {
-      if (!previewData) {
-        setPreviewImages({});
-        setGeneratingPreviewImages({});
-        setAutoGenStarted(false);
-        setPreviewScene(0);
-      }
-    }, [previewData]);
 
     if (!previewData) return null;
     const scenes = previewData.scenes || [];
