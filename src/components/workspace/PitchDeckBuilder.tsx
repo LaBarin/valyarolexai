@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNarrator } from "@/hooks/use-narrator";
 import { PitchDeckPreviewDialog, type PitchDeckPreviewData } from "./AdPreviewDialog";
 import logoImg from "@/assets/valyarolex-logo.png";
 
