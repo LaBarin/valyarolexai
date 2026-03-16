@@ -324,7 +324,7 @@ const PitchDeckBuilder = () => {
     const c = slide.content;
     return (
       <div
-        className={`relative w-full aspect-video rounded-2xl bg-gradient-to-br ${gradientClass} flex flex-col justify-center p-4 md:p-8 overflow-hidden ${isFullscreen ? "rounded-none h-screen p-16" : ""}`}
+        className={`relative w-full aspect-video rounded-2xl bg-gradient-to-br ${gradientClass} flex flex-col justify-center p-3 sm:p-4 md:p-8 overflow-y-auto overflow-x-hidden ${isFullscreen ? "rounded-none h-screen p-16" : ""}`}
       >
         {/* Decorative circles */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
