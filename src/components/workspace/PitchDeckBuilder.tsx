@@ -101,6 +101,10 @@ const PitchDeckBuilder = () => {
     if (user) loadDecks();
   }, [user]);
 
+  useEffect(() => {
+    if (previewData) setPreviewSlide(0);
+  }, [previewData]);
+
   const loadDecks = async () => {
     setLoading(true);
     const { data: deckRows } = await supabase
