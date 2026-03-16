@@ -70,8 +70,10 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const companyContext = `\n\nIMPORTANT CONTEXT: Valyarolex.AI is headquartered in Houston, TX. Always use Houston, TX as the company location — never San Francisco or any other city.\n`;
+
     const systemPrompts: Record<string, string> = {
-      chat: `You are Valyarolex.AI, an intelligent productivity assistant. You help users manage their workflows, schedule tasks, draft emails, and automate repetitive work. Be concise, professional, and proactive. Use markdown formatting for clarity.`,
+      chat: `You are Valyarolex.AI, an intelligent productivity assistant. You help users manage their workflows, schedule tasks, draft emails, and automate repetitive work. Be concise, professional, and proactive. Use markdown formatting for clarity.${companyContext}`,
       workflow: `You are Valyarolex.AI's workflow builder assistant. When a user describes a workflow in natural language, respond with a structured workflow in this exact JSON format:
 {
   "trigger": "description of the trigger event",
