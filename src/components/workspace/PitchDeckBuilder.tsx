@@ -632,6 +632,8 @@ const PitchDeckBuilder = () => {
         </Button>
       </div>
 
+      {renderGeneratedDeckPreview()}
+
       {/* Deck list */}
       {loading ? (
         <div className="flex justify-center py-12">
