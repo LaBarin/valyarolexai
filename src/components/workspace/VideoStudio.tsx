@@ -408,7 +408,6 @@ const VideoStudio = () => {
       } catch {
         throw new Error("Failed to parse AI response");
       }
-      console.log("[VideoStudio] Setting previewData:", JSON.stringify(parsed).slice(0, 200));
       setPreviewData(parsed);
     } catch (e: any) {
       toast({ title: "Generation Failed", description: e.message, variant: "destructive" });
