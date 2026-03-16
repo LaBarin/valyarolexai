@@ -437,6 +437,9 @@ const VideoStudio = () => {
       });
       if (error) throw error;
       setPreviewData(null);
+      setPreviewImages({});
+      setGeneratingPreviewImages({});
+      setPreviewImagesRequested(false);
       setPrompt("");
       await loadProjects();
       toast({ title: "Video Approved", description: `"${previewData.title}" saved to your projects.` });
