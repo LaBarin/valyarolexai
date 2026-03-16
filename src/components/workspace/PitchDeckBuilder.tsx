@@ -410,7 +410,7 @@ const PitchDeckBuilder = () => {
               transition={{ duration: 0.2 }}
               className="flex items-center justify-center overflow-hidden"
             >
-              <div className={`w-full ${isPreviewExpanded ? "max-w-[600px] lg:max-w-[720px]" : "max-w-[320px] sm:max-w-[380px] lg:max-w-[420px]"}`}>
+              <div className={`w-full ${isPreviewExpanded ? "max-w-[600px] lg:max-w-[720px]" : "max-w-[400px] sm:max-w-[460px] lg:max-w-[520px]"}`}>
                 {renderSlide(
                   {
                     slide_type: draftSlide.slide_type,
