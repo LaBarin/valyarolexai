@@ -513,6 +513,41 @@ const VideoStudio = () => {
     if (activeProject?.id === id) setActiveProject((prev) => prev ? { ...prev, status } : null);
   };
 
+  const shareVideo = async (id: string) => {
+    const project = projects.find(p => p.id === id) || activeProject;
+    if (project?.share_token) {
+      const url = `${window.location.origin}/video/${project.share_token}`;
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link Copied!", description: url });
+      return;
+    }
+    const token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+    const { error } = await supabase.from("video_projects").update({ share_token: token } as any).eq("id", id);
+    if (error) {
+      toast({ title: "Share Failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, share_token: token } : p));
+    if (activeProject?.id === id) setActiveProject(prev => prev ? { ...prev, share_token: token } : null);
+    const url = `${window.location.origin}/video/${token}`;
+    await navigator.clipboard.writeText(url);
+    toast({ title: "Share Link Created!", description: "Link copied to clipboard." });
+  };
+
+  const downloadSceneImage = async (url: string, name: string) => {
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
   // Storyboard playback simulation
   useEffect(() => {
     if (!isPlaying || !activeProject?.storyboard?.length) return;
