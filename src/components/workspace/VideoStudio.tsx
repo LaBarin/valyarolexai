@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
@@ -113,101 +113,143 @@ const PUBLISHING_PLATFORMS = [
   { key: "snapchat", label: "Snapchat", placeholder: "https://www.snapchat.com/..." },
 ];
 
-const PublishingLinks = ({ project, script, onUpdate }: { project: VideoProject; script: VideoData | null; onUpdate: (s: VideoData) => void }) => {
-  const { toast } = useToast();
-  const links = script?.publishing_links || {};
-  const [editingLinks, setEditingLinks] = useState<Record<string, string>>(links);
-  const [saving, setSaving] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Record<string, string>>(links);
+const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; script: VideoData | null; onUpdate: (project: VideoProject) => void }>(
+  ({ project, script, onUpdate }, ref) => {
+    const { toast } = useToast();
+    const links = script?.publishing_links || {};
+    const [editingLinks, setEditingLinks] = useState<Record<string, string>>(links);
+    const [saving, setSaving] = useState(false);
+    const [lastSaved, setLastSaved] = useState<Record<string, string>>(links);
 
-  // Reload from script when it changes (e.g. project re-opened)
-  useEffect(() => {
-    const fresh = script?.publishing_links || {};
-    setEditingLinks(fresh);
-    setLastSaved(fresh);
-  }, [project.id, JSON.stringify(script?.publishing_links)]);
+    useEffect(() => {
+      const fresh = script?.publishing_links || {};
+      setEditingLinks(fresh);
+      setLastSaved(fresh);
+    }, [project.id, JSON.stringify(script?.publishing_links)]);
 
-  const saveLinks = async () => {
-    setSaving(true);
-    // Filter out empty strings
-    const cleanLinks: Record<string, string> = {};
-    Object.entries(editingLinks).forEach(([k, v]) => { if (v.trim()) cleanLinks[k] = v.trim(); });
+    const saveLinks = async () => {
+      setSaving(true);
 
-    const baseScript = script || { title: project.title, format: project.format, duration_seconds: 0, duration_type: project.duration_type, platform: project.platform, scenes: project.storyboard || [] };
-    const updatedScript = { ...baseScript, publishing_links: cleanLinks } as VideoData;
+      const cleanLinks = Object.fromEntries(
+        Object.entries(editingLinks)
+          .map(([key, value]) => [key, value.trim()])
+          .filter(([, value]) => Boolean(value)),
+      ) as Record<string, string>;
 
-    const { error } = await supabase.from("video_projects").update({
-      script: updatedScript as any,
-    }).eq("id", project.id);
-    if (error) {
-      toast({ title: "Save Failed", description: error.message, variant: "destructive" });
-    } else {
-      setLastSaved(cleanLinks);
-      onUpdate(updatedScript);
+      const currentScript = script && !Array.isArray(script) ? script : null;
+      const updatedScript = {
+        title: currentScript?.title ?? project.title,
+        description: currentScript?.description ?? project.description,
+        format: currentScript?.format ?? project.format,
+        duration_seconds:
+          currentScript?.duration_seconds ??
+          (project.storyboard || []).reduce((total, scene) => total + (scene.duration_seconds || 0), 0),
+        duration_type: currentScript?.duration_type ?? project.duration_type,
+        platform: currentScript?.platform ?? project.platform,
+        scenes: currentScript?.scenes?.length ? currentScript.scenes : project.storyboard || [],
+        ...currentScript,
+        publishing_links: cleanLinks,
+      } as VideoData;
+
+      const { data, error } = await supabase
+        .from("video_projects")
+        .update({ script: updatedScript as any })
+        .eq("id", project.id)
+        .select("*")
+        .single();
+
+      if (error) {
+        toast({ title: "Save Failed", description: error.message, variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      const persistedScript = (data.script && !Array.isArray(data.script) ? (data.script as VideoData) : null);
+      const persistedLinks = persistedScript?.publishing_links || cleanLinks;
+
+      setEditingLinks(persistedLinks);
+      setLastSaved(persistedLinks);
+      onUpdate({
+        id: data.id,
+        title: data.title,
+        description: data.description ?? undefined,
+        format: data.format,
+        duration_type: data.duration_type,
+        platform: data.platform,
+        status: data.status,
+        script: persistedScript,
+        storyboard: ((data.storyboard as any) || []) as Scene[],
+        ai_generated: data.ai_generated,
+        created_at: data.created_at,
+        share_token: data.share_token ?? null,
+      });
       toast({ title: "Links Saved", description: "Publishing links updated successfully." });
-    }
-    setSaving(false);
-  };
+      setSaving(false);
+    };
 
-  const hasChanges = JSON.stringify(editingLinks) !== JSON.stringify(lastSaved);
-  const hasSavedLinks = Object.values(lastSaved).some(v => v.trim());
+    const hasChanges = JSON.stringify(editingLinks) !== JSON.stringify(lastSaved);
+    const hasSavedLinks = Object.values(lastSaved).some((value) => value.trim());
 
-  return (
-    <div className="glass rounded-xl p-4 mt-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="font-semibold text-sm flex items-center gap-1.5">
-          <Link className="w-3.5 h-3.5 text-primary" /> Publishing Links
-        </h4>
-        <Button size="sm" onClick={saveLinks} disabled={saving || !hasChanges}>
-          {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
-          {hasChanges ? "Save Links" : "Saved"}
-        </Button>
-      </div>
-      <p className="text-[10px] text-muted-foreground">
-        Paste the published video URL for each platform.
-        {hasSavedLinks && !hasChanges && <span className="text-accent ml-1">✓ {Object.values(lastSaved).filter(v => v.trim()).length} link(s) saved</span>}
-        {hasChanges && <span className="text-primary ml-1">• Unsaved changes</span>}
-      </p>
-      <div className="space-y-2">
-        {PUBLISHING_PLATFORMS.map(({ key, label, placeholder }) => {
-          const isSaved = lastSaved[key]?.trim() && lastSaved[key] === editingLinks[key];
-          return (
-            <div key={key} className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground w-20 flex-shrink-0 capitalize">{label}</span>
-              <div className="relative flex-1">
-                <Input
-                  placeholder={placeholder}
-                  value={editingLinks[key] || ""}
-                  onChange={(e) => setEditingLinks(prev => ({ ...prev, [key]: e.target.value }))}
-                  className={`text-xs bg-background/50 ${isSaved ? "border-accent/30" : ""}`}
-                />
-              </div>
-              {editingLinks[key] && (
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => {
-                      navigator.clipboard.writeText(editingLinks[key]);
-                      toast({ title: "Copied!", description: `${label} link copied to clipboard.` });
-                    }}
-                  >
-                    <Link className="w-3 h-3" />
-                  </Button>
-                  <a href={editingLinks[key]} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                  {isSaved && <Check className="w-3 h-3 text-accent" />}
+    return (
+      <div ref={ref} className="glass rounded-xl p-4 mt-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-semibold text-sm flex items-center gap-1.5">
+            <Link className="w-3.5 h-3.5 text-primary" /> Publishing Links
+          </h4>
+          <Button type="button" size="sm" onClick={saveLinks} disabled={saving || !hasChanges}>
+            {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
+            {hasChanges ? "Save Links" : "Saved"}
+          </Button>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          Paste the published video URL for each platform.
+          {hasSavedLinks && !hasChanges && <span className="text-accent ml-1">✓ {Object.values(lastSaved).filter((value) => value.trim()).length} link(s) saved</span>}
+          {hasChanges && <span className="text-primary ml-1">• Unsaved changes</span>}
+        </p>
+        <div className="space-y-2">
+          {PUBLISHING_PLATFORMS.map(({ key, label, placeholder }) => {
+            const isSaved = Boolean(lastSaved[key]?.trim()) && lastSaved[key] === editingLinks[key];
+            return (
+              <div key={key} className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground w-20 flex-shrink-0 capitalize">{label}</span>
+                <div className="relative flex-1">
+                  <Input
+                    placeholder={placeholder}
+                    value={editingLinks[key] || ""}
+                    onChange={(e) => setEditingLinks((prev) => ({ ...prev, [key]: e.target.value }))}
+                    className={`text-xs bg-background/50 ${isSaved ? "border-accent/30" : ""}`}
+                  />
                 </div>
-              )}
-            </div>
-          );
-        })}
+                {editingLinks[key] && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => {
+                        navigator.clipboard.writeText(editingLinks[key]);
+                        toast({ title: "Copied!", description: `${label} link copied to clipboard.` });
+                      }}
+                    >
+                      <Link className="w-3 h-3" />
+                    </Button>
+                    <a href={editingLinks[key]} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                    {isSaved && <Check className="w-3 h-3 text-accent" />}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);
+
+PublishingLinks.displayName = "PublishingLinks";
 
 const VideoStudio = () => {
   const { user } = useAuth();
@@ -254,10 +296,11 @@ const VideoStudio = () => {
         duration_type: v.duration_type,
         platform: v.platform,
         status: v.status,
-        script: v.script as VideoData | null,
+        script: (v.script && !Array.isArray(v.script) ? (v.script as VideoData) : null),
         storyboard: ((v.storyboard as any) || []) as Scene[],
         ai_generated: v.ai_generated,
         created_at: v.created_at,
+        share_token: v.share_token ?? null,
       })));
     }
     setLoading(false);
@@ -1130,10 +1173,9 @@ const VideoStudio = () => {
             </div>
 
             {/* Publishing Links */}
-            <PublishingLinks project={p} script={script} onUpdate={(updatedScript) => {
-              const updated = { ...p, script: updatedScript };
-              setProjects(prev => prev.map(proj => proj.id === p.id ? updated : proj));
-              if (activeProject?.id === p.id) setActiveProject(updated);
+            <PublishingLinks project={p} script={script} onUpdate={(updatedProject) => {
+              setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updatedProject : proj)));
+              if (activeProject?.id === p.id) setActiveProject(updatedProject);
             }} />
           </TabsContent>
         </Tabs>
