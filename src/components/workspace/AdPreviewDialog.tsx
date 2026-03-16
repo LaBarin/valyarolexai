@@ -71,6 +71,7 @@ export const CampaignPreviewDialog = ({
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
+            <img src={logoUrl} alt="Valyarolex.AI" className="h-5 w-auto" />
             <Eye className="w-5 h-5 text-primary" />
             Review Campaign — {data.name}
           </DialogTitle>
