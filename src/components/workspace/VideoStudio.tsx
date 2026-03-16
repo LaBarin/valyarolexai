@@ -487,19 +487,23 @@ const VideoStudio = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10 flex flex-col justify-between p-4"
+                      className="absolute inset-0 flex flex-col justify-between"
+                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
                     >
-                      <div className="space-y-1">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+                        <span className="text-[60px] font-black text-foreground">{scene.scene_number || previewScene + 1}</span>
+                      </div>
+                      <div className="p-3 space-y-1 relative z-10">
                         <div className="flex items-center justify-between">
-                          <Badge variant="outline" className="text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
+                          <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
                           <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70" />
                         </div>
-                        {scene.text_overlay && <p className="text-sm font-bold">{scene.text_overlay}</p>}
+                        {scene.text_overlay && <p className="text-sm font-bold drop-shadow-md">{scene.text_overlay}</p>}
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-muted-foreground italic">{scene.visual}</p>
+                      <div className="p-3 space-y-1 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
+                        <p className="text-[10px] text-foreground/90">{scene.visual}</p>
                         {scene.voiceover && (
-                          <p className="text-[10px] text-foreground/70">🎙 "{scene.voiceover}"</p>
+                          <p className="text-[10px] text-foreground/70 flex items-start gap-1"><Mic className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />"{scene.voiceover}"</p>
                         )}
                       </div>
                     </motion.div>
