@@ -242,7 +242,6 @@ const PitchDeckBuilder = () => {
 
   const enterPresentation = () => {
     setIsPresenting(true);
-    setCurrentSlide(0);
     presentRef.current?.requestFullscreen?.();
   };
 
