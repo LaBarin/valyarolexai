@@ -29,6 +29,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/workspace" element={<Workspace />} />
             <Route path="/campaign/:token" element={<SharedCampaign />} />
+            <Route path="/video/:token" element={<SharedVideo />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
