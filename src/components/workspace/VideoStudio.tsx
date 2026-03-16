@@ -113,6 +113,81 @@ const PUBLISHING_PLATFORMS = [
   { key: "snapchat", label: "Snapchat", placeholder: "https://www.snapchat.com/..." },
 ];
 
+const normalizeVideoScript = (value: unknown): VideoData | null => {
+  if (!value || Array.isArray(value) || typeof value !== "object") return null;
+
+  const script = value as Partial<VideoData>;
+  const rawLinks = script.publishing_links;
+
+  return {
+    title: script.title ?? "Untitled Video",
+    description: script.description,
+    format: script.format ?? "9:16",
+    duration_seconds: typeof script.duration_seconds === "number" ? script.duration_seconds : 0,
+    duration_type: script.duration_type ?? "short",
+    platform: script.platform ?? "general",
+    target_audience: script.target_audience,
+    hook: script.hook,
+    cta: script.cta,
+    music_mood: script.music_mood,
+    scenes: Array.isArray(script.scenes) ? (script.scenes as Scene[]) : [],
+    ad_copy: script.ad_copy,
+    publishing_links:
+      rawLinks && typeof rawLinks === "object" && !Array.isArray(rawLinks)
+        ? Object.fromEntries(Object.entries(rawLinks).map(([key, link]) => [key, String(link ?? "")]))
+        : {},
+  };
+};
+
+const getStoryboardScenes = (value: unknown): Scene[] => {
+  return Array.isArray(value) ? (value as Scene[]) : [];
+};
+
+const getSceneDuration = (scenes: Scene[]): number => {
+  return scenes.reduce((total, scene) => total + (scene.duration_seconds || 0), 0);
+};
+
+const mergeVideoScript = (
+  project: Pick<VideoProject, "title" | "description" | "format" | "duration_type" | "platform" | "storyboard">,
+  currentScript: VideoData | null,
+  overrides: Partial<VideoData> = {},
+): VideoData => {
+  const fallbackScenes = currentScript?.scenes?.length ? currentScript.scenes : project.storyboard || [];
+  const nextScenes = overrides.scenes ?? fallbackScenes;
+
+  return {
+    title: currentScript?.title ?? project.title,
+    description: currentScript?.description ?? project.description,
+    format: currentScript?.format ?? project.format,
+    duration_seconds: currentScript?.duration_seconds ?? getSceneDuration(nextScenes),
+    duration_type: currentScript?.duration_type ?? project.duration_type,
+    platform: currentScript?.platform ?? project.platform,
+    target_audience: currentScript?.target_audience,
+    hook: currentScript?.hook,
+    cta: currentScript?.cta,
+    music_mood: currentScript?.music_mood,
+    scenes: nextScenes,
+    ad_copy: currentScript?.ad_copy,
+    publishing_links: currentScript?.publishing_links ?? {},
+    ...overrides,
+  };
+};
+
+const mapVideoProject = (row: any): VideoProject => ({
+  id: row.id,
+  title: row.title,
+  description: row.description ?? undefined,
+  format: row.format,
+  duration_type: row.duration_type,
+  platform: row.platform,
+  status: row.status,
+  script: normalizeVideoScript(row.script),
+  storyboard: getStoryboardScenes(row.storyboard),
+  ai_generated: row.ai_generated,
+  created_at: row.created_at,
+  share_token: row.share_token ?? null,
+});
+
 const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; script: VideoData | null; onUpdate: (project: VideoProject) => void }>(
   ({ project, script, onUpdate }, ref) => {
     const { toast } = useToast();
