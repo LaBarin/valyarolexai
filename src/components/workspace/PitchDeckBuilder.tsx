@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PitchDeckPreviewDialog, type PitchDeckPreviewData } from "./AdPreviewDialog";
+import logoImg from "@/assets/valyarolex-logo.png";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
