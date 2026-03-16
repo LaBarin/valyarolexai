@@ -198,7 +198,6 @@ export const CampaignPreviewDialog = ({
 /* ── Campaign Narrator Helper ── */
 
 function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
-  const [, setDummy] = useState(0);
   const slides = useMemo(() => {
     const items: { title: string; body: string }[] = [];
     items.push({
@@ -229,7 +228,22 @@ function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
     return items;
   }, [data]);
 
-  return <NarratorControls slides={slides} onSlideChange={() => setDummy((d) => d + 1)} currentSlide={0} />;
+  const { isNarrating, startNarration, stopNarration } = useNarrator({
+    onStepChange: () => {},
+    totalSteps: slides.length,
+  });
+
+  useEffect(() => () => { stopNarration(); }, [stopNarration]);
+
+  return (
+    <NarratorControls
+      slides={slides}
+      currentSlide={0}
+      isNarrating={isNarrating}
+      onStart={startNarration}
+      onStop={stopNarration}
+    />
+  );
 }
 
 /* ── Pitch Deck Preview ── */
