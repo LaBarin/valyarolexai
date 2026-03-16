@@ -849,6 +849,9 @@ const VideoStudio = () => {
             <Badge className={STATUS_COLORS[p.status] || STATUS_COLORS.draft}>{p.status}</Badge>
             <Badge className={PLATFORM_COLORS[p.platform] || PLATFORM_COLORS.general}>{p.platform}</Badge>
             <Badge variant="outline"><FormatIcon className="w-3 h-3 mr-1" />{p.format}</Badge>
+            <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
+              <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
+            </Button>
             {p.status === "approved" && (
               <Button size="sm" onClick={() => updateStatus(p.id, "production")}>
                 <Film className="w-4 h-4 mr-1" /> Send to Production
