@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Presentation, Plus, Sparkles, ChevronLeft, ChevronRight, Maximize2,
   Minimize2, Download, Trash2, GripVertical, Edit3, Loader2, FileText
 } from "lucide-react";
+import { NarratorControls } from "./NarratorControls";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -330,6 +331,20 @@ const PitchDeckBuilder = () => {
           <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setCurrentSlide(Math.min(activeDeck.slides.length - 1, currentSlide + 1)); }}>
             <ChevronRight className="w-5 h-5" />
           </Button>
+          <div onClick={(e) => e.stopPropagation()}>
+            <NarratorControls
+              slides={activeDeck.slides.map((s) => {
+                const c = s.content;
+                let body = c.body || "";
+                if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+                if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+                return { title: c.headline || s.title, body };
+              })}
+              onSlideChange={setCurrentSlide}
+              currentSlide={currentSlide}
+              compact
+            />
+          </div>
           <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); exitPresentation(); }}>
             <Minimize2 className="w-4 h-4" />
           </Button>
@@ -403,7 +418,20 @@ const PitchDeckBuilder = () => {
               <Button size="sm" variant="outline" disabled={currentSlide === 0} onClick={() => setCurrentSlide(currentSlide - 1)}>
                 <ChevronLeft className="w-4 h-4" /> Previous
               </Button>
-              <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
+              <div className="flex items-center gap-3">
+                <NarratorControls
+                  slides={activeDeck.slides.map((s) => {
+                    const c = s.content;
+                    let body = c.body || "";
+                    if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+                    if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+                    return { title: c.headline || s.title, body };
+                  })}
+                  onSlideChange={setCurrentSlide}
+                  currentSlide={currentSlide}
+                />
+                <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
+              </div>
               <Button size="sm" variant="outline" disabled={currentSlide === activeDeck.slides.length - 1} onClick={() => setCurrentSlide(currentSlide + 1)}>
                 Next <ChevronRight className="w-4 h-4" />
               </Button>

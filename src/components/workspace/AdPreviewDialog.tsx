@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, X, ChevronLeft, ChevronRight, Megaphone, Target,
   Share2, Mail, FileText, Calendar, BarChart3, Eye
 } from "lucide-react";
+import { NarratorControls } from "./NarratorControls";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from "@/components/ui/dialog";
@@ -176,6 +177,8 @@ export const CampaignPreviewDialog = ({
 
         {/* Action buttons */}
         <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
+          <CampaignNarrator data={data} />
+          <div className="flex-1" />
           <Button variant="outline" onClick={onReject} disabled={loading}>
             <X className="w-4 h-4 mr-1.5" /> Reject
           </Button>
@@ -187,6 +190,43 @@ export const CampaignPreviewDialog = ({
     </Dialog>
   );
 };
+
+/* ── Campaign Narrator Helper ── */
+
+function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
+  const [, setDummy] = useState(0);
+  const slides = useMemo(() => {
+    const items: { title: string; body: string }[] = [];
+    items.push({
+      title: data.name,
+      body: `${data.description || ""}. Campaign type: ${data.campaign_type || "general"}. Target audience: ${data.target_audience || "broad audience"}.`,
+    });
+    if (data.goals.length > 0) {
+      items.push({
+        title: "Campaign Goals",
+        body: data.goals.map((g) => `${g.goal}: target ${g.target} measured by ${g.metric}`).join(". "),
+      });
+    }
+    if (data.channels.length > 0) {
+      items.push({
+        title: "Channel Strategy",
+        body: data.channels.map((ch) => `${ch.channel} at ${ch.budget_pct}% budget: ${ch.strategy}`).join(". "),
+      });
+    }
+    data.content_plan.forEach((item) => {
+      items.push({ title: item.title, body: `${item.type} on ${item.channel}. ${item.description}` });
+    });
+    if (data.schedule.phases && data.schedule.phases.length > 0) {
+      items.push({
+        title: "Timeline",
+        body: data.schedule.phases.map((p) => `${p.name}, weeks ${p.weeks}: ${p.focus}`).join(". "),
+      });
+    }
+    return items;
+  }, [data]);
+
+  return <NarratorControls slides={slides} onSlideChange={() => setDummy((d) => d + 1)} currentSlide={0} />;
+}
 
 /* ── Pitch Deck Preview ── */
 
@@ -287,6 +327,17 @@ export const PitchDeckPreviewDialog = ({
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const narratorSlides = useMemo(() => {
+    if (!data) return [];
+    return data.slides.map((s) => {
+      const c = s.content;
+      let body = c.body || "";
+      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+      return { title: c.headline || s.title, body };
+    });
+  }, [data]);
+
   if (!data || data.slides.length === 0) return null;
   const slide = data.slides[currentSlide];
 
@@ -343,6 +394,12 @@ export const PitchDeckPreviewDialog = ({
 
         {/* Action buttons */}
         <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
+          <NarratorControls
+            slides={narratorSlides}
+            onSlideChange={setCurrentSlide}
+            currentSlide={currentSlide}
+          />
+          <div className="flex-1" />
           <Button variant="outline" onClick={onReject} disabled={loading}>
             <X className="w-4 h-4 mr-1.5" /> Reject
           </Button>
