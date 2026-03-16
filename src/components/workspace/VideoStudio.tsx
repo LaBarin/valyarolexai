@@ -1173,10 +1173,9 @@ const VideoStudio = () => {
             </div>
 
             {/* Publishing Links */}
-            <PublishingLinks project={p} script={script} onUpdate={(updatedScript) => {
-              const updated = { ...p, script: updatedScript };
-              setProjects(prev => prev.map(proj => proj.id === p.id ? updated : proj));
-              if (activeProject?.id === p.id) setActiveProject(updated);
+            <PublishingLinks project={p} script={script} onUpdate={(updatedProject) => {
+              setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updatedProject : proj)));
+              if (activeProject?.id === p.id) setActiveProject(updatedProject);
             }} />
           </TabsContent>
         </Tabs>
