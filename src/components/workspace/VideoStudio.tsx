@@ -588,6 +588,115 @@ const VideoStudio = () => {
   };
 
   // Detail view
+  // Preview dialog - defined before conditional returns so it's accessible everywhere
+  const PreviewDialogComponent = () => {
+    const [previewScene, setPreviewScene] = useState(0);
+    if (!previewData) return null;
+    const scenes = previewData.scenes || [];
+    const scene = scenes[previewScene];
+
+    return (
+      <Dialog open={!!previewData} onOpenChange={(v) => { if (!v) rejectVideo(); }}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5 text-primary" />
+              Review Video — {previewData.title}
+            </DialogTitle>
+            <DialogDescription>Preview your AI-generated video storyboard. Approve to save or reject to discard.</DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <div className="space-y-4 pb-4">
+              <div className={`relative glass rounded-2xl overflow-hidden ${previewData.format === "9:16" ? "max-w-[200px] mx-auto aspect-[9/16]" : previewData.format === "1:1" ? "max-w-[280px] mx-auto aspect-square" : "aspect-video"}`}>
+                <AnimatePresence mode="wait">
+                  {scene && (
+                    <motion.div
+                      key={previewScene}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex flex-col justify-between"
+                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
+                    >
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+                        <span className="text-[60px] font-black text-foreground">{scene.scene_number || previewScene + 1}</span>
+                      </div>
+                      <div className="p-3 space-y-1 relative z-10">
+                        <div className="flex items-center justify-between">
+                          <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
+                          <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70" />
+                        </div>
+                      </div>
+                      <div className="p-3 space-y-1 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
+                        <p className="text-[10px] text-foreground/90">{scene.visual}</p>
+                        {scene.voiceover && (
+                          <p className="text-[10px] text-foreground/70 flex items-start gap-1"><Mic className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />"{scene.voiceover}"</p>
+                        )}
+                        {scene.text_overlay && (
+                          <p className="text-[10px] text-primary font-medium flex items-start gap-1"><Type className="w-3 h-3 flex-shrink-0 mt-0.5" />{scene.text_overlay}</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="flex items-center justify-center gap-1">
+                {scenes.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPreviewScene(i)}
+                    className={`w-2 h-2 rounded-full transition-all ${i === previewScene ? "bg-primary w-4" : "bg-muted-foreground/30"}`}
+                  />
+                ))}
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="glass rounded-lg p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground">Format</p>
+                  <p className="text-sm font-semibold">{previewData.format}</p>
+                </div>
+                <div className="glass rounded-lg p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground">Duration</p>
+                  <p className="text-sm font-semibold">{previewData.duration_seconds}s</p>
+                </div>
+                <div className="glass rounded-lg p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground">Platform</p>
+                  <p className="text-sm font-semibold capitalize">{previewData.platform}</p>
+                </div>
+              </div>
+
+              {previewData.hook && (
+                <div className="glass rounded-lg p-3">
+                  <p className="text-[10px] text-muted-foreground mb-0.5">Hook</p>
+                  <p className="text-sm font-medium">"{previewData.hook}"</p>
+                </div>
+              )}
+
+              {previewData.ad_copy && (
+                <div className="glass rounded-lg p-3 space-y-2">
+                  <p className="text-[10px] text-muted-foreground">Ad Copy</p>
+                  {previewData.ad_copy.headline && <p className="text-sm font-semibold">{previewData.ad_copy.headline}</p>}
+                  {previewData.ad_copy.description && <p className="text-xs text-muted-foreground">{previewData.ad_copy.description}</p>}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
+            <Button variant="outline" onClick={rejectVideo} disabled={isSaving}>
+              <X className="w-4 h-4 mr-1.5" /> Reject
+            </Button>
+            <Button onClick={approveVideo} disabled={isSaving}>
+              <Check className="w-4 h-4 mr-1.5" /> {isSaving ? "Saving…" : "Approve & Save"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   if (activeProject) {
     const p = activeProject;
     const scenes = p.storyboard || p.script?.scenes || [];
@@ -595,6 +704,7 @@ const VideoStudio = () => {
     const FormatIcon = FORMAT_ICONS[p.format] || Monitor;
 
     return (
+      <>
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
@@ -888,120 +998,11 @@ const VideoStudio = () => {
 
         <SceneEditDialog />
       </div>
+      <PreviewDialogComponent />
+      </>
     );
   }
 
-  // Preview dialog
-  const PreviewDialog = () => {
-    const [previewScene, setPreviewScene] = useState(0);
-    if (!previewData) return null;
-    const scenes = previewData.scenes || [];
-    const scene = scenes[previewScene];
-
-    return (
-      <Dialog open={!!previewData} onOpenChange={(v) => { if (!v) rejectVideo(); }}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="w-5 h-5 text-primary" />
-              Review Video — {previewData.title}
-            </DialogTitle>
-            <DialogDescription>Preview your AI-generated video storyboard. Approve to save or reject to discard.</DialogDescription>
-          </DialogHeader>
-
-          <ScrollArea className="flex-1 -mx-6 px-6">
-            <div className="space-y-4 pb-4">
-              {/* Video preview */}
-              <div className={`relative glass rounded-2xl overflow-hidden ${previewData.format === "9:16" ? "max-w-[200px] mx-auto aspect-[9/16]" : previewData.format === "1:1" ? "max-w-[280px] mx-auto aspect-square" : "aspect-video"}`}>
-                <AnimatePresence mode="wait">
-                  {scene && (
-                    <motion.div
-                      key={previewScene}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col justify-between"
-                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
-                    >
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
-                        <span className="text-[60px] font-black text-foreground">{scene.scene_number || previewScene + 1}</span>
-                      </div>
-                      <div className="p-3 space-y-1 relative z-10">
-                        <div className="flex items-center justify-between">
-                          <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
-                          <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70" />
-                        </div>
-                      </div>
-                      <div className="p-3 space-y-1 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
-                        <p className="text-[10px] text-foreground/90">{scene.visual}</p>
-                        {scene.voiceover && (
-                          <p className="text-[10px] text-foreground/70 flex items-start gap-1"><Mic className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />"{scene.voiceover}"</p>
-                        )}
-                        {scene.text_overlay && (
-                          <p className="text-[10px] text-primary font-medium flex items-start gap-1"><Type className="w-3 h-3 flex-shrink-0 mt-0.5" />{scene.text_overlay}</p>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Scene navigation */}
-              <div className="flex items-center justify-center gap-1">
-                {scenes.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setPreviewScene(i)}
-                    className={`w-2 h-2 rounded-full transition-all ${i === previewScene ? "bg-primary w-4" : "bg-muted-foreground/30"}`}
-                  />
-                ))}
-              </div>
-
-              {/* Info cards */}
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="glass rounded-lg p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">Format</p>
-                  <p className="text-sm font-semibold">{previewData.format}</p>
-                </div>
-                <div className="glass rounded-lg p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">Duration</p>
-                  <p className="text-sm font-semibold">{previewData.duration_seconds}s</p>
-                </div>
-                <div className="glass rounded-lg p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">Platform</p>
-                  <p className="text-sm font-semibold capitalize">{previewData.platform}</p>
-                </div>
-              </div>
-
-              {previewData.hook && (
-                <div className="glass rounded-lg p-3">
-                  <p className="text-[10px] text-muted-foreground mb-0.5">Hook</p>
-                  <p className="text-sm font-medium">"{previewData.hook}"</p>
-                </div>
-              )}
-
-              {previewData.ad_copy && (
-                <div className="glass rounded-lg p-3 space-y-2">
-                  <p className="text-[10px] text-muted-foreground">Ad Copy</p>
-                  {previewData.ad_copy.headline && <p className="text-sm font-semibold">{previewData.ad_copy.headline}</p>}
-                  {previewData.ad_copy.description && <p className="text-xs text-muted-foreground">{previewData.ad_copy.description}</p>}
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-border/30">
-            <Button variant="outline" onClick={rejectVideo} disabled={isSaving}>
-              <X className="w-4 h-4 mr-1.5" /> Reject
-            </Button>
-            <Button onClick={approveVideo} disabled={isSaving}>
-              <Check className="w-4 h-4 mr-1.5" /> {isSaving ? "Saving…" : "Approve & Save"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
 
   // List view
   return (
@@ -1126,7 +1127,7 @@ const VideoStudio = () => {
       )}
     </div>
 
-    <PreviewDialog />
+    <PreviewDialogComponent />
     </>
   );
 };
