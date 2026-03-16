@@ -222,6 +222,9 @@ const VideoStudio = () => {
   const [previewData, setPreviewData] = useState<VideoData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [activeScene, setActiveScene] = useState(0);
+  const [previewImages, setPreviewImages] = useState<Record<number, string>>({});
+  const [generatingPreviewImages, setGeneratingPreviewImages] = useState<Record<number, boolean>>({});
+  const [previewImagesRequested, setPreviewImagesRequested] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sceneImages, setSceneImages] = useState<Record<string, string>>({});
   const [generatingImages, setGeneratingImages] = useState<Record<string, boolean>>({});
