@@ -439,15 +439,11 @@ const PitchDeckBuilder = () => {
               </Button>
               <div className="flex items-center gap-3">
                 <NarratorControls
-                  slides={activeDeck.slides.map((s) => {
-                    const c = s.content;
-                    let body = c.body || "";
-                    if (c.bullets?.length) body += ". " + c.bullets.join(". ");
-                    if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
-                    return { title: c.headline || s.title, body };
-                  })}
-                  onSlideChange={setCurrentSlide}
+                  slides={narratorSlides}
                   currentSlide={currentSlide}
+                  isNarrating={isNarrating}
+                  onStart={startNarration}
+                  onStop={stopNarration}
                 />
                 <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
               </div>
