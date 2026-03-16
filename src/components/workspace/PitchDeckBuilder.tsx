@@ -331,6 +331,20 @@ const PitchDeckBuilder = () => {
           <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); setCurrentSlide(Math.min(activeDeck.slides.length - 1, currentSlide + 1)); }}>
             <ChevronRight className="w-5 h-5" />
           </Button>
+          <div onClick={(e) => e.stopPropagation()}>
+            <NarratorControls
+              slides={activeDeck.slides.map((s) => {
+                const c = s.content;
+                let body = c.body || "";
+                if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+                if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+                return { title: c.headline || s.title, body };
+              })}
+              onSlideChange={setCurrentSlide}
+              currentSlide={currentSlide}
+              compact
+            />
+          </div>
           <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); exitPresentation(); }}>
             <Minimize2 className="w-4 h-4" />
           </Button>
