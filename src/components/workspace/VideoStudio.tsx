@@ -66,6 +66,7 @@ type VideoProject = {
   storyboard: Scene[];
   ai_generated: boolean;
   created_at: string;
+  share_token?: string | null;
 };
 
 const FORMAT_ICONS: Record<string, typeof Monitor> = {
