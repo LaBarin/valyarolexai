@@ -114,6 +114,8 @@ const VideoStudio = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [activeScene, setActiveScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [sceneImages, setSceneImages] = useState<Record<string, string>>({});
+  const [generatingImages, setGeneratingImages] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (user) loadProjects();
