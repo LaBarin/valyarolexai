@@ -156,7 +156,7 @@ Support ALL formats: shorts (5-15s for TikTok/Reels/Shorts), square (1:1 for fee
   }
 }
 
-Generate 3-8 scenes depending on duration. Include specific visual directions, text overlays, voiceover scripts, and transitions. Make it platform-native (e.g. TikTok = casual/trending, LinkedIn = professional, YouTube = polished). Always respond with valid JSON only.`,
+Generate 3-8 scenes depending on duration. Include specific visual directions, text overlays, voiceover scripts, and transitions. Make it platform-native (e.g. TikTok = casual/trending, LinkedIn = professional, YouTube = polished). Always respond with valid JSON only.${companyContext}`,
     };
 
     const systemContent = systemPrompts[mode];
