@@ -319,104 +319,162 @@ const VideoStudio = () => {
           </TabsList>
 
           <TabsContent value="storyboard" className="space-y-4">
-            {/* Playback preview */}
+            {/* Generate all images button */}
             {scenes.length > 0 && (
-              <div className={`relative glass rounded-2xl overflow-hidden ${p.format === "9:16" ? "max-w-xs mx-auto aspect-[9/16]" : p.format === "1:1" ? "max-w-md mx-auto aspect-square" : "aspect-video"}`}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeScene}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 flex flex-col justify-between"
-                    style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
-                  >
-                    {/* Scene number watermark */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
-                      <span className="text-[80px] font-black text-foreground">{scenes[activeScene]?.scene_number || activeScene + 1}</span>
-                    </div>
-
-                    <div className="p-4 space-y-2 relative z-10">
-                      <div className="flex items-center justify-between">
-                        <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
-                        <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70" />
-                      </div>
-                      {scenes[activeScene]?.text_overlay && (
-                        <motion.p
-                          initial={{ y: 20, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.3 }}
-                          className="text-lg font-bold text-foreground drop-shadow-md"
-                        >
-                          {scenes[activeScene].text_overlay}
-                        </motion.p>
-                      )}
-                    </div>
-
-                    <div className="p-4 space-y-2 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Camera className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Visual Direction</span>
-                      </div>
-                      <p className="text-xs text-foreground/90 leading-relaxed">{scenes[activeScene]?.visual}</p>
-                      {scenes[activeScene]?.voiceover && (
-                        <div className="flex items-start gap-1.5 bg-background/30 backdrop-blur-sm rounded-lg p-2 border border-foreground/10">
-                          <Mic className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
-                          <p className="text-[10px] text-foreground/90">"{scenes[activeScene].voiceover}"</p>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        <span>{scenes[activeScene]?.duration_seconds}s</span>
-                        {scenes[activeScene]?.transition && scenes[activeScene].transition !== "none" && (
-                          <><span>•</span><span className="capitalize">{scenes[activeScene].transition} transition</span></>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Playback controls */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-3 glass rounded-full px-4 py-1.5 z-10">
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setIsPlaying(!isPlaying); }}>
-                    {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                  </Button>
-                  <span className="text-[10px] text-muted-foreground">{activeScene + 1}/{scenes.length}</span>
-                  <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-20 h-1" />
-                </div>
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => generateAllSceneImages(scenes, p.id, p.format, p.platform)}
+                  disabled={Object.values(generatingImages).some(Boolean)}
+                >
+                  {Object.values(generatingImages).some(Boolean)
+                    ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Generating…</>
+                    : <><ImageIcon className="w-4 h-4 mr-1" /> Generate All Images</>
+                  }
+                </Button>
               </div>
             )}
 
-            {/* Scene cards */}
-            <div className="grid gap-3 sm:grid-cols-2">
-              {scenes.map((scene, i) => (
-                <motion.button
-                  key={i}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  onClick={() => { setActiveScene(i); setIsPlaying(false); }}
-                  className={`glass rounded-xl p-4 text-left space-y-2 transition-all ${activeScene === i ? "border-primary/50 shadow-glow" : "hover:border-border"}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-[10px]">Scene {scene.scene_number || i + 1}</Badge>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {scene.duration_seconds}s
-                    </div>
+            {/* Playback preview */}
+            {scenes.length > 0 && (() => {
+              const imageKey = `${p.id}-${scenes[activeScene]?.scene_number || activeScene + 1}`;
+              const sceneImg = sceneImages[imageKey];
+              return (
+                <div className={`relative glass rounded-2xl overflow-hidden ${p.format === "9:16" ? "max-w-xs mx-auto aspect-[9/16]" : p.format === "1:1" ? "max-w-md mx-auto aspect-square" : "aspect-video"}`}>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeScene}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 flex flex-col justify-between"
+                    >
+                      {sceneImg ? (
+                        <img src={sceneImg} alt={`Scene ${activeScene + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+                            <span className="text-[80px] font-black text-foreground">{scenes[activeScene]?.scene_number || activeScene + 1}</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-4 space-y-2 relative z-10">
+                        <div className="flex items-center justify-between">
+                          <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
+                          <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70 drop-shadow-md" />
+                        </div>
+                        {scenes[activeScene]?.text_overlay && (
+                          <motion.p
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-lg font-bold text-white drop-shadow-lg"
+                          >
+                            {scenes[activeScene].text_overlay}
+                          </motion.p>
+                        )}
+                      </div>
+                      <div className="p-4 space-y-2 relative z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                        {!sceneImg && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mb-2 bg-black/30 border-white/20 text-white hover:bg-black/50"
+                            onClick={() => generateSceneImage(scenes[activeScene], p.id, p.format, p.platform)}
+                            disabled={generatingImages[imageKey]}
+                          >
+                            {generatingImages[imageKey]
+                              ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating…</>
+                              : <><ImageIcon className="w-3 h-3 mr-1" /> Generate Image</>
+                            }
+                          </Button>
+                        )}
+                        {scenes[activeScene]?.voiceover && (
+                          <div className="flex items-start gap-1.5 bg-black/30 backdrop-blur-sm rounded-lg p-2 border border-white/10">
+                            <Mic className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
+                            <p className="text-[10px] text-white/90">"{scenes[activeScene].voiceover}"</p>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-[10px] text-white/70">
+                          <Clock className="w-3 h-3" />
+                          <span>{scenes[activeScene]?.duration_seconds}s</span>
+                          {scenes[activeScene]?.transition && scenes[activeScene].transition !== "none" && (
+                            <><span>•</span><span className="capitalize">{scenes[activeScene].transition} transition</span></>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-3 glass rounded-full px-4 py-1.5 z-10">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setIsPlaying(!isPlaying); }}>
+                      {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                    </Button>
+                    <span className="text-[10px] text-muted-foreground">{activeScene + 1}/{scenes.length}</span>
+                    <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-20 h-1" />
                   </div>
-                  <p className="text-xs text-foreground/90 line-clamp-2">{scene.visual}</p>
-                  {scene.text_overlay && (
-                    <div className="flex items-center gap-1 text-[10px] text-primary">
-                      <Type className="w-3 h-3" />
-                      {scene.text_overlay}
+                </div>
+              );
+            })()}
+
+            {/* Scene cards with thumbnails */}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {scenes.map((scene, i) => {
+                const imgKey = `${p.id}-${scene.scene_number || i + 1}`;
+                const sceneImg = sceneImages[imgKey];
+                const isGenImg = generatingImages[imgKey];
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    onClick={() => { setActiveScene(i); setIsPlaying(false); }}
+                    className={`glass rounded-xl overflow-hidden cursor-pointer text-left transition-all ${activeScene === i ? "border-primary/50 shadow-glow" : "hover:border-border"}`}
+                  >
+                    <div className="relative h-24 overflow-hidden">
+                      {sceneImg ? (
+                        <img src={sceneImg} alt={`Scene ${scene.scene_number || i + 1}`} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--accent) / 0.15))` }}>
+                          {isGenImg ? (
+                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                          ) : (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); generateSceneImage(scene, p.id, p.format, p.platform); }}
+                              className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <ImageIcon className="w-4 h-4" />
+                              <span>Generate</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      <Badge variant="outline" className="absolute top-2 left-2 text-[10px] bg-black/50 text-white border-white/20 backdrop-blur-sm">
+                        Scene {scene.scene_number || i + 1}
+                      </Badge>
                     </div>
-                  )}
-                  {scene.transition && scene.transition !== "none" && (
-                    <Badge variant="outline" className="text-[10px]">{scene.transition}</Badge>
-                  )}
-                </motion.button>
-              ))}
+                    <div className="p-3 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {scene.duration_seconds}s
+                        </div>
+                        {scene.transition && scene.transition !== "none" && (
+                          <Badge variant="outline" className="text-[10px]">{scene.transition}</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-foreground/90 line-clamp-2">{scene.visual}</p>
+                      {scene.text_overlay && (
+                        <div className="flex items-center gap-1 text-[10px] text-primary">
+                          <Type className="w-3 h-3" />
+                          {scene.text_overlay}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </TabsContent>
 
