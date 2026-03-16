@@ -418,7 +418,20 @@ const PitchDeckBuilder = () => {
               <Button size="sm" variant="outline" disabled={currentSlide === 0} onClick={() => setCurrentSlide(currentSlide - 1)}>
                 <ChevronLeft className="w-4 h-4" /> Previous
               </Button>
-              <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
+              <div className="flex items-center gap-3">
+                <NarratorControls
+                  slides={activeDeck.slides.map((s) => {
+                    const c = s.content;
+                    let body = c.body || "";
+                    if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+                    if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+                    return { title: c.headline || s.title, body };
+                  })}
+                  onSlideChange={setCurrentSlide}
+                  currentSlide={currentSlide}
+                />
+                <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
+              </div>
               <Button size="sm" variant="outline" disabled={currentSlide === activeDeck.slides.length - 1} onClick={() => setCurrentSlide(currentSlide + 1)}>
                 Next <ChevronRight className="w-4 h-4" />
               </Button>
