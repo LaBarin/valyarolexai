@@ -105,7 +105,7 @@ Each slide should have this format:
   "deck_title": "Name of the deck",
   "deck_description": "One-line description"
 }
-Generate 8-15 slides. For ad campaigns, include slides for each requested platform with specific ad copy, targeting, and creative specs. Always respond with valid JSON only.`,
+Generate 8-15 slides. For ad campaigns, include slides for each requested platform with specific ad copy, targeting, and creative specs. Always respond with valid JSON only.${companyContext}`,
       campaign: `You are Valyarolex.AI's marketing campaign strategist and ad planner. When a user describes their campaign goals, generate a comprehensive multi-platform marketing and advertising campaign plan as JSON.
 
 Support ALL major advertising platforms: Facebook Ads, Instagram Ads, TikTok Ads, YouTube Ads, LinkedIn Ads, X/Twitter Ads, Google Ads (Search + Display), Snapchat Ads, Pinterest Ads, Reddit Ads. Include platform-specific ad copy, creative specs, targeting parameters, and budget recommendations for each requested platform.
