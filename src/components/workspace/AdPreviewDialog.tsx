@@ -358,6 +358,13 @@ export const PitchDeckPreviewDialog = ({
     });
   }, [data]);
 
+  const { isNarrating, startNarration, stopNarration } = useNarrator({
+    onStepChange: setCurrentSlide,
+    totalSteps: narratorSlides.length,
+  });
+
+  useEffect(() => () => { stopNarration(); }, [stopNarration]);
+
   if (!data || data.slides.length === 0) return null;
   const slide = data.slides[currentSlide];
 
