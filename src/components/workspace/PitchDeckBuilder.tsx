@@ -621,6 +621,15 @@ const PitchDeckBuilder = () => {
                     <ChevronLeft className="w-4 h-4" /> Previous
                   </Button>
                   <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Button
+                      size="icon"
+                      variant={isAutoPlaying ? "default" : "outline"}
+                      className="h-9 w-9"
+                      onClick={() => setIsAutoPlaying((v) => !v)}
+                      title={isAutoPlaying ? "Pause auto-play" : "Auto-play slides"}
+                    >
+                      {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </Button>
                     <NarratorControls
                       slides={narratorSlides}
                       currentSlide={currentSlide}
