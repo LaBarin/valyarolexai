@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Workspace from "./pages/Workspace";
 import SharedCampaign from "./pages/SharedCampaign";
+import SharedVideo from "./pages/SharedVideo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
