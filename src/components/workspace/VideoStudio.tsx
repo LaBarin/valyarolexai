@@ -657,8 +657,9 @@ const VideoStudio = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center">
-                      <FormatIcon className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center relative overflow-hidden"
+                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.3))` }}>
+                      <FormatIcon className="w-5 h-5 text-primary relative z-10" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">{p.title}</h3>
