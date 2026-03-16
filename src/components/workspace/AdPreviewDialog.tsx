@@ -228,7 +228,7 @@ function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
     return items;
   }, [data]);
 
-  const { isNarrating, startNarration, stopNarration } = useNarrator({
+  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
     onStepChange: () => {},
     totalSteps: slides.length,
   });
