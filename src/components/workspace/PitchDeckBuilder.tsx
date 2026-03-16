@@ -391,9 +391,14 @@ const PitchDeckBuilder = () => {
             <h3 className="font-semibold">Generated Deck Preview</h3>
             <p className="text-xs text-muted-foreground">Review the draft below, then save it to your workspace.</p>
           </div>
-          <span className="w-fit rounded-full border border-border/40 bg-background/40 px-3 py-1 text-xs text-muted-foreground">
-            {safePreviewSlide + 1} / {totalSlides}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-border/40 bg-background/40 px-3 py-1 text-xs text-muted-foreground">
+              {safePreviewSlide + 1} / {totalSlides}
+            </span>
+            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setIsPreviewExpanded((v) => !v)} title={isPreviewExpanded ? "Minimize" : "Expand"}>
+              {isPreviewExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-border/30 bg-muted/10 p-2">
@@ -405,7 +410,7 @@ const PitchDeckBuilder = () => {
               transition={{ duration: 0.2 }}
               className="flex items-center justify-center overflow-hidden"
             >
-              <div className="w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[420px]">
+              <div className={`w-full ${isPreviewExpanded ? "max-w-[600px] lg:max-w-[720px]" : "max-w-[320px] sm:max-w-[380px] lg:max-w-[420px]"}`}>
                 {renderSlide(
                   {
                     slide_type: draftSlide.slide_type,
@@ -446,6 +451,15 @@ const PitchDeckBuilder = () => {
               <ChevronLeft className="w-4 h-4" /> Previous
             </Button>
             <Button
+              size="icon"
+              variant={isAutoPlaying ? "default" : "outline"}
+              className="h-9 w-9"
+              onClick={() => setIsAutoPlaying((v) => !v)}
+              title={isAutoPlaying ? "Pause auto-play" : "Auto-play slides"}
+            >
+              {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </Button>
+            <Button
               size="sm"
               variant="outline"
               disabled={safePreviewSlide === totalSlides - 1}
@@ -453,6 +467,16 @@ const PitchDeckBuilder = () => {
             >
               Next <ChevronRight className="w-4 h-4" />
             </Button>
+            <NarratorControls
+              slides={previewNarratorSlides}
+              currentSlide={safePreviewSlide}
+              compact
+              isNarrating={isNarrating}
+              rate={rate}
+              onStart={startNarration}
+              onStop={stopNarration}
+              onRateChange={setRate}
+            />
           </div>
 
           <div className="flex flex-wrap gap-2 sm:justify-end">
