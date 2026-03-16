@@ -524,54 +524,38 @@ export type Database = {
         Args: { p_share_token: string }
         Returns: {
           ai_generated: boolean
-          assets: Json | null
+          assets: Json
           campaign_type: string
-          channels: Json | null
-          content_plan: Json | null
+          channels: Json
+          content_plan: Json
           created_at: string
-          description: string | null
-          goals: Json | null
+          description: string
+          goals: Json
           id: string
           name: string
-          schedule: Json | null
-          share_token: string | null
+          schedule: Json
           status: string
-          target_audience: string | null
+          target_audience: string
           updated_at: string
-          user_id: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "marketing_campaigns"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       get_shared_video: {
         Args: { p_share_token: string }
         Returns: {
           ai_generated: boolean
-          campaign_id: string | null
+          campaign_id: string
           created_at: string
-          description: string | null
+          description: string
           duration_type: string
           format: string
           id: string
           platform: string
-          script: Json | null
-          share_token: string | null
+          script: Json
           status: string
-          storyboard: Json | null
+          storyboard: Json
           title: string
           updated_at: string
-          user_id: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "video_projects"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       move_to_dlq: {
         Args: {
