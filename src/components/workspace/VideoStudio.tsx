@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
-  Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink
+  Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -66,6 +66,7 @@ type VideoProject = {
   storyboard: Scene[];
   ai_generated: boolean;
   created_at: string;
+  share_token?: string | null;
 };
 
 const FORMAT_ICONS: Record<string, typeof Monitor> = {
@@ -512,6 +513,41 @@ const VideoStudio = () => {
     if (activeProject?.id === id) setActiveProject((prev) => prev ? { ...prev, status } : null);
   };
 
+  const shareVideo = async (id: string) => {
+    const project = projects.find(p => p.id === id) || activeProject;
+    if (project?.share_token) {
+      const url = `${window.location.origin}/video/${project.share_token}`;
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link Copied!", description: url });
+      return;
+    }
+    const token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
+    const { error } = await supabase.from("video_projects").update({ share_token: token } as any).eq("id", id);
+    if (error) {
+      toast({ title: "Share Failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, share_token: token } : p));
+    if (activeProject?.id === id) setActiveProject(prev => prev ? { ...prev, share_token: token } : null);
+    const url = `${window.location.origin}/video/${token}`;
+    await navigator.clipboard.writeText(url);
+    toast({ title: "Share Link Created!", description: "Link copied to clipboard." });
+  };
+
+  const downloadSceneImage = async (url: string, name: string) => {
+    try {
+      const resp = await fetch(url);
+      const blob = await resp.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      window.open(url, "_blank");
+    }
+  };
+
   // Storyboard playback simulation
   useEffect(() => {
     if (!isPlaying || !activeProject?.storyboard?.length) return;
@@ -813,6 +849,9 @@ const VideoStudio = () => {
             <Badge className={STATUS_COLORS[p.status] || STATUS_COLORS.draft}>{p.status}</Badge>
             <Badge className={PLATFORM_COLORS[p.platform] || PLATFORM_COLORS.general}>{p.platform}</Badge>
             <Badge variant="outline"><FormatIcon className="w-3 h-3 mr-1" />{p.format}</Badge>
+            <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
+              <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
+            </Button>
             {p.status === "approved" && (
               <Button size="sm" onClick={() => updateStatus(p.id, "production")}>
                 <Film className="w-4 h-4 mr-1" /> Send to Production
@@ -963,13 +1002,23 @@ const VideoStudio = () => {
                       <Badge variant="outline" className="absolute top-2 left-2 text-[10px] bg-black/50 text-white border-white/20 backdrop-blur-sm">
                         Scene {scene.scene_number || i + 1}
                       </Badge>
-                      {/* Edit button */}
-                      <button
-                        onClick={(e) => { e.stopPropagation(); startEditScene(i, scene); }}
-                        className="absolute top-2 right-2 w-6 h-6 rounded-md bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
-                      >
-                        <Pencil className="w-3 h-3" />
-                      </button>
+                      {/* Download + Edit buttons */}
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        {sceneImg && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); downloadSceneImage(sceneImg, `${p.title}-scene-${scene.scene_number || i + 1}.png`); }}
+                            className="w-6 h-6 rounded-md bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+                          >
+                            <Download className="w-3 h-3" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startEditScene(i, scene); }}
+                          className="w-6 h-6 rounded-md bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                     <div className="p-3 space-y-1">
                       <div className="flex items-center justify-between">

@@ -456,6 +456,7 @@ export type Database = {
           id: string
           platform: string
           script: Json | null
+          share_token: string | null
           status: string
           storyboard: Json | null
           title: string
@@ -472,6 +473,7 @@ export type Database = {
           id?: string
           platform?: string
           script?: Json | null
+          share_token?: string | null
           status?: string
           storyboard?: Json | null
           title?: string
@@ -488,6 +490,7 @@ export type Database = {
           id?: string
           platform?: string
           script?: Json | null
+          share_token?: string | null
           status?: string
           storyboard?: Json | null
           title?: string
@@ -540,6 +543,32 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "marketing_campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_shared_video: {
+        Args: { p_share_token: string }
+        Returns: {
+          ai_generated: boolean
+          campaign_id: string | null
+          created_at: string
+          description: string | null
+          duration_type: string
+          format: string
+          id: string
+          platform: string
+          script: Json | null
+          share_token: string | null
+          status: string
+          storyboard: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "video_projects"
           isOneToOne: false
           isSetofReturn: true
         }

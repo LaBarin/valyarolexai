@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Workspace from "./pages/Workspace";
 import SharedCampaign from "./pages/SharedCampaign";
+import SharedVideo from "./pages/SharedVideo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/workspace" element={<Workspace />} />
             <Route path="/campaign/:token" element={<SharedCampaign />} />
+            <Route path="/video/:token" element={<SharedVideo />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
