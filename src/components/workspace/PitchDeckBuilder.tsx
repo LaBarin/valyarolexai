@@ -102,12 +102,53 @@ const PitchDeckBuilder = () => {
   // Stop narration when leaving deck
   useEffect(() => () => { stopNarration(); }, [stopNarration]);
 
+  // Preview narrator slides (for generated deck preview)
+  const previewNarratorSlides = useMemo(() => {
+    if (!previewData) return [];
+    return previewData.slides.map((s) => {
+      const c = s.content as SlideContent;
+      let body = c.body || "";
+      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+      return { title: c.headline || s.title, body };
+    });
+  }, [previewData]);
+
+  // Auto-play timer
+  useEffect(() => {
+    if (isAutoPlaying && activeDeck) {
+      autoPlayRef.current = setInterval(() => {
+        setCurrentSlide((c) => {
+          if (c >= activeDeck.slides.length - 1) {
+            setIsAutoPlaying(false);
+            return c;
+          }
+          return c + 1;
+        });
+      }, 4000);
+    } else if (isAutoPlaying && previewData) {
+      autoPlayRef.current = setInterval(() => {
+        setPreviewSlide((c) => {
+          if (c >= previewData.slides.length - 1) {
+            setIsAutoPlaying(false);
+            return c;
+          }
+          return c + 1;
+        });
+      }, 4000);
+    }
+    return () => { if (autoPlayRef.current) clearInterval(autoPlayRef.current); };
+  }, [isAutoPlaying, activeDeck, previewData]);
+
+  // Stop auto-play when switching decks
+  useEffect(() => { setIsAutoPlaying(false); }, [activeDeck]);
+
   useEffect(() => {
     if (user) loadDecks();
   }, [user]);
 
   useEffect(() => {
-    if (previewData) setPreviewSlide(0);
+    if (previewData) { setPreviewSlide(0); setIsAutoPlaying(false); }
   }, [previewData]);
 
   const loadDecks = async () => {
