@@ -77,6 +77,25 @@ const PitchDeckBuilder = () => {
   const [isSavingPreview, setIsSavingPreview] = useState(false);
   const presentRef = useRef<HTMLDivElement>(null);
 
+  const narratorSlides = useMemo(() => {
+    if (!activeDeck) return [];
+    return activeDeck.slides.map((s) => {
+      const c = s.content;
+      let body = c.body || "";
+      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+      return { title: c.headline || s.title, body };
+    });
+  }, [activeDeck]);
+
+  const { isNarrating, startNarration, stopNarration } = useNarrator({
+    onStepChange: setCurrentSlide,
+    totalSteps: narratorSlides.length,
+  });
+
+  // Stop narration when leaving deck
+  useEffect(() => () => { stopNarration(); }, [stopNarration]);
+
   useEffect(() => {
     if (user) loadDecks();
   }, [user]);
