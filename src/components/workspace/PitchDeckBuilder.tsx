@@ -331,6 +331,104 @@ const PitchDeckBuilder = () => {
     );
   };
 
+  const renderGeneratedDeckPreview = () => {
+    if (!previewData || previewData.slides.length === 0) return null;
+
+    const totalSlides = previewData.slides.length;
+    const safePreviewSlide = Math.min(previewSlide, totalSlides - 1);
+    const draftSlide = previewData.slides[safePreviewSlide];
+
+    return (
+      <div className="glass rounded-2xl p-5 space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-semibold">Generated Deck Preview</h3>
+            <p className="text-xs text-muted-foreground">Review the draft below, then save it to your workspace.</p>
+          </div>
+          <span className="w-fit rounded-full border border-border/40 bg-background/40 px-3 py-1 text-xs text-muted-foreground">
+            {safePreviewSlide + 1} / {totalSlides}
+          </span>
+        </div>
+
+        <div className="rounded-2xl border border-border/30 bg-muted/10 p-2">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={safePreviewSlide}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+              className="flex items-center justify-center overflow-hidden"
+            >
+              <div className="w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[420px]">
+                {renderSlide(
+                  {
+                    slide_type: draftSlide.slide_type,
+                    title: draftSlide.title,
+                    content: draftSlide.content,
+                    notes: draftSlide.notes,
+                    slide_order: safePreviewSlide,
+                  },
+                  safePreviewSlide,
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1">
+          {previewData.slides.map((preview, index) => (
+            <button
+              key={`${preview.title || "slide"}-${index}`}
+              type="button"
+              onClick={() => setPreviewSlide(index)}
+              className={`h-2 rounded-full transition-all ${
+                index === safePreviewSlide ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              }`}
+              aria-label={`Go to generated slide ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={safePreviewSlide === 0}
+              onClick={() => setPreviewSlide((slideIndex) => Math.max(0, slideIndex - 1))}
+            >
+              <ChevronLeft className="w-4 h-4" /> Previous
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={safePreviewSlide === totalSlides - 1}
+              onClick={() => setPreviewSlide((slideIndex) => Math.min(totalSlides - 1, slideIndex + 1))}
+            >
+              Next <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 sm:justify-end">
+            <Button variant="outline" onClick={rejectDeckPreview} disabled={isSavingPreview}>
+              Discard Draft
+            </Button>
+            <Button onClick={approveDeckPreview} disabled={isSavingPreview}>
+              {isSavingPreview ? "Saving…" : "Approve & Save"}
+            </Button>
+          </div>
+        </div>
+
+        {draftSlide.notes && (
+          <div className="glass rounded-lg p-3">
+            <p className="text-[10px] font-semibold text-muted-foreground mb-0.5">Speaker Notes</p>
+            <p className="text-xs text-foreground/80">{draftSlide.notes}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Fullscreen presentation overlay
   if (isPresenting && activeDeck) {
     return (
