@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
-  Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save
+  Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,6 +51,7 @@ type VideoData = {
     description?: string;
     hashtags?: string[];
   };
+  publishing_links?: Record<string, string>;
 };
 
 type VideoProject = {
@@ -98,6 +99,80 @@ const STATUS_COLORS: Record<string, string> = {
   approved: "bg-accent/20 text-accent",
   production: "bg-primary/20 text-primary",
   completed: "bg-green-500/20 text-green-400",
+};
+
+const PUBLISHING_PLATFORMS = [
+  { key: "tiktok", label: "TikTok", placeholder: "https://www.tiktok.com/@user/video/..." },
+  { key: "instagram", label: "Instagram", placeholder: "https://www.instagram.com/reel/..." },
+  { key: "facebook", label: "Facebook", placeholder: "https://www.facebook.com/watch/..." },
+  { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/shorts/..." },
+  { key: "linkedin", label: "LinkedIn", placeholder: "https://www.linkedin.com/posts/..." },
+  { key: "twitter", label: "X (Twitter)", placeholder: "https://x.com/user/status/..." },
+  { key: "pinterest", label: "Pinterest", placeholder: "https://www.pinterest.com/pin/..." },
+  { key: "snapchat", label: "Snapchat", placeholder: "https://www.snapchat.com/..." },
+];
+
+const PublishingLinks = ({ project, script, onUpdate }: { project: VideoProject; script: VideoData | null; onUpdate: (s: VideoData) => void }) => {
+  const { toast } = useToast();
+  const links = script?.publishing_links || {};
+  const [editingLinks, setEditingLinks] = useState<Record<string, string>>(links);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setEditingLinks(script?.publishing_links || {});
+  }, [script?.publishing_links]);
+
+  const saveLinks = async () => {
+    setSaving(true);
+    const updatedScript = { ...script, publishing_links: editingLinks } as VideoData;
+    const { error } = await supabase.from("video_projects").update({
+      script: updatedScript as any,
+    }).eq("id", project.id);
+    if (error) {
+      toast({ title: "Save Failed", description: error.message, variant: "destructive" });
+    } else {
+      onUpdate(updatedScript);
+      toast({ title: "Links Saved", description: "Publishing links updated." });
+    }
+    setSaving(false);
+  };
+
+  const hasChanges = JSON.stringify(editingLinks) !== JSON.stringify(links);
+
+  return (
+    <div className="glass rounded-xl p-4 mt-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-sm flex items-center gap-1.5">
+          <Link className="w-3.5 h-3.5 text-primary" /> Publishing Links
+        </h4>
+        {hasChanges && (
+          <Button size="sm" onClick={saveLinks} disabled={saving}>
+            {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}
+            Save Links
+          </Button>
+        )}
+      </div>
+      <p className="text-[10px] text-muted-foreground">Paste the published video URL for each platform.</p>
+      <div className="space-y-2">
+        {PUBLISHING_PLATFORMS.map(({ key, label, placeholder }) => (
+          <div key={key} className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground w-20 flex-shrink-0 capitalize">{label}</span>
+            <Input
+              placeholder={placeholder}
+              value={editingLinks[key] || ""}
+              onChange={(e) => setEditingLinks(prev => ({ ...prev, [key]: e.target.value }))}
+              className="text-xs bg-background/50 flex-1"
+            />
+            {editingLinks[key] && (
+              <a href={editingLinks[key]} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 const VideoStudio = () => {
@@ -768,6 +843,13 @@ const VideoStudio = () => {
                 <div className="bg-background/50 rounded-lg p-2"><span className="text-muted-foreground">Scenes:</span> <span className="font-medium">{scenes.length}</span></div>
               </div>
             </div>
+
+            {/* Publishing Links */}
+            <PublishingLinks project={p} script={script} onUpdate={(updatedScript) => {
+              const updated = { ...p, script: updatedScript };
+              setProjects(prev => prev.map(proj => proj.id === p.id ? updated : proj));
+              if (activeProject?.id === p.id) setActiveProject(updated);
+            }} />
           </TabsContent>
         </Tabs>
 
