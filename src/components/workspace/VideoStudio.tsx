@@ -51,6 +51,7 @@ type VideoData = {
     description?: string;
     hashtags?: string[];
   };
+  publishing_links?: Record<string, string>;
 };
 
 type VideoProject = {
