@@ -152,7 +152,7 @@ const PublishingLinks = ({ project, script, onUpdate }: { project: VideoProject;
           </Button>
         )}
       </div>
-      <p className="text-[10px] text-muted-foreground">Paste the published video URL for each platform.</p>
+      <p className="text-[10px] text-muted-foreground">Paste the published video URL for each platform. {!hasChanges && Object.keys(links).some(k => links[k]) && <span className="text-accent">✓ Links saved</span>}</p>
       <div className="space-y-2">
         {PUBLISHING_PLATFORMS.map(({ key, label, placeholder }) => (
           <div key={key} className="flex items-center gap-2">
@@ -164,9 +164,22 @@ const PublishingLinks = ({ project, script, onUpdate }: { project: VideoProject;
               className="text-xs bg-background/50 flex-1"
             />
             {editingLinks[key] && (
-              <a href={editingLinks[key]} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => {
+                    navigator.clipboard.writeText(editingLinks[key]);
+                    toast({ title: "Copied!", description: `${label} link copied to clipboard.` });
+                  }}
+                >
+                  <Link className="w-3 h-3" />
+                </Button>
+                <a href={editingLinks[key]} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             )}
           </div>
         ))}
