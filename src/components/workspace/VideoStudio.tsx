@@ -998,6 +998,8 @@ const VideoStudio = () => {
 
         <SceneEditDialog />
       </div>
+      <PreviewDialogComponent />
+      </>
     );
   }
 
