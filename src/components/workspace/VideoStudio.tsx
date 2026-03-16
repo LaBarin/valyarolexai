@@ -211,20 +211,9 @@ const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; scri
           .filter(([, value]) => Boolean(value)),
       ) as Record<string, string>;
 
-      const currentScript = script && !Array.isArray(script) ? script : null;
-      const updatedScript = {
-        title: currentScript?.title ?? project.title,
-        description: currentScript?.description ?? project.description,
-        format: currentScript?.format ?? project.format,
-        duration_seconds:
-          currentScript?.duration_seconds ??
-          (project.storyboard || []).reduce((total, scene) => total + (scene.duration_seconds || 0), 0),
-        duration_type: currentScript?.duration_type ?? project.duration_type,
-        platform: currentScript?.platform ?? project.platform,
-        scenes: currentScript?.scenes?.length ? currentScript.scenes : project.storyboard || [],
-        ...currentScript,
+      const updatedScript = mergeVideoScript(project, script, {
         publishing_links: cleanLinks,
-      } as VideoData;
+      });
 
       const { data, error } = await supabase
         .from("video_projects")
@@ -233,31 +222,18 @@ const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; scri
         .select("*")
         .single();
 
-      if (error) {
-        toast({ title: "Save Failed", description: error.message, variant: "destructive" });
+      if (error || !data) {
+        toast({ title: "Save Failed", description: error?.message || "Unable to save publishing links.", variant: "destructive" });
         setSaving(false);
         return;
       }
 
-      const persistedScript = (data.script && !Array.isArray(data.script) ? (data.script as VideoData) : null);
-      const persistedLinks = persistedScript?.publishing_links || cleanLinks;
+      const persistedProject = mapVideoProject(data);
+      const persistedLinks = persistedProject.script?.publishing_links || cleanLinks;
 
       setEditingLinks(persistedLinks);
       setLastSaved(persistedLinks);
-      onUpdate({
-        id: data.id,
-        title: data.title,
-        description: data.description ?? undefined,
-        format: data.format,
-        duration_type: data.duration_type,
-        platform: data.platform,
-        status: data.status,
-        script: persistedScript,
-        storyboard: ((data.storyboard as any) || []) as Scene[],
-        ai_generated: data.ai_generated,
-        created_at: data.created_at,
-        share_token: data.share_token ?? null,
-      });
+      onUpdate(persistedProject);
       toast({ title: "Links Saved", description: "Publishing links updated successfully." });
       setSaving(false);
     };
