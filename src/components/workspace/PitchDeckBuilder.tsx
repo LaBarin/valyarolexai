@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Presentation, Plus, Sparkles, ChevronLeft, ChevronRight, Maximize2,
-  Minimize2, Download, Trash2, GripVertical, Edit3, Loader2, FileText
+  Minimize2, Download, Trash2, GripVertical, Edit3, Loader2, FileText,
+  Play, Pause
 } from "lucide-react";
 import { NarratorControls } from "./NarratorControls";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,10 @@ const PitchDeckBuilder = () => {
   const [previewData, setPreviewData] = useState<PitchDeckPreviewData | null>(null);
   const [previewSlide, setPreviewSlide] = useState(0);
   const [isSavingPreview, setIsSavingPreview] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
+  const [isEditorExpanded, setIsEditorExpanded] = useState(false);
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const presentRef = useRef<HTMLDivElement>(null);
 
   const narratorSlides = useMemo(() => {
@@ -97,12 +102,53 @@ const PitchDeckBuilder = () => {
   // Stop narration when leaving deck
   useEffect(() => () => { stopNarration(); }, [stopNarration]);
 
+  // Preview narrator slides (for generated deck preview)
+  const previewNarratorSlides = useMemo(() => {
+    if (!previewData) return [];
+    return previewData.slides.map((s) => {
+      const c = s.content as SlideContent;
+      let body = c.body || "";
+      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
+      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
+      return { title: c.headline || s.title, body };
+    });
+  }, [previewData]);
+
+  // Auto-play timer
+  useEffect(() => {
+    if (isAutoPlaying && activeDeck) {
+      autoPlayRef.current = setInterval(() => {
+        setCurrentSlide((c) => {
+          if (c >= activeDeck.slides.length - 1) {
+            setIsAutoPlaying(false);
+            return c;
+          }
+          return c + 1;
+        });
+      }, 4000);
+    } else if (isAutoPlaying && previewData) {
+      autoPlayRef.current = setInterval(() => {
+        setPreviewSlide((c) => {
+          if (c >= previewData.slides.length - 1) {
+            setIsAutoPlaying(false);
+            return c;
+          }
+          return c + 1;
+        });
+      }, 4000);
+    }
+    return () => { if (autoPlayRef.current) clearInterval(autoPlayRef.current); };
+  }, [isAutoPlaying, activeDeck, previewData]);
+
+  // Stop auto-play when switching decks
+  useEffect(() => { setIsAutoPlaying(false); }, [activeDeck]);
+
   useEffect(() => {
     if (user) loadDecks();
   }, [user]);
 
   useEffect(() => {
-    if (previewData) setPreviewSlide(0);
+    if (previewData) { setPreviewSlide(0); setIsAutoPlaying(false); }
   }, [previewData]);
 
   const loadDecks = async () => {
@@ -345,9 +391,14 @@ const PitchDeckBuilder = () => {
             <h3 className="font-semibold">Generated Deck Preview</h3>
             <p className="text-xs text-muted-foreground">Review the draft below, then save it to your workspace.</p>
           </div>
-          <span className="w-fit rounded-full border border-border/40 bg-background/40 px-3 py-1 text-xs text-muted-foreground">
-            {safePreviewSlide + 1} / {totalSlides}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-border/40 bg-background/40 px-3 py-1 text-xs text-muted-foreground">
+              {safePreviewSlide + 1} / {totalSlides}
+            </span>
+            <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setIsPreviewExpanded((v) => !v)} title={isPreviewExpanded ? "Minimize" : "Expand"}>
+              {isPreviewExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-border/30 bg-muted/10 p-2">
@@ -359,7 +410,7 @@ const PitchDeckBuilder = () => {
               transition={{ duration: 0.2 }}
               className="flex items-center justify-center overflow-hidden"
             >
-              <div className="w-full max-w-[320px] sm:max-w-[380px] lg:max-w-[420px]">
+              <div className={`w-full ${isPreviewExpanded ? "max-w-[600px] lg:max-w-[720px]" : "max-w-[320px] sm:max-w-[380px] lg:max-w-[420px]"}`}>
                 {renderSlide(
                   {
                     slide_type: draftSlide.slide_type,
@@ -400,6 +451,15 @@ const PitchDeckBuilder = () => {
               <ChevronLeft className="w-4 h-4" /> Previous
             </Button>
             <Button
+              size="icon"
+              variant={isAutoPlaying ? "default" : "outline"}
+              className="h-9 w-9"
+              onClick={() => setIsAutoPlaying((v) => !v)}
+              title={isAutoPlaying ? "Pause auto-play" : "Auto-play slides"}
+            >
+              {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </Button>
+            <Button
               size="sm"
               variant="outline"
               disabled={safePreviewSlide === totalSlides - 1}
@@ -407,6 +467,16 @@ const PitchDeckBuilder = () => {
             >
               Next <ChevronRight className="w-4 h-4" />
             </Button>
+            <NarratorControls
+              slides={previewNarratorSlides}
+              currentSlide={safePreviewSlide}
+              compact
+              isNarrating={isNarrating}
+              rate={rate}
+              onStart={startNarration}
+              onStop={stopNarration}
+              onRateChange={setRate}
+            />
           </div>
 
           <div className="flex flex-wrap gap-2 sm:justify-end">
@@ -514,8 +584,12 @@ const PitchDeckBuilder = () => {
                 <h2 className="text-xl font-bold truncate">{activeDeck.title}</h2>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant={isEditorExpanded ? "default" : "outline"} onClick={() => setIsEditorExpanded((v) => !v)}>
+                  {isEditorExpanded ? <Minimize2 className="w-4 h-4 mr-1" /> : <Maximize2 className="w-4 h-4 mr-1" />}
+                  {isEditorExpanded ? "Minimize" : "Expand"}
+                </Button>
                 <Button size="sm" variant="outline" onClick={enterPresentation}>
-                  <Maximize2 className="w-4 h-4 mr-1" /> Present
+                  <Presentation className="w-4 h-4 mr-1" /> Present
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => toast({ title: "Export", description: "PDF export coming soon — use Present mode for now." })}>
                   <Download className="w-4 h-4 mr-1" /> Export PDF
@@ -535,7 +609,7 @@ const PitchDeckBuilder = () => {
                       transition={{ duration: 0.2 }}
                       className="flex min-h-[116px] items-center justify-center overflow-hidden sm:min-h-[132px]"
                     >
-                      <div className="w-full max-w-[260px] sm:max-w-[300px] md:max-w-[340px] xl:max-w-[380px]">
+                      <div className={`w-full ${isEditorExpanded ? "max-w-[500px] md:max-w-[600px] xl:max-w-[700px]" : "max-w-[260px] sm:max-w-[300px] md:max-w-[340px] xl:max-w-[380px]"}`}>
                         {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
                       </div>
                     </motion.div>
@@ -547,6 +621,15 @@ const PitchDeckBuilder = () => {
                     <ChevronLeft className="w-4 h-4" /> Previous
                   </Button>
                   <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Button
+                      size="icon"
+                      variant={isAutoPlaying ? "default" : "outline"}
+                      className="h-9 w-9"
+                      onClick={() => setIsAutoPlaying((v) => !v)}
+                      title={isAutoPlaying ? "Pause auto-play" : "Auto-play slides"}
+                    >
+                      {isAutoPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </Button>
                     <NarratorControls
                       slides={narratorSlides}
                       currentSlide={currentSlide}
