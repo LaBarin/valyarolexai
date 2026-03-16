@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
-  Type, Camera, Mic, ImageIcon
+  Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -116,6 +117,11 @@ const VideoStudio = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [sceneImages, setSceneImages] = useState<Record<string, string>>({});
   const [generatingImages, setGeneratingImages] = useState<Record<string, boolean>>({});
+  // Scene editing state
+  const [editingScene, setEditingScene] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Scene>>({});
+  const [aiEditPrompt, setAiEditPrompt] = useState("");
+  const [isAiEditing, setIsAiEditing] = useState(false);
 
   useEffect(() => {
     if (user) loadProjects();
@@ -183,6 +189,88 @@ const VideoStudio = () => {
       if (!sceneImages[key]) {
         await generateSceneImage(scene, projectId, format, platform);
       }
+    }
+  };
+
+  // --- Scene editing ---
+  const startEditScene = (sceneIndex: number, scene: Scene) => {
+    setEditingScene(sceneIndex);
+    setEditForm({ ...scene });
+    setAiEditPrompt("");
+  };
+
+  const cancelEditScene = () => {
+    setEditingScene(null);
+    setEditForm({});
+    setAiEditPrompt("");
+  };
+
+  const saveSceneEdit = async () => {
+    if (editingScene === null || !activeProject) return;
+    const updatedScenes = [...(activeProject.storyboard || [])];
+    updatedScenes[editingScene] = { ...updatedScenes[editingScene], ...editForm } as Scene;
+
+    // Update in DB
+    const updatedScript = activeProject.script
+      ? { ...activeProject.script, scenes: updatedScenes }
+      : null;
+
+    const { error } = await supabase.from("video_projects").update({
+      storyboard: updatedScenes as any,
+      script: updatedScript as any,
+    }).eq("id", activeProject.id);
+
+    if (error) {
+      toast({ title: "Save Failed", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    // Clear the old generated image for this scene since content changed
+    const imgKey = `${activeProject.id}-${updatedScenes[editingScene].scene_number}`;
+    setSceneImages(prev => {
+      const next = { ...prev };
+      delete next[imgKey];
+      return next;
+    });
+
+    setActiveProject(prev => prev ? { ...prev, storyboard: updatedScenes, script: updatedScript } : null);
+    setProjects(prev => prev.map(p => p.id === activeProject.id ? { ...p, storyboard: updatedScenes, script: updatedScript } : p));
+    setEditingScene(null);
+    setEditForm({});
+    toast({ title: "Scene Updated", description: `Scene ${updatedScenes[editingScene].scene_number} saved.` });
+  };
+
+  const aiEditScene = async () => {
+    if (!aiEditPrompt.trim() || editingScene === null || !activeProject) return;
+    setIsAiEditing(true);
+    try {
+      const scene = activeProject.storyboard[editingScene];
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          messages: [{
+            role: "user",
+            content: `Here is the current scene data:\n${JSON.stringify(scene, null, 2)}\n\nThe user wants to make this change: "${aiEditPrompt}"\n\nReturn ONLY the updated scene as valid JSON with the same fields (scene_number, duration_seconds, visual, text_overlay, voiceover, transition, notes). Keep unchanged fields the same. Apply the user's instruction precisely.`,
+          }],
+          mode: "video",
+        }),
+      });
+      if (!resp.ok) throw new Error("AI editing failed");
+      const { result } = await resp.json();
+      const cleaned = result.replace(/```json\n?|```\n?/g, "").trim();
+      const updatedScene: Scene = JSON.parse(cleaned);
+      setEditForm(updatedScene);
+      setAiEditPrompt("");
+      toast({ title: "AI Updated Scene", description: "Review the changes and click Save." });
+    } catch (e: any) {
+      toast({ title: "AI Edit Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setIsAiEditing(false);
     }
   };
 
@@ -280,6 +368,117 @@ const VideoStudio = () => {
     return () => clearTimeout(timer);
   }, [isPlaying, activeScene, activeProject]);
 
+  // Scene edit dialog
+  const SceneEditDialog = () => {
+    if (editingScene === null || !activeProject) return null;
+    const scene = editForm as Scene;
+
+    return (
+      <Dialog open={editingScene !== null} onOpenChange={(v) => { if (!v) cancelEditScene(); }}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-primary" />
+              Edit Scene {scene.scene_number || editingScene + 1}
+            </DialogTitle>
+            <DialogDescription>Edit manually or use AI instructions below.</DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <div className="space-y-3 pb-4">
+              {/* AI instruction input */}
+              <div className="glass rounded-xl p-3 space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">AI Instructions</label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="e.g. 'Make it more dramatic' or 'Change the background to a beach'"
+                    value={aiEditPrompt}
+                    onChange={(e) => setAiEditPrompt(e.target.value)}
+                    className="text-xs bg-background/50"
+                    onKeyDown={(e) => { if (e.key === "Enter" && !isAiEditing) aiEditScene(); }}
+                  />
+                  <Button size="sm" onClick={aiEditScene} disabled={isAiEditing || !aiEditPrompt.trim()}>
+                    {isAiEditing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Manual fields */}
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Visual Direction</label>
+                <Textarea
+                  value={editForm.visual || ""}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, visual: e.target.value }))}
+                  className="text-xs min-h-[60px] bg-background/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Text Overlay</label>
+                <Input
+                  value={editForm.text_overlay || ""}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, text_overlay: e.target.value }))}
+                  className="text-xs bg-background/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Voiceover</label>
+                <Textarea
+                  value={editForm.voiceover || ""}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, voiceover: e.target.value }))}
+                  className="text-xs min-h-[40px] bg-background/50"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Duration (seconds)</label>
+                  <Input
+                    type="number"
+                    value={editForm.duration_seconds || 3}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, duration_seconds: Number(e.target.value) }))}
+                    className="text-xs bg-background/50"
+                    min={1}
+                    max={60}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Transition</label>
+                  <Select value={editForm.transition || "cut"} onValueChange={(v) => setEditForm(prev => ({ ...prev, transition: v }))}>
+                    <SelectTrigger className="text-xs h-8 bg-background/50"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cut">Cut</SelectItem>
+                      <SelectItem value="fade">Fade</SelectItem>
+                      <SelectItem value="swipe">Swipe</SelectItem>
+                      <SelectItem value="zoom">Zoom</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Notes</label>
+                <Input
+                  value={editForm.notes || ""}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                  className="text-xs bg-background/50"
+                  placeholder="Production notes..."
+                />
+              </div>
+            </div>
+          </ScrollArea>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-border/30">
+            <Button variant="outline" size="sm" onClick={cancelEditScene}>
+              <X className="w-3.5 h-3.5 mr-1" /> Cancel
+            </Button>
+            <Button size="sm" onClick={saveSceneEdit}>
+              <Save className="w-3.5 h-3.5 mr-1" /> Save Scene
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   // Detail view
   if (activeProject) {
     const p = activeProject;
@@ -336,7 +535,7 @@ const VideoStudio = () => {
               </div>
             )}
 
-            {/* Playback preview */}
+            {/* Playback preview — only shows image/placeholder + controls, no repeated text */}
             {scenes.length > 0 && (() => {
               const imageKey = `${p.id}-${scenes[activeScene]?.scene_number || activeScene + 1}`;
               const sceneImg = sceneImages[imageKey];
@@ -348,64 +547,58 @@ const VideoStudio = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col justify-between"
+                      className="absolute inset-0"
                     >
                       {sceneImg ? (
                         <img src={sceneImg} alt={`Scene ${activeScene + 1}`} className="absolute inset-0 w-full h-full object-cover" />
                       ) : (
-                        <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}>
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
-                            <span className="text-[80px] font-black text-foreground">{scenes[activeScene]?.scene_number || activeScene + 1}</span>
+                        <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}>
+                          <div className="text-center space-y-2">
+                            <span className="text-[60px] font-black text-foreground/10">{scenes[activeScene]?.scene_number || activeScene + 1}</span>
+                            {!generatingImages[imageKey] && (
+                              <div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="bg-black/30 border-white/20 text-white hover:bg-black/50"
+                                  onClick={() => generateSceneImage(scenes[activeScene], p.id, p.format, p.platform)}
+                                >
+                                  <ImageIcon className="w-3 h-3 mr-1" /> Generate Image
+                                </Button>
+                              </div>
+                            )}
+                            {generatingImages[imageKey] && (
+                              <div className="flex items-center gap-2 text-white/70">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span className="text-xs">Generating…</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
-                      <div className="p-4 space-y-2 relative z-10">
-                        <div className="flex items-center justify-between">
-                          <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
-                          <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70 drop-shadow-md" />
-                        </div>
-                        {scenes[activeScene]?.text_overlay && (
+                      {/* Minimal overlay: scene badge + logo only */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+                        <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">
+                          Scene {scenes[activeScene]?.scene_number || activeScene + 1} — {scenes[activeScene]?.duration_seconds}s
+                        </Badge>
+                        <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70 drop-shadow-md" />
+                      </div>
+                      {/* Text overlay shown only if image is present */}
+                      {sceneImg && scenes[activeScene]?.text_overlay && (
+                        <div className="absolute bottom-14 left-0 right-0 px-4 z-10">
                           <motion.p
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.3 }}
-                            className="text-lg font-bold text-white drop-shadow-lg"
+                            className="text-lg font-bold text-white drop-shadow-lg text-center"
                           >
                             {scenes[activeScene].text_overlay}
                           </motion.p>
-                        )}
-                      </div>
-                      <div className="p-4 space-y-2 relative z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                        {!sceneImg && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="mb-2 bg-black/30 border-white/20 text-white hover:bg-black/50"
-                            onClick={() => generateSceneImage(scenes[activeScene], p.id, p.format, p.platform)}
-                            disabled={generatingImages[imageKey]}
-                          >
-                            {generatingImages[imageKey]
-                              ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating…</>
-                              : <><ImageIcon className="w-3 h-3 mr-1" /> Generate Image</>
-                            }
-                          </Button>
-                        )}
-                        {scenes[activeScene]?.voiceover && (
-                          <div className="flex items-start gap-1.5 bg-black/30 backdrop-blur-sm rounded-lg p-2 border border-white/10">
-                            <Mic className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
-                            <p className="text-[10px] text-white/90">"{scenes[activeScene].voiceover}"</p>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2 text-[10px] text-white/70">
-                          <Clock className="w-3 h-3" />
-                          <span>{scenes[activeScene]?.duration_seconds}s</span>
-                          {scenes[activeScene]?.transition && scenes[activeScene].transition !== "none" && (
-                            <><span>•</span><span className="capitalize">{scenes[activeScene].transition} transition</span></>
-                          )}
                         </div>
-                      </div>
+                      )}
                     </motion.div>
                   </AnimatePresence>
+                  {/* Playback controls */}
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-3 glass rounded-full px-4 py-1.5 z-10">
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setIsPlaying(!isPlaying); }}>
                       {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -417,7 +610,7 @@ const VideoStudio = () => {
               );
             })()}
 
-            {/* Scene cards with thumbnails */}
+            {/* Scene cards with thumbnails + edit button */}
             <div className="grid gap-3 sm:grid-cols-2">
               {scenes.map((scene, i) => {
                 const imgKey = `${p.id}-${scene.scene_number || i + 1}`;
@@ -453,6 +646,13 @@ const VideoStudio = () => {
                       <Badge variant="outline" className="absolute top-2 left-2 text-[10px] bg-black/50 text-white border-white/20 backdrop-blur-sm">
                         Scene {scene.scene_number || i + 1}
                       </Badge>
+                      {/* Edit button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); startEditScene(i, scene); }}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-md bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
                     </div>
                     <div className="p-3 space-y-1">
                       <div className="flex items-center justify-between">
@@ -494,7 +694,15 @@ const VideoStudio = () => {
                       <div key={i} className="bg-background/50 rounded-lg p-3 space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-semibold">Scene {scene.scene_number || i + 1}</span>
-                          <span className="text-[10px] text-muted-foreground">{scene.duration_seconds}s • {scene.transition}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-muted-foreground">{scene.duration_seconds}s • {scene.transition}</span>
+                            <button
+                              onClick={() => startEditScene(i, scene)}
+                              className="text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                         <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Visual:</span> {scene.visual}</p>
                         {scene.voiceover && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">VO:</span> "{scene.voiceover}"</p>}
@@ -556,6 +764,8 @@ const VideoStudio = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        <SceneEditDialog />
       </div>
     );
   }
@@ -600,12 +810,14 @@ const VideoStudio = () => {
                           <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
                           <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70" />
                         </div>
-                        {scene.text_overlay && <p className="text-sm font-bold drop-shadow-md">{scene.text_overlay}</p>}
                       </div>
                       <div className="p-3 space-y-1 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
                         <p className="text-[10px] text-foreground/90">{scene.visual}</p>
                         {scene.voiceover && (
                           <p className="text-[10px] text-foreground/70 flex items-start gap-1"><Mic className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />"{scene.voiceover}"</p>
+                        )}
+                        {scene.text_overlay && (
+                          <p className="text-[10px] text-primary font-medium flex items-start gap-1"><Type className="w-3 h-3 flex-shrink-0 mt-0.5" />{scene.text_overlay}</p>
                         )}
                       </div>
                     </motion.div>
