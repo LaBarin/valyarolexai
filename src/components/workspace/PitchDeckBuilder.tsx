@@ -584,8 +584,12 @@ const PitchDeckBuilder = () => {
                 <h2 className="text-xl font-bold truncate">{activeDeck.title}</h2>
               </div>
               <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant={isEditorExpanded ? "default" : "outline"} onClick={() => setIsEditorExpanded((v) => !v)}>
+                  {isEditorExpanded ? <Minimize2 className="w-4 h-4 mr-1" /> : <Maximize2 className="w-4 h-4 mr-1" />}
+                  {isEditorExpanded ? "Minimize" : "Expand"}
+                </Button>
                 <Button size="sm" variant="outline" onClick={enterPresentation}>
-                  <Maximize2 className="w-4 h-4 mr-1" /> Present
+                  <Presentation className="w-4 h-4 mr-1" /> Present
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => toast({ title: "Export", description: "PDF export coming soon — use Present mode for now." })}>
                   <Download className="w-4 h-4 mr-1" /> Export PDF
