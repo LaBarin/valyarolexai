@@ -591,9 +591,67 @@ const VideoStudio = () => {
   // Preview dialog - defined before conditional returns so it's accessible everywhere
   const PreviewDialogComponent = () => {
     const [previewScene, setPreviewScene] = useState(0);
+    const [previewImages, setPreviewImages] = useState<Record<number, string>>({});
+    const [generatingPreviewImages, setGeneratingPreviewImages] = useState<Record<number, boolean>>({});
+    const [autoGenStarted, setAutoGenStarted] = useState(false);
+
+    // Auto-generate images for all scenes when preview opens
+    useEffect(() => {
+      if (!previewData || autoGenStarted) return;
+      setAutoGenStarted(true);
+      const generateAll = async () => {
+        const scenes = previewData.scenes || [];
+        for (let i = 0; i < scenes.length; i++) {
+          const scene = scenes[i];
+          setGeneratingPreviewImages(prev => ({ ...prev, [i]: true }));
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const resp = await fetch(SCENE_IMAGE_URL, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session?.access_token}`,
+              },
+              body: JSON.stringify({
+                visual: scene.visual,
+                text_overlay: scene.text_overlay,
+                format: previewData.format,
+                platform: previewData.platform,
+              }),
+            });
+            if (resp.ok) {
+              const { image_url } = await resp.json();
+              if (image_url) {
+                setPreviewImages(prev => ({ ...prev, [i]: image_url }));
+              }
+            }
+          } catch {
+            // silently skip failed images
+          } finally {
+            setGeneratingPreviewImages(prev => ({ ...prev, [i]: false }));
+          }
+        }
+      };
+      generateAll();
+    }, [previewData, autoGenStarted]);
+
+    // Reset state when preview closes
+    useEffect(() => {
+      if (!previewData) {
+        setPreviewImages({});
+        setGeneratingPreviewImages({});
+        setAutoGenStarted(false);
+        setPreviewScene(0);
+      }
+    }, [previewData]);
+
     if (!previewData) return null;
     const scenes = previewData.scenes || [];
     const scene = scenes[previewScene];
+    const currentImage = previewImages[previewScene];
+    const isGeneratingCurrent = generatingPreviewImages[previewScene];
+    const totalGenerated = Object.keys(previewImages).length;
+    const totalGenerating = Object.values(generatingPreviewImages).filter(Boolean).length;
 
     return (
       <Dialog open={!!previewData} onOpenChange={(v) => { if (!v) rejectVideo(); }}>
@@ -603,7 +661,14 @@ const VideoStudio = () => {
               <Eye className="w-5 h-5 text-primary" />
               Review Video — {previewData.title}
             </DialogTitle>
-            <DialogDescription>Preview your AI-generated video storyboard. Approve to save or reject to discard.</DialogDescription>
+            <DialogDescription>
+              Preview your AI-generated video storyboard with visual previews.
+              {totalGenerating > 0 && (
+                <span className="ml-2 text-primary">
+                  Generating images… ({totalGenerated}/{scenes.length})
+                </span>
+              )}
+            </DialogDescription>
           </DialogHeader>
 
           <ScrollArea className="flex-1 -mx-6 px-6">
@@ -616,41 +681,71 @@ const VideoStudio = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col justify-between"
-                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
+                      className="absolute inset-0"
                     >
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
-                        <span className="text-[60px] font-black text-foreground">{scene.scene_number || previewScene + 1}</span>
-                      </div>
-                      <div className="p-3 space-y-1 relative z-10">
-                        <div className="flex items-center justify-between">
-                          <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
-                          <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70" />
+                      {currentImage ? (
+                        <img src={currentImage} alt={`Scene ${previewScene + 1}`} className="absolute inset-0 w-full h-full object-cover" />
+                      ) : (
+                        <div
+                          className="absolute inset-0 flex items-center justify-center"
+                          style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
+                        >
+                          {isGeneratingCurrent ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                              <span className="text-[10px] text-muted-foreground">Generating visual…</span>
+                            </div>
+                          ) : (
+                            <span className="text-[60px] font-black text-foreground/10">{scene.scene_number || previewScene + 1}</span>
+                          )}
                         </div>
+                      )}
+                      {/* Scene badge + logo overlay */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+                        <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">
+                          Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s
+                        </Badge>
+                        <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70 drop-shadow-md" />
                       </div>
-                      <div className="p-3 space-y-1 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
-                        <p className="text-[10px] text-foreground/90">{scene.visual}</p>
-                        {scene.voiceover && (
-                          <p className="text-[10px] text-foreground/70 flex items-start gap-1"><Mic className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />"{scene.voiceover}"</p>
-                        )}
-                        {scene.text_overlay && (
-                          <p className="text-[10px] text-primary font-medium flex items-start gap-1"><Type className="w-3 h-3 flex-shrink-0 mt-0.5" />{scene.text_overlay}</p>
-                        )}
-                      </div>
+                      {/* Text overlay on image */}
+                      {scene.text_overlay && currentImage && (
+                        <div className="absolute bottom-14 left-0 right-0 px-4 z-10">
+                          <p className="text-lg font-bold text-white drop-shadow-lg text-center">{scene.text_overlay}</p>
+                        </div>
+                      )}
+                      {/* Info overlay when no image */}
+                      {!currentImage && (
+                        <div className="absolute bottom-0 left-0 right-0 p-3 space-y-1 z-10 bg-gradient-to-t from-black/60 to-transparent">
+                          <p className="text-[10px] text-foreground/90">{scene.visual}</p>
+                          {scene.voiceover && (
+                            <p className="text-[10px] text-foreground/70 flex items-start gap-1"><Mic className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />"{scene.voiceover}"</p>
+                          )}
+                        </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
+              {/* Scene navigation dots */}
               <div className="flex items-center justify-center gap-1">
                 {scenes.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setPreviewScene(i)}
-                    className={`w-2 h-2 rounded-full transition-all ${i === previewScene ? "bg-primary w-4" : "bg-muted-foreground/30"}`}
+                    className={`w-2 h-2 rounded-full transition-all ${i === previewScene ? "bg-primary w-4" : previewImages[i] ? "bg-accent/60" : "bg-muted-foreground/30"}`}
                   />
                 ))}
               </div>
+
+              {/* Scene details below preview */}
+              {scene && (
+                <div className="glass rounded-lg p-3 space-y-1">
+                  <p className="text-xs text-foreground/90"><span className="font-medium">Visual:</span> {scene.visual}</p>
+                  {scene.voiceover && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">VO:</span> "{scene.voiceover}"</p>}
+                  {scene.text_overlay && <p className="text-xs text-primary"><span className="font-medium">Text:</span> {scene.text_overlay}</p>}
+                </div>
+              )}
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="glass rounded-lg p-3 text-center">
