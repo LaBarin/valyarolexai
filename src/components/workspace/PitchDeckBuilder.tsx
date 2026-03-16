@@ -679,13 +679,6 @@ const PitchDeckBuilder = () => {
       )}
     </div>
 
-    <PitchDeckPreviewDialog
-      open={!!previewData}
-      data={previewData}
-      onApprove={approveDeckPreview}
-      onReject={rejectDeckPreview}
-      loading={isSavingPreview}
-    />
     </>
   );
 };
