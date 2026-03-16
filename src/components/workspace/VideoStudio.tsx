@@ -296,10 +296,11 @@ const VideoStudio = () => {
         duration_type: v.duration_type,
         platform: v.platform,
         status: v.status,
-        script: v.script as VideoData | null,
+        script: (v.script && !Array.isArray(v.script) ? (v.script as VideoData) : null),
         storyboard: ((v.storyboard as any) || []) as Scene[],
         ai_generated: v.ai_generated,
         created_at: v.created_at,
+        share_token: v.share_token ?? null,
       })));
     }
     setLoading(false);
