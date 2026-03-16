@@ -360,7 +360,7 @@ export const PitchDeckPreviewDialog = ({
     });
   }, [data]);
 
-  const { isNarrating, startNarration, stopNarration } = useNarrator({
+  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
     onStepChange: setCurrentSlide,
     totalSteps: narratorSlides.length,
   });

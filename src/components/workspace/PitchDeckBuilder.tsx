@@ -443,8 +443,10 @@ const PitchDeckBuilder = () => {
                   slides={narratorSlides}
                   currentSlide={currentSlide}
                   isNarrating={isNarrating}
+                  rate={rate}
                   onStart={startNarration}
                   onStop={stopNarration}
+                  onRateChange={setRate}
                 />
                 <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
               </div>
