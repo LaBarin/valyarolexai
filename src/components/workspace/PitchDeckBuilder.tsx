@@ -87,10 +87,13 @@ const PitchDeckBuilder = () => {
     if (!activeDeck) return [];
     return activeDeck.slides.map((s) => {
       const c = s.content;
-      let body = c.body || "";
-      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
-      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
-      return { title: c.headline || s.title, body };
+      const parts: string[] = [];
+      if (c.headline) parts.push(c.headline);
+      else if (s.title) parts.push(s.title);
+      if (c.body) parts.push(c.body);
+      if (c.bullets?.length) parts.push(c.bullets.join(". "));
+      if (c.metric) parts.push(`Key metric: ${c.metric} ${c.metric_label || ""}`);
+      return { title: parts[0] || s.title, body: parts.slice(1).join(". ") };
     });
   }, [activeDeck]);
 
@@ -107,10 +110,13 @@ const PitchDeckBuilder = () => {
     if (!previewData) return [];
     return previewData.slides.map((s) => {
       const c = s.content as SlideContent;
-      let body = c.body || "";
-      if (c.bullets?.length) body += ". " + c.bullets.join(". ");
-      if (c.metric) body += `. Key metric: ${c.metric} ${c.metric_label || ""}`;
-      return { title: c.headline || s.title, body };
+      const parts: string[] = [];
+      if (c.headline) parts.push(c.headline);
+      else if (s.title) parts.push(s.title);
+      if (c.body) parts.push(c.body);
+      if (c.bullets?.length) parts.push(c.bullets.join(". "));
+      if (c.metric) parts.push(`Key metric: ${c.metric} ${c.metric_label || ""}`);
+      return { title: parts[0] || s.title, body: parts.slice(1).join(". ") };
     });
   }, [previewData]);
 

@@ -78,10 +78,14 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
         }
 
         const s = steps[index];
-        let text = `${s.title}. ${s.subtitle}. ${s.description}`;
+        const textParts: string[] = [];
+        if (s.title) textParts.push(s.title);
+        if (s.subtitle) textParts.push(s.subtitle);
+        if (s.description) textParts.push(s.description);
         if (s.highlights?.length) {
-          text += " Key highlights include: " + s.highlights.join(". ") + ".";
+          textParts.push("Key highlights include: " + s.highlights.join(". "));
         }
+        let text = textParts.join(". ") + ".";
 
         narrateStep(index, text, () => narrateSequence(index + 1));
       };
