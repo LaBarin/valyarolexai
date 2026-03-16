@@ -122,7 +122,7 @@ Support ALL major advertising platforms: Facebook Ads, Instagram Ads, TikTok Ads
   ],
   "schedule": {"duration_weeks": 8, "phases": [{"name": "Phase name", "weeks": "1-2", "focus": "phase focus"}]}
 }
-For each platform, include specific ad formats (e.g. Facebook: carousel, story, reel; TikTok: in-feed, spark ads; Google: search, display, shopping). Generate a detailed, actionable campaign with real ad copy examples. Always respond with valid JSON only.`,
+For each platform, include specific ad formats (e.g. Facebook: carousel, story, reel; TikTok: in-feed, spark ads; Google: search, display, shopping). Generate a detailed, actionable campaign with real ad copy examples. Always respond with valid JSON only.${companyContext}`,
       video: `You are Valyarolex.AI's video ad creative director. Generate professional video ad scripts and storyboards for any platform. When a user describes their video concept, generate a detailed production plan as JSON.
 
 Support ALL formats: shorts (5-15s for TikTok/Reels/Shorts), square (1:1 for feed ads), landscape (16:9 for YouTube/web), and commercial-length (30-60s for TV/pre-roll).
