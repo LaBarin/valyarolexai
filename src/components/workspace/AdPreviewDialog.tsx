@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useNarrator } from "@/hooks/use-narrator";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check, X, ChevronLeft, ChevronRight, Megaphone, Target,
