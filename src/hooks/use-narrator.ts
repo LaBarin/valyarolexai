@@ -8,8 +8,10 @@ interface NarratorOptions {
 export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   const [isNarrating, setIsNarrating] = useState(false);
   const [currentNarrationStep, setCurrentNarrationStep] = useState(0);
+  const [rate, setRate] = useState(1);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const isNarratingRef = useRef(false);
+  const rateRef = useRef(1);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   const voiceReadyRef = useRef(false);
