@@ -74,6 +74,7 @@ const PitchDeckBuilder = () => {
   const [editingSlide, setEditingSlide] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [previewData, setPreviewData] = useState<PitchDeckPreviewData | null>(null);
+  const [previewSlide, setPreviewSlide] = useState(0);
   const [isSavingPreview, setIsSavingPreview] = useState(false);
   const presentRef = useRef<HTMLDivElement>(null);
 
