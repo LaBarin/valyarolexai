@@ -82,7 +82,7 @@ serve(async (req) => {
   ],
   "summary": "brief one-line summary of the workflow"
 }
-Always respond with valid JSON only, no other text.`,
+Always respond with valid JSON only, no other text.${companyContext}`,
       pitch_deck: `You are Valyarolex.AI's pitch deck and ad campaign generator. When a user describes their business, product, idea, or ad campaign, generate a professional presentation as JSON. Support all use cases: investor pitches, product launches, and advertising campaigns for all major platforms (Facebook, Instagram, TikTok, YouTube, LinkedIn, X/Twitter, Google Ads, Snapchat, Pinterest, Reddit).
 
 For ad campaigns, include platform-specific slides with ad copy, targeting suggestions, creative direction, budget allocation, and KPIs per platform.
