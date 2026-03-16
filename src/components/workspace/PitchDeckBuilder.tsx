@@ -332,37 +332,37 @@ const PitchDeckBuilder = () => {
         {/* Company logo */}
         <img src={logoImg} alt="Valyarolex.AI" className={`absolute top-3 left-4 w-auto opacity-80 z-20 ${isFullscreen ? "h-10" : "h-5"}`} />
 
-        <div className="relative z-10 space-y-2 md:space-y-3">
+        <div className="relative z-10 space-y-1 sm:space-y-2 md:space-y-3">
           {slide.slide_type === "title" ? (
-            <div className="text-center space-y-3 md:space-y-4">
-              <h1 className={`font-bold tracking-tight text-foreground ${isFullscreen ? "text-6xl" : "text-lg md:text-3xl"}`}>
+            <div className="text-center space-y-1 sm:space-y-3 md:space-y-4">
+              <h1 className={`font-bold tracking-tight text-foreground ${isFullscreen ? "text-6xl" : "text-sm sm:text-lg md:text-3xl"}`}>
                 {c.headline || slide.title}
               </h1>
-              {c.body && <p className={`text-muted-foreground max-w-2xl mx-auto ${isFullscreen ? "text-2xl" : "text-[11px] md:text-base"}`}>{c.body}</p>}
+              {c.body && <p className={`text-muted-foreground max-w-2xl mx-auto ${isFullscreen ? "text-2xl" : "text-[9px] sm:text-[11px] md:text-base"}`}>{c.body}</p>}
             </div>
           ) : (
             <>
-              <p className={`text-primary/80 font-semibold uppercase tracking-widest ${isFullscreen ? "text-lg" : "text-[10px]"}`}>
+              <p className={`text-primary/80 font-semibold uppercase tracking-widest ${isFullscreen ? "text-lg" : "text-[8px] sm:text-[10px]"}`}>
                 {slide.slide_type.replace(/_/g, " ")}
               </p>
-              <h2 className={`font-bold text-foreground ${isFullscreen ? "text-5xl" : "text-base md:text-2xl"}`}>
+              <h2 className={`font-bold text-foreground ${isFullscreen ? "text-5xl" : "text-xs sm:text-base md:text-2xl"}`}>
                 {c.headline || slide.title}
               </h2>
-              {c.body && <p className={`text-muted-foreground leading-relaxed ${isFullscreen ? "text-xl" : "text-[11px] md:text-sm"}`}>{c.body}</p>}
+              {c.body && <p className={`text-muted-foreground leading-relaxed ${isFullscreen ? "text-xl" : "text-[8px] sm:text-[11px] md:text-sm"}`}>{c.body}</p>}
               {c.bullets && c.bullets.length > 0 && (
-                <ul className={`space-y-1.5 ${isFullscreen ? "text-xl" : "text-[11px] md:text-sm"}`}>
+                <ul className={`space-y-0.5 sm:space-y-1.5 ${isFullscreen ? "text-xl" : "text-[8px] sm:text-[11px] md:text-sm"}`}>
                   {c.bullets.map((b, i) => (
-                    <li key={i} className="flex items-start gap-2 text-foreground/90">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                      {b}
+                    <li key={i} className="flex items-start gap-1 sm:gap-2 text-foreground/90">
+                      <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-primary mt-1 sm:mt-1.5 flex-shrink-0" />
+                      <span className="line-clamp-2 sm:line-clamp-none">{b}</span>
                     </li>
                   ))}
                 </ul>
               )}
               {c.metric && (
-                <div className="mt-2 glass rounded-xl p-3 inline-block">
-                  <span className={`font-bold text-primary ${isFullscreen ? "text-5xl" : "text-xl"}`}>{c.metric}</span>
-                  {c.metric_label && <span className={`text-muted-foreground ml-2 ${isFullscreen ? "text-lg" : "text-[10px]"}`}>{c.metric_label}</span>}
+                <div className="mt-1 sm:mt-2 glass rounded-xl p-1.5 sm:p-3 inline-block">
+                  <span className={`font-bold text-primary ${isFullscreen ? "text-5xl" : "text-sm sm:text-xl"}`}>{c.metric}</span>
+                  {c.metric_label && <span className={`text-muted-foreground ml-1 sm:ml-2 ${isFullscreen ? "text-lg" : "text-[8px] sm:text-[10px]"}`}>{c.metric_label}</span>}
                 </div>
               )}
             </>
