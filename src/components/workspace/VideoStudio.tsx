@@ -1127,7 +1127,7 @@ const VideoStudio = () => {
       )}
     </div>
 
-    <PreviewDialog />
+    <PreviewDialogComponent />
     </>
   );
 };
