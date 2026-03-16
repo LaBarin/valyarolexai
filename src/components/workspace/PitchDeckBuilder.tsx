@@ -376,15 +376,15 @@ const PitchDeckBuilder = () => {
   // Deck editor
   if (activeDeck) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <div className="flex h-[calc(100vh-9rem)] flex-col gap-4 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Button size="sm" variant="ghost" onClick={() => { setActiveDeck(null); loadDecks(); }}>
               <ChevronLeft className="w-4 h-4 mr-1" /> Back
             </Button>
-            <h2 className="text-xl font-bold">{activeDeck.title}</h2>
+            <h2 className="text-xl font-bold truncate">{activeDeck.title}</h2>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={enterPresentation}>
               <Maximize2 className="w-4 h-4 mr-1" /> Present
             </Button>
@@ -394,60 +394,31 @@ const PitchDeckBuilder = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-4" style={{ maxHeight: "calc(100vh - 180px)" }}>
-          {/* Slide thumbnails */}
-          <div className="col-span-3">
-            <ScrollArea className="h-full max-h-[calc(100vh-200px)]">
-              <div className="space-y-2 pr-2">
-                {activeDeck.slides.map((slide, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentSlide(i)}
-                    className={`w-full text-left rounded-lg overflow-hidden border-2 transition-all ${
-                      currentSlide === i ? "border-primary shadow-glow" : "border-border/30 hover:border-border"
-                    }`}
-                  >
-                    <div className="relative w-full aspect-video overflow-hidden">
-                      <div className="absolute inset-0 origin-top-left scale-[0.25] w-[400%] h-[400%] pointer-events-none">
-                        {renderSlide(slide, i)}
-                      </div>
-                    </div>
-                    <div className="p-2 bg-background/80">
-                      <p className="text-xs font-medium truncate">{slide.title || `Slide ${i + 1}`}</p>
-                      <p className="text-[10px] text-muted-foreground">{slide.slide_type.replace(/_/g, " ")}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-
+        <div className="grid flex-1 min-h-0 gap-4 xl:grid-cols-12">
           {/* Main slide view */}
-          <div className="col-span-9 flex flex-col gap-3 min-h-0">
-            <div className="flex-1 min-h-0 max-h-[calc(100vh-300px)]">
+          <div className="order-1 flex min-h-0 flex-col gap-3 xl:col-span-9">
+            <div className="flex-1 min-h-0 rounded-2xl border border-border/30 bg-muted/10 p-2 sm:p-3">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentSlide}
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2 }}
-                  className="h-full"
+                  className="flex h-full items-center justify-center overflow-hidden"
                 >
-                  <div className="h-full flex items-center justify-center">
-                    <div className="w-full max-h-full" style={{ aspectRatio: "16/9" }}>
-                      {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
-                    </div>
+                  <div className="w-full max-w-4xl max-h-full aspect-video">
+                    {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
                   </div>
                 </motion.div>
               </AnimatePresence>
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between flex-shrink-0">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between flex-shrink-0">
               <Button size="sm" variant="outline" disabled={currentSlide === 0} onClick={() => setCurrentSlide(currentSlide - 1)}>
                 <ChevronLeft className="w-4 h-4" /> Previous
               </Button>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 <NarratorControls
                   slides={narratorSlides}
                   currentSlide={currentSlide}
@@ -466,11 +437,38 @@ const PitchDeckBuilder = () => {
 
             {/* Speaker notes */}
             {activeDeck.slides[currentSlide]?.notes && (
-              <div className="glass rounded-xl p-3 flex-shrink-0">
+              <div className="glass rounded-xl p-3 flex-shrink-0 max-h-24 overflow-auto">
                 <p className="text-xs font-semibold text-muted-foreground mb-1">Speaker Notes</p>
-                <p className="text-sm text-foreground/80 line-clamp-3">{activeDeck.slides[currentSlide].notes}</p>
+                <p className="text-sm text-foreground/80">{activeDeck.slides[currentSlide].notes}</p>
               </div>
             )}
+          </div>
+
+          {/* Slide thumbnails */}
+          <div className="order-2 min-h-0 xl:order-2 xl:col-span-3">
+            <ScrollArea className="w-full xl:h-full">
+              <div className="flex gap-2 pb-2 xl:block xl:space-y-2 xl:pr-2 xl:pb-0">
+                {activeDeck.slides.map((slide, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentSlide(i)}
+                    className={`w-40 shrink-0 text-left rounded-lg overflow-hidden border-2 transition-all xl:w-full ${
+                      currentSlide === i ? "border-primary shadow-glow" : "border-border/30 hover:border-border"
+                    }`}
+                  >
+                    <div className="relative w-full aspect-video overflow-hidden">
+                      <div className="absolute inset-0 origin-top-left scale-[0.25] w-[400%] h-[400%] pointer-events-none">
+                        {renderSlide(slide, i)}
+                      </div>
+                    </div>
+                    <div className="p-2 bg-background/80">
+                      <p className="text-xs font-medium truncate">{slide.title || `Slide ${i + 1}`}</p>
+                      <p className="text-[10px] text-muted-foreground">{slide.slide_type.replace(/_/g, " ")}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </div>
       </div>
