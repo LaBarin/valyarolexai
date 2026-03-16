@@ -273,45 +273,45 @@ const PitchDeckBuilder = () => {
     const c = slide.content;
     return (
       <div
-        className={`relative w-full aspect-video rounded-2xl bg-gradient-to-br ${gradientClass} flex flex-col justify-center p-8 md:p-16 overflow-hidden ${isFullscreen ? "rounded-none h-screen" : ""}`}
+        className={`relative w-full aspect-video rounded-2xl bg-gradient-to-br ${gradientClass} flex flex-col justify-center p-4 md:p-8 overflow-hidden ${isFullscreen ? "rounded-none h-screen p-16" : ""}`}
       >
         {/* Decorative circles */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/2" />
         {/* Company logo */}
-        <img src={logoImg} alt="Valyarolex.AI" className={`absolute top-4 left-6 w-auto opacity-80 z-20 ${isFullscreen ? "h-10" : "h-6"}`} />
+        <img src={logoImg} alt="Valyarolex.AI" className={`absolute top-3 left-4 w-auto opacity-80 z-20 ${isFullscreen ? "h-10" : "h-5"}`} />
 
-        <div className="relative z-10 space-y-4">
+        <div className="relative z-10 space-y-2 md:space-y-3">
           {slide.slide_type === "title" ? (
-            <div className="text-center space-y-6">
-              <h1 className={`font-bold tracking-tight text-foreground ${isFullscreen ? "text-6xl" : "text-2xl md:text-4xl"}`}>
+            <div className="text-center space-y-3 md:space-y-4">
+              <h1 className={`font-bold tracking-tight text-foreground ${isFullscreen ? "text-6xl" : "text-lg md:text-3xl"}`}>
                 {c.headline || slide.title}
               </h1>
-              {c.body && <p className={`text-muted-foreground max-w-2xl mx-auto ${isFullscreen ? "text-2xl" : "text-sm md:text-lg"}`}>{c.body}</p>}
+              {c.body && <p className={`text-muted-foreground max-w-2xl mx-auto ${isFullscreen ? "text-2xl" : "text-[11px] md:text-base"}`}>{c.body}</p>}
             </div>
           ) : (
             <>
-              <p className={`text-primary/80 font-semibold uppercase tracking-widest ${isFullscreen ? "text-lg" : "text-xs"}`}>
+              <p className={`text-primary/80 font-semibold uppercase tracking-widest ${isFullscreen ? "text-lg" : "text-[10px]"}`}>
                 {slide.slide_type.replace(/_/g, " ")}
               </p>
-              <h2 className={`font-bold text-foreground ${isFullscreen ? "text-5xl" : "text-xl md:text-3xl"}`}>
+              <h2 className={`font-bold text-foreground ${isFullscreen ? "text-5xl" : "text-base md:text-2xl"}`}>
                 {c.headline || slide.title}
               </h2>
-              {c.body && <p className={`text-muted-foreground leading-relaxed ${isFullscreen ? "text-xl" : "text-sm"}`}>{c.body}</p>}
+              {c.body && <p className={`text-muted-foreground leading-relaxed ${isFullscreen ? "text-xl" : "text-[11px] md:text-sm"}`}>{c.body}</p>}
               {c.bullets && c.bullets.length > 0 && (
-                <ul className={`space-y-2 ${isFullscreen ? "text-xl" : "text-sm"}`}>
+                <ul className={`space-y-1.5 ${isFullscreen ? "text-xl" : "text-[11px] md:text-sm"}`}>
                   {c.bullets.map((b, i) => (
                     <li key={i} className="flex items-start gap-2 text-foreground/90">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
                       {b}
                     </li>
                   ))}
                 </ul>
               )}
               {c.metric && (
-                <div className="mt-4 glass rounded-xl p-4 inline-block">
-                  <span className={`font-bold text-primary ${isFullscreen ? "text-5xl" : "text-2xl"}`}>{c.metric}</span>
-                  {c.metric_label && <span className={`text-muted-foreground ml-2 ${isFullscreen ? "text-lg" : "text-xs"}`}>{c.metric_label}</span>}
+                <div className="mt-2 glass rounded-xl p-3 inline-block">
+                  <span className={`font-bold text-primary ${isFullscreen ? "text-5xl" : "text-xl"}`}>{c.metric}</span>
+                  {c.metric_label && <span className={`text-muted-foreground ml-2 ${isFullscreen ? "text-lg" : "text-[10px]"}`}>{c.metric_label}</span>}
                 </div>
               )}
             </>
@@ -421,7 +421,7 @@ const PitchDeckBuilder = () => {
             <div className="grid gap-4 xl:grid-cols-12 xl:items-start">
               {/* Main slide view */}
               <div className="order-1 flex flex-col gap-3 xl:col-span-9">
-                <div className="rounded-2xl border border-border/30 bg-muted/10 p-1.5 sm:p-2 flex-shrink-0" style={{ maxHeight: "min(38vh, 260px)" }}>
+                <div className="rounded-2xl border border-border/30 bg-muted/10 p-1 sm:p-1.5 flex-shrink-0" style={{ maxHeight: "min(28vh, 180px)" }}>
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={currentSlide}
@@ -430,7 +430,7 @@ const PitchDeckBuilder = () => {
                       transition={{ duration: 0.2 }}
                       className="flex h-full items-center justify-center overflow-hidden"
                     >
-                      <div className="w-full max-h-full aspect-video" style={{ maxHeight: "min(35vh, 240px)" }}>
+                      <div className="w-full max-h-full aspect-video" style={{ maxHeight: "min(24vh, 150px)" }}>
                         {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
                       </div>
                     </motion.div>
