@@ -39,7 +39,7 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
     (stepIndex: number, text: string, onDone: () => void) => {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
+      utterance.rate = rateRef.current;
       utterance.pitch = 1;
       utterance.volume = 1;
 
