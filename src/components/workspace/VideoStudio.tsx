@@ -338,22 +338,11 @@ const VideoStudio = () => {
       .from("video_projects")
       .select("*")
       .order("updated_at", { ascending: false });
+
     if (data) {
-      setProjects(data.map((v: any) => ({
-        id: v.id,
-        title: v.title,
-        description: v.description ?? undefined,
-        format: v.format,
-        duration_type: v.duration_type,
-        platform: v.platform,
-        status: v.status,
-        script: (v.script && !Array.isArray(v.script) ? (v.script as VideoData) : null),
-        storyboard: ((v.storyboard as any) || []) as Scene[],
-        ai_generated: v.ai_generated,
-        created_at: v.created_at,
-        share_token: v.share_token ?? null,
-      })));
+      setProjects(data.map(mapVideoProject));
     }
+
     setLoading(false);
   };
 
