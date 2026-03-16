@@ -284,11 +284,17 @@ const VideoStudio = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10 flex flex-col justify-between p-6"
+                    className="absolute inset-0 flex flex-col justify-between"
+                    style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
                   >
-                    <div className="space-y-2">
+                    {/* Scene number watermark */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+                      <span className="text-[80px] font-black text-foreground">{scenes[activeScene]?.scene_number || activeScene + 1}</span>
+                    </div>
+
+                    <div className="p-4 space-y-2 relative z-10">
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="text-[10px]">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
+                        <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
                         <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70" />
                       </div>
                       {scenes[activeScene]?.text_overlay && (
@@ -296,20 +302,32 @@ const VideoStudio = () => {
                           initial={{ y: 20, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
                           transition={{ delay: 0.3 }}
-                          className="text-lg font-bold text-foreground"
+                          className="text-lg font-bold text-foreground drop-shadow-md"
                         >
                           {scenes[activeScene].text_overlay}
                         </motion.p>
                       )}
                     </div>
-                    <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground italic">{scenes[activeScene]?.visual}</p>
+
+                    <div className="p-4 space-y-2 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Camera className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Visual Direction</span>
+                      </div>
+                      <p className="text-xs text-foreground/90 leading-relaxed">{scenes[activeScene]?.visual}</p>
                       {scenes[activeScene]?.voiceover && (
-                        <div className="flex items-start gap-1.5 glass rounded-lg p-2">
+                        <div className="flex items-start gap-1.5 bg-background/30 backdrop-blur-sm rounded-lg p-2 border border-foreground/10">
                           <Mic className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
-                          <p className="text-[10px] text-foreground/80">"{scenes[activeScene].voiceover}"</p>
+                          <p className="text-[10px] text-foreground/90">"{scenes[activeScene].voiceover}"</p>
                         </div>
                       )}
+                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        <span>{scenes[activeScene]?.duration_seconds}s</span>
+                        {scenes[activeScene]?.transition && scenes[activeScene].transition !== "none" && (
+                          <><span>•</span><span className="capitalize">{scenes[activeScene].transition} transition</span></>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 </AnimatePresence>
@@ -469,19 +487,23 @@ const VideoStudio = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10 flex flex-col justify-between p-4"
+                      className="absolute inset-0 flex flex-col justify-between"
+                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.25) 50%, hsl(210 25% 12%) 100%)` }}
                     >
-                      <div className="space-y-1">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+                        <span className="text-[60px] font-black text-foreground">{scene.scene_number || previewScene + 1}</span>
+                      </div>
+                      <div className="p-3 space-y-1 relative z-10">
                         <div className="flex items-center justify-between">
-                          <Badge variant="outline" className="text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
+                          <Badge className="bg-primary/30 text-primary border-primary/40 text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
                           <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70" />
                         </div>
-                        {scene.text_overlay && <p className="text-sm font-bold">{scene.text_overlay}</p>}
+                        {scene.text_overlay && <p className="text-sm font-bold drop-shadow-md">{scene.text_overlay}</p>}
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-muted-foreground italic">{scene.visual}</p>
+                      <div className="p-3 space-y-1 relative z-10 bg-gradient-to-t from-black/60 to-transparent">
+                        <p className="text-[10px] text-foreground/90">{scene.visual}</p>
                         {scene.voiceover && (
-                          <p className="text-[10px] text-foreground/70">🎙 "{scene.voiceover}"</p>
+                          <p className="text-[10px] text-foreground/70 flex items-start gap-1"><Mic className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />"{scene.voiceover}"</p>
                         )}
                       </div>
                     </motion.div>
@@ -635,8 +657,9 @@ const VideoStudio = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/30 to-accent/20 flex items-center justify-center">
-                      <FormatIcon className="w-5 h-5 text-primary" />
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center relative overflow-hidden"
+                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.3))` }}>
+                      <FormatIcon className="w-5 h-5 text-primary relative z-10" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-sm">{p.title}</h3>
