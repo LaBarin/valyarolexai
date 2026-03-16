@@ -240,8 +240,10 @@ function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
       slides={slides}
       currentSlide={0}
       isNarrating={isNarrating}
+      rate={rate}
       onStart={startNarration}
       onStop={stopNarration}
+      onRateChange={setRate}
     />
   );
 }
