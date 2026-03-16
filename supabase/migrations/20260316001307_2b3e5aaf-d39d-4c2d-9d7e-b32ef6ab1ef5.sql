@@ -1,0 +1,1 @@
+ALTER TABLE public.marketing_campaigns ALTER COLUMN share_token SET DEFAULT NULL;
