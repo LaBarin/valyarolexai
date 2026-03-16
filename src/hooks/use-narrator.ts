@@ -12,15 +12,19 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   const isNarratingRef = useRef(false);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
+  const voiceReadyRef = useRef(false);
+
   // Preload and cache a good voice
   const loadVoice = useCallback(() => {
     const voices = window.speechSynthesis.getVoices();
+    if (voices.length === 0) return;
     const preferred = voices.find(
       (v) =>
         v.lang.startsWith("en") &&
         (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Daniel"))
     );
     voiceRef.current = preferred || voices.find((v) => v.lang.startsWith("en")) || null;
+    voiceReadyRef.current = true;
   }, []);
 
   const stopNarration = useCallback(() => {
