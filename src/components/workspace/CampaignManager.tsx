@@ -165,7 +165,7 @@ const CampaignManager = () => {
     if (!previewData || !user) return;
     setIsSavingPreview(true);
     try {
-      const { error } = await supabase.from("marketing_campaigns").insert({
+      const { data: inserted, error } = await supabase.from("marketing_campaigns").insert({
         user_id: user.id,
         name: previewData.name || "AI Campaign",
         description: previewData.description,
@@ -176,12 +176,29 @@ const CampaignManager = () => {
         content_plan: previewData.content_plan || [],
         schedule: previewData.schedule || {},
         ai_generated: true,
-      });
+      }).select().single();
       if (error) throw error;
+      const savedName = previewData.name;
       setPreviewData(null);
       setPrompt("");
       await loadCampaigns();
-      toast({ title: "Campaign Approved", description: `"${previewData.name}" has been saved.` });
+      // Auto-open the newly created campaign
+      if (inserted) {
+        setActiveCampaign({
+          id: inserted.id,
+          name: inserted.name,
+          description: inserted.description ?? undefined,
+          status: inserted.status,
+          campaign_type: inserted.campaign_type,
+          target_audience: inserted.target_audience ?? undefined,
+          goals: (inserted.goals as any) || [],
+          channels: (inserted.channels as any) || [],
+          content_plan: (inserted.content_plan as any) || [],
+          schedule: (inserted.schedule as any) || {},
+          share_token: (inserted as any).share_token ?? undefined,
+        });
+      }
+      toast({ title: "Campaign Approved", description: `"${savedName}" has been saved.` });
     } catch (e: any) {
       toast({ title: "Save Failed", description: e.message, variant: "destructive" });
     } finally {
