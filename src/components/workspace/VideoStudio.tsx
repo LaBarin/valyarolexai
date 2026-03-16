@@ -21,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "@/assets/valyarolex-logo.png";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
 
 type Scene = {
   scene_number: number;
