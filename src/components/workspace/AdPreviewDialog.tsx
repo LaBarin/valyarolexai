@@ -277,6 +277,8 @@ const renderPreviewSlide = (slide: PreviewSlide, index: number) => {
   return (
     <div className={`relative w-full aspect-video rounded-2xl bg-gradient-to-br ${gradientClass} flex flex-col justify-center p-8 overflow-hidden`}>
       <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
+      {/* Company logo */}
+      <img src={logoUrl} alt="Valyarolex.AI" className="absolute top-4 left-4 h-6 w-auto opacity-80 z-20" />
       <div className="relative z-10 space-y-3">
         {slide.slide_type === "title" ? (
           <div className="text-center space-y-4">
