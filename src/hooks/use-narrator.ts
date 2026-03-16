@@ -90,6 +90,8 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   );
 
   useEffect(() => {
+    // Eagerly trigger voice loading
+    loadVoice();
     window.speechSynthesis?.getVoices();
     window.speechSynthesis?.addEventListener?.("voiceschanged", loadVoice);
     return () => {
