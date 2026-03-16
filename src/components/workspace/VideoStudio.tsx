@@ -405,20 +405,27 @@ const VideoStudio = () => {
     const updatedScenes = [...(activeProject.storyboard || [])];
     updatedScenes[editingScene] = { ...updatedScenes[editingScene], ...editForm } as Scene;
 
-    // Update in DB
-    const updatedScript = activeProject.script
-      ? { ...activeProject.script, scenes: updatedScenes }
-      : null;
+    const updatedScript = mergeVideoScript(activeProject, activeProject.script, {
+      scenes: updatedScenes,
+      duration_seconds: getSceneDuration(updatedScenes),
+    });
 
-    const { error } = await supabase.from("video_projects").update({
-      storyboard: updatedScenes as any,
-      script: updatedScript as any,
-    }).eq("id", activeProject.id);
+    const { data, error } = await supabase
+      .from("video_projects")
+      .update({
+        storyboard: updatedScenes as any,
+        script: updatedScript as any,
+      })
+      .eq("id", activeProject.id)
+      .select("*")
+      .single();
 
-    if (error) {
-      toast({ title: "Save Failed", description: error.message, variant: "destructive" });
+    if (error || !data) {
+      toast({ title: "Save Failed", description: error?.message || "Unable to save scene updates.", variant: "destructive" });
       return;
     }
+
+    const persistedProject = mapVideoProject(data);
 
     // Clear the old generated image for this scene since content changed
     const imgKey = `${activeProject.id}-${updatedScenes[editingScene].scene_number}`;
@@ -428,8 +435,8 @@ const VideoStudio = () => {
       return next;
     });
 
-    setActiveProject(prev => prev ? { ...prev, storyboard: updatedScenes, script: updatedScript } : null);
-    setProjects(prev => prev.map(p => p.id === activeProject.id ? { ...p, storyboard: updatedScenes, script: updatedScript } : p));
+    setActiveProject(persistedProject);
+    setProjects(prev => prev.map(p => p.id === activeProject.id ? persistedProject : p));
     setEditingScene(null);
     setEditForm({});
     toast({ title: "Scene Updated", description: `Scene ${updatedScenes[editingScene].scene_number} saved.` });
