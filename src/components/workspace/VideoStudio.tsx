@@ -18,6 +18,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import logoImg from "@/assets/valyarolex-logo.png";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
@@ -286,7 +287,10 @@ const VideoStudio = () => {
                     className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10 flex flex-col justify-between p-6"
                   >
                     <div className="space-y-2">
-                      <Badge variant="outline" className="text-[10px]">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="text-[10px]">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
+                        <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70" />
+                      </div>
                       {scenes[activeScene]?.text_overlay && (
                         <motion.p
                           initial={{ y: 20, opacity: 0 }}
@@ -468,7 +472,10 @@ const VideoStudio = () => {
                       className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10 flex flex-col justify-between p-4"
                     >
                       <div className="space-y-1">
-                        <Badge variant="outline" className="text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline" className="text-[10px]">Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s</Badge>
+                          <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70" />
+                        </div>
                         {scene.text_overlay && <p className="text-sm font-bold">{scene.text_overlay}</p>}
                       </div>
                       <div className="space-y-1">

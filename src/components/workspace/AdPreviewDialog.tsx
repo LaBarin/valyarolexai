@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import logoImg from "@/assets/valyarolex-logo.png";
 
+const logoUrl = logoImg;
 /* ── Campaign Preview ── */
 
 type Goal = { goal: string; metric: string; target: string };
@@ -69,6 +71,7 @@ export const CampaignPreviewDialog = ({
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
+            <img src={logoUrl} alt="Valyarolex.AI" className="h-5 w-auto" />
             <Eye className="w-5 h-5 text-primary" />
             Review Campaign — {data.name}
           </DialogTitle>
@@ -277,6 +280,8 @@ const renderPreviewSlide = (slide: PreviewSlide, index: number) => {
   return (
     <div className={`relative w-full aspect-video rounded-2xl bg-gradient-to-br ${gradientClass} flex flex-col justify-center p-8 overflow-hidden`}>
       <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
+      {/* Company logo */}
+      <img src={logoUrl} alt="Valyarolex.AI" className="absolute top-4 left-4 h-6 w-auto opacity-80 z-20" />
       <div className="relative z-10 space-y-3">
         {slide.slide_type === "title" ? (
           <div className="text-center space-y-4">

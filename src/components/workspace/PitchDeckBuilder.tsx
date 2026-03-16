@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { PitchDeckPreviewDialog, type PitchDeckPreviewData } from "./AdPreviewDialog";
+import logoImg from "@/assets/valyarolex-logo.png";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
@@ -258,6 +259,8 @@ const PitchDeckBuilder = () => {
         {/* Decorative circles */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/2" />
+        {/* Company logo */}
+        <img src={logoImg} alt="Valyarolex.AI" className={`absolute top-4 left-6 w-auto opacity-80 z-20 ${isFullscreen ? "h-10" : "h-6"}`} />
 
         <div className="relative z-10 space-y-4">
           {slide.slide_type === "title" ? (
