@@ -349,6 +349,11 @@ export const PitchDeckPreviewDialog = ({
 }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Reset slide index when data changes
+  useEffect(() => {
+    setCurrentSlide(0);
+  }, [data]);
+
   const narratorSlides = useMemo(() => {
     if (!data) return [];
     return data.slides.map((s) => {
@@ -368,7 +373,8 @@ export const PitchDeckPreviewDialog = ({
   useEffect(() => () => { stopNarration(); }, [stopNarration]);
 
   if (!data || data.slides.length === 0) return null;
-  const slide = data.slides[currentSlide];
+  const safeIndex = Math.min(currentSlide, data.slides.length - 1);
+  const slide = data.slides[safeIndex];
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onReject(); }}>
