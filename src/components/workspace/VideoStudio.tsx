@@ -598,17 +598,23 @@ const VideoStudio = () => {
                       )}
                     </motion.div>
                   </AnimatePresence>
-                  {/* Playback controls */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-3 glass rounded-full px-4 py-1.5 z-10">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setIsPlaying(!isPlaying); }}>
-                      {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                    </Button>
-                    <span className="text-[10px] text-muted-foreground">{activeScene + 1}/{scenes.length}</span>
-                    <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-20 h-1" />
-                  </div>
                 </div>
               );
             })()}
+
+            {/* Playback controls — outside the preview */}
+            {scenes.length > 0 && (
+              <div className="flex items-center justify-center gap-3 glass rounded-full px-5 py-2 mx-auto w-fit">
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { if (activeScene > 0) setActiveScene(activeScene - 1); }}>
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => { setIsPlaying(!isPlaying); }}>
+                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </Button>
+                <span className="text-xs text-muted-foreground min-w-[36px] text-center">{activeScene + 1}/{scenes.length}</span>
+                <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-24 h-1.5" />
+              </div>
+            )}
 
             {/* Scene cards with thumbnails + edit button */}
             <div className="grid gap-3 sm:grid-cols-2">
