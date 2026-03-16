@@ -52,9 +52,7 @@ const SharedCampaign = () => {
   useEffect(() => {
     const load = async () => {
       const { data, error } = await supabase
-        .from("marketing_campaigns")
-        .select("*")
-        .eq("share_token", token)
+        .rpc("get_shared_campaign", { p_share_token: token })
         .maybeSingle();
       if (error || !data) {
         setNotFound(true);

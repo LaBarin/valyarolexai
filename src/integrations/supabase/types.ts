@@ -517,6 +517,33 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_shared_campaign: {
+        Args: { p_share_token: string }
+        Returns: {
+          ai_generated: boolean
+          assets: Json | null
+          campaign_type: string
+          channels: Json | null
+          content_plan: Json | null
+          created_at: string
+          description: string | null
+          goals: Json | null
+          id: string
+          name: string
+          schedule: Json | null
+          share_token: string | null
+          status: string
+          target_audience: string | null
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "marketing_campaigns"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
