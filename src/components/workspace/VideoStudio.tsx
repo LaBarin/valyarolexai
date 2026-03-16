@@ -769,6 +769,13 @@ const VideoStudio = () => {
                 <div className="bg-background/50 rounded-lg p-2"><span className="text-muted-foreground">Scenes:</span> <span className="font-medium">{scenes.length}</span></div>
               </div>
             </div>
+
+            {/* Publishing Links */}
+            <PublishingLinks project={p} script={script} onUpdate={(updatedScript) => {
+              const updated = { ...p, script: updatedScript };
+              setProjects(prev => prev.map(proj => proj.id === p.id ? updated : proj));
+              if (activeProject?.id === p.id) setActiveProject(updated);
+            }} />
           </TabsContent>
         </Tabs>
 
