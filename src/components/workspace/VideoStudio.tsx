@@ -287,7 +287,10 @@ const VideoStudio = () => {
                     className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10 flex flex-col justify-between p-6"
                   >
                     <div className="space-y-2">
-                      <Badge variant="outline" className="text-[10px]">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="text-[10px]">Scene {scenes[activeScene]?.scene_number || activeScene + 1}</Badge>
+                        <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70" />
+                      </div>
                       {scenes[activeScene]?.text_overlay && (
                         <motion.p
                           initial={{ y: 20, opacity: 0 }}
