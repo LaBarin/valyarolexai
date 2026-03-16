@@ -449,8 +449,53 @@ const VideoStudio = () => {
 
   const rejectVideo = () => {
     setPreviewData(null);
+    setPreviewImages({});
+    setGeneratingPreviewImages({});
+    setPreviewImagesRequested(false);
     toast({ title: "Video Rejected", description: "Draft discarded." });
   };
+
+  // Auto-generate preview images when previewData is set
+  useEffect(() => {
+    if (!previewData || previewImagesRequested) return;
+    setPreviewImagesRequested(true);
+    setPreviewImages({});
+    setGeneratingPreviewImages({});
+    const generateAll = async () => {
+      const scenes = previewData.scenes || [];
+      for (let i = 0; i < scenes.length; i++) {
+        const scene = scenes[i];
+        setGeneratingPreviewImages(prev => ({ ...prev, [i]: true }));
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const resp = await fetch(SCENE_IMAGE_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+              visual: scene.visual,
+              text_overlay: scene.text_overlay,
+              format: previewData.format,
+              platform: previewData.platform,
+            }),
+          });
+          if (resp.ok) {
+            const { image_url } = await resp.json();
+            if (image_url) {
+              setPreviewImages(prev => ({ ...prev, [i]: image_url }));
+            }
+          }
+        } catch {
+          // silently skip failed images
+        } finally {
+          setGeneratingPreviewImages(prev => ({ ...prev, [i]: false }));
+        }
+      }
+    };
+    generateAll();
+  }, [previewData, previewImagesRequested]);
 
   const deleteProject = async (id: string) => {
     await supabase.from("video_projects").delete().eq("id", id);
