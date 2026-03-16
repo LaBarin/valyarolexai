@@ -145,7 +145,48 @@ const VideoStudio = () => {
     setLoading(false);
   };
 
-  const generateVideo = async () => {
+  const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string) => {
+    const key = `${projectId}-${scene.scene_number}`;
+    if (generatingImages[key]) return;
+    setGeneratingImages(prev => ({ ...prev, [key]: true }));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(SCENE_IMAGE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          visual: scene.visual,
+          text_overlay: scene.text_overlay,
+          format,
+          platform,
+        }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: "Image generation failed" }));
+        throw new Error(err.error || "Image generation failed");
+      }
+      const { image_url } = await resp.json();
+      setSceneImages(prev => ({ ...prev, [key]: image_url }));
+    } catch (e: any) {
+      toast({ title: "Image Generation Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setGeneratingImages(prev => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const generateAllSceneImages = async (scenes: Scene[], projectId: string, format: string, platform: string) => {
+    for (const scene of scenes) {
+      const key = `${projectId}-${scene.scene_number}`;
+      if (!sceneImages[key]) {
+        await generateSceneImage(scene, projectId, format, platform);
+      }
+    }
+  };
+
+
     if (!prompt.trim() || !user) return;
     setIsGenerating(true);
     try {
