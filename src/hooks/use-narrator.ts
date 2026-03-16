@@ -102,9 +102,20 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
     };
   }, [loadVoice]);
 
+  const updateRate = useCallback((newRate: number) => {
+    rateRef.current = newRate;
+    setRate(newRate);
+    // Update current utterance if speaking
+    if (utteranceRef.current && isNarratingRef.current) {
+      utteranceRef.current.rate = newRate;
+    }
+  }, []);
+
   return {
     isNarrating,
     currentNarrationStep,
+    rate,
+    setRate: updateRate,
     startNarration,
     stopNarration,
   };
