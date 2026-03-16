@@ -359,8 +359,10 @@ const PitchDeckBuilder = () => {
                currentSlide={currentSlide}
                compact
                isNarrating={isNarrating}
+               rate={rate}
                onStart={startNarration}
                onStop={stopNarration}
+               onRateChange={setRate}
              />
           </div>
           <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); exitPresentation(); }}>
