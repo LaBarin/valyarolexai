@@ -427,8 +427,10 @@ export const PitchDeckPreviewDialog = ({
             slides={narratorSlides}
             currentSlide={currentSlide}
             isNarrating={isNarrating}
+            rate={rate}
             onStart={startNarration}
             onStop={stopNarration}
+            onRateChange={setRate}
           />
           <div className="flex-1" />
           <Button variant="outline" onClick={onReject} disabled={loading}>
