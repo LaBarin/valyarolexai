@@ -186,7 +186,7 @@ const VideoStudio = () => {
     }
   };
 
-
+  const generateVideo = async () => {
     if (!prompt.trim() || !user) return;
     setIsGenerating(true);
     try {
