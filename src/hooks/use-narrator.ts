@@ -8,8 +8,10 @@ interface NarratorOptions {
 export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   const [isNarrating, setIsNarrating] = useState(false);
   const [currentNarrationStep, setCurrentNarrationStep] = useState(0);
+  const [rate, setRate] = useState(1);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const isNarratingRef = useRef(false);
+  const rateRef = useRef(1);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
 
   const voiceReadyRef = useRef(false);
@@ -37,7 +39,7 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
     (stepIndex: number, text: string, onDone: () => void) => {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
+      utterance.rate = rateRef.current;
       utterance.pitch = 1;
       utterance.volume = 1;
 
@@ -100,9 +102,20 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
     };
   }, [loadVoice]);
 
+  const updateRate = useCallback((newRate: number) => {
+    rateRef.current = newRate;
+    setRate(newRate);
+    // Update current utterance if speaking
+    if (utteranceRef.current && isNarratingRef.current) {
+      utteranceRef.current.rate = newRate;
+    }
+  }, []);
+
   return {
     isNarrating,
     currentNarrationStep,
+    rate,
+    setRate: updateRate,
     startNarration,
     stopNarration,
   };

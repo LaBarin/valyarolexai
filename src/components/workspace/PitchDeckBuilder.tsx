@@ -88,7 +88,7 @@ const PitchDeckBuilder = () => {
     });
   }, [activeDeck]);
 
-  const { isNarrating, startNarration, stopNarration } = useNarrator({
+  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
     onStepChange: setCurrentSlide,
     totalSteps: narratorSlides.length,
   });
@@ -359,8 +359,10 @@ const PitchDeckBuilder = () => {
                currentSlide={currentSlide}
                compact
                isNarrating={isNarrating}
+               rate={rate}
                onStart={startNarration}
                onStop={stopNarration}
+               onRateChange={setRate}
              />
           </div>
           <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); exitPresentation(); }}>
@@ -441,8 +443,10 @@ const PitchDeckBuilder = () => {
                   slides={narratorSlides}
                   currentSlide={currentSlide}
                   isNarrating={isNarrating}
+                  rate={rate}
                   onStart={startNarration}
                   onStop={stopNarration}
+                  onRateChange={setRate}
                 />
                 <span className="text-sm text-muted-foreground">{currentSlide + 1} / {activeDeck.slides.length}</span>
               </div>

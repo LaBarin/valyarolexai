@@ -228,7 +228,7 @@ function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
     return items;
   }, [data]);
 
-  const { isNarrating, startNarration, stopNarration } = useNarrator({
+  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
     onStepChange: () => {},
     totalSteps: slides.length,
   });
@@ -240,8 +240,10 @@ function CampaignNarrator({ data }: { data: CampaignPreviewData }) {
       slides={slides}
       currentSlide={0}
       isNarrating={isNarrating}
+      rate={rate}
       onStart={startNarration}
       onStop={stopNarration}
+      onRateChange={setRate}
     />
   );
 }
@@ -358,7 +360,7 @@ export const PitchDeckPreviewDialog = ({
     });
   }, [data]);
 
-  const { isNarrating, startNarration, stopNarration } = useNarrator({
+  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
     onStepChange: setCurrentSlide,
     totalSteps: narratorSlides.length,
   });
@@ -425,8 +427,10 @@ export const PitchDeckPreviewDialog = ({
             slides={narratorSlides}
             currentSlide={currentSlide}
             isNarrating={isNarrating}
+            rate={rate}
             onStart={startNarration}
             onStop={stopNarration}
+            onRateChange={setRate}
           />
           <div className="flex-1" />
           <Button variant="outline" onClick={onReject} disabled={loading}>
