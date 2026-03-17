@@ -329,6 +329,8 @@ const VideoStudio = () => {
   const [editForm, setEditForm] = useState<Partial<Scene>>({});
   const [aiEditPrompt, setAiEditPrompt] = useState("");
   const [isAiEditing, setIsAiEditing] = useState(false);
+  const [exportProgress, setExportProgress] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (user) loadProjects();
