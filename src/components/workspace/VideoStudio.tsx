@@ -724,13 +724,11 @@ const VideoStudio = () => {
     return () => clearTimeout(timer);
   }, [isPlaying, activeScene, activeProject]);
 
-  // Scene edit dialog
-  const SceneEditDialog = () => {
-    if (editingScene === null || !activeProject) return null;
+  // Scene edit dialog — rendered inline (not as a sub-component) to avoid remounting on state change
+  const sceneEditDialogJsx = editingScene !== null && activeProject ? (() => {
     const scene = editForm as Scene;
-
     return (
-      <Dialog open={editingScene !== null} onOpenChange={(v) => { if (!v) cancelEditScene(); }}>
+      <Dialog open={true} onOpenChange={(v) => { if (!v) cancelEditScene(); }}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -833,7 +831,7 @@ const VideoStudio = () => {
         </DialogContent>
       </Dialog>
     );
-  };
+  })() : null;
 
   // Detail view
   // Preview dialog - defined before conditional returns so it's accessible everywhere
