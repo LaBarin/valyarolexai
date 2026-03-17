@@ -181,7 +181,7 @@ const SharedVideo = () => {
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         {/* Native video player if exported */}
-        {project.exported_video_url && (
+        {signedVideoUrl && (
           <div className="space-y-4">
             <div className={`relative rounded-2xl overflow-hidden mx-auto ${
               project.format === "9:16" ? "max-w-[320px] aspect-[9/16]" :
@@ -189,7 +189,7 @@ const SharedVideo = () => {
               "aspect-video"
             }`}>
               <video
-                src={project.exported_video_url}
+                src={signedVideoUrl}
                 controls
                 autoPlay
                 loop
@@ -200,7 +200,7 @@ const SharedVideo = () => {
             <div className="flex items-center justify-center gap-3">
               <Button size="sm" variant="outline" onClick={() => {
                 const a = document.createElement("a");
-                a.href = project.exported_video_url;
+                a.href = signedVideoUrl;
                 a.download = `${project.title}.webm`;
                 a.click();
               }}>
@@ -211,7 +211,7 @@ const SharedVideo = () => {
         )}
 
         {/* Slideshow fallback when no exported video */}
-        {!project.exported_video_url && (
+        {!signedVideoUrl && (
         <div className="space-y-4">
           <div className={`relative glass rounded-2xl overflow-hidden mx-auto ${
             project.format === "9:16" ? "max-w-[320px] aspect-[9/16]" :
