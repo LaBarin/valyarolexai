@@ -1303,7 +1303,7 @@ const VideoStudio = () => {
           </TabsContent>
         </Tabs>
 
-        <SceneEditDialog />
+        {sceneEditDialogJsx}
       </div>
       <PreviewDialogComponent />
       </>
