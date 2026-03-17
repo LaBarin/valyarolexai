@@ -39,7 +39,10 @@ const SharedVideo = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [sceneImages, setSceneImages] = useState<Record<number, string>>({});
   const [generatingImages, setGeneratingImages] = useState(false);
+  const [signedVideoUrl, setSignedVideoUrl] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const SIGNED_URL_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-shared-video-url`;
 
   useEffect(() => {
     if (!token) return;
@@ -52,6 +55,20 @@ const SharedVideo = () => {
         setProject(video);
         // Generate images for scenes
         generateImages(video);
+        // Fetch signed URL for exported video if available
+        if (video.exported_video_url) {
+          try {
+            const resp = await fetch(SIGNED_URL_ENDPOINT, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ share_token: token }),
+            });
+            if (resp.ok) {
+              const { signed_url } = await resp.json();
+              if (signed_url) setSignedVideoUrl(signed_url);
+            }
+          } catch { /* fall back to slideshow */ }
+        }
       }
       setLoading(false);
     };
