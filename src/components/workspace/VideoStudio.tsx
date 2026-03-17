@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
-  Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download
+  Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download,
+  FileVideo
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "@/assets/valyarolex-logo.png";
+import { renderVideo } from "@/lib/render-video";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
@@ -327,6 +329,8 @@ const VideoStudio = () => {
   const [editForm, setEditForm] = useState<Partial<Scene>>({});
   const [aiEditPrompt, setAiEditPrompt] = useState("");
   const [isAiEditing, setIsAiEditing] = useState(false);
+  const [exportProgress, setExportProgress] = useState<number | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (user) loadProjects();
@@ -641,6 +645,70 @@ const VideoStudio = () => {
     }
   };
 
+  const exportVideo = async () => {
+    if (!activeProject || isExporting) return;
+    const p = activeProject;
+    const scenes = p.storyboard || p.script?.scenes || [];
+    
+    // Check all scenes have images
+    const sceneInputs = scenes.map((scene, i) => {
+      const key = `${p.id}-${scene.scene_number || i + 1}`;
+      return { imageUrl: sceneImages[key], durationSeconds: scene.duration_seconds || 3, textOverlay: scene.text_overlay };
+    });
+    
+    const missingImages = sceneInputs.filter(s => !s.imageUrl);
+    if (missingImages.length > 0) {
+      toast({ title: "Generate Images First", description: `${missingImages.length} scene(s) still need images. Click "Generate All Images" first.`, variant: "destructive" });
+      return;
+    }
+
+    setIsExporting(true);
+    setExportProgress(0);
+
+    try {
+      const blob = await renderVideo({
+        format: p.format,
+        scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
+        onProgress: setExportProgress,
+      });
+
+      // Upload to storage
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const filePath = `${session.user.id}/${p.id}.webm`;
+      const { error: uploadError } = await supabase.storage
+        .from("video-exports")
+        .upload(filePath, blob, { upsert: true, contentType: "video/webm" });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("video-exports")
+        .getPublicUrl(filePath);
+
+      // Save URL to project
+      await supabase
+        .from("video_projects")
+        .update({ exported_video_url: publicUrl } as any)
+        .eq("id", p.id);
+
+      // Also trigger download
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${p.title}.webm`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+
+      toast({ title: "Video Exported!", description: "Video rendered and downloaded. Share link will now include the video." });
+    } catch (e: any) {
+      toast({ title: "Export Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+      setExportProgress(null);
+    }
+  };
+
   // Storyboard playback simulation
   useEffect(() => {
     if (!isPlaying || !activeProject?.storyboard?.length) return;
@@ -944,6 +1012,13 @@ const VideoStudio = () => {
             <Badge variant="outline"><FormatIcon className="w-3 h-3 mr-1" />{p.format}</Badge>
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportVideo} disabled={isExporting}>
+              {isExporting ? (
+                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {exportProgress !== null ? `${exportProgress}%` : "Exporting…"}</>
+              ) : (
+                <><FileVideo className="w-4 h-4 mr-1" /> Export Video</>
+              )}
             </Button>
             {p.status === "approved" && (
               <Button size="sm" onClick={() => updateStatus(p.id, "production")}>

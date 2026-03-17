@@ -163,7 +163,38 @@ const SharedVideo = () => {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-        {/* Main preview */}
+        {/* Native video player if exported */}
+        {project.exported_video_url && (
+          <div className="space-y-4">
+            <div className={`relative rounded-2xl overflow-hidden mx-auto ${
+              project.format === "9:16" ? "max-w-[320px] aspect-[9/16]" :
+              project.format === "1:1" ? "max-w-[480px] aspect-square" :
+              "aspect-video"
+            }`}>
+              <video
+                src={project.exported_video_url}
+                controls
+                autoPlay
+                loop
+                playsInline
+                className="w-full h-full object-cover rounded-2xl"
+              />
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <Button size="sm" variant="outline" onClick={() => {
+                const a = document.createElement("a");
+                a.href = project.exported_video_url;
+                a.download = `${project.title}.webm`;
+                a.click();
+              }}>
+                <Download className="w-4 h-4 mr-1" /> Download Video
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Slideshow fallback when no exported video */}
+        {!project.exported_video_url && (
         <div className="space-y-4">
           <div className={`relative glass rounded-2xl overflow-hidden mx-auto ${
             project.format === "9:16" ? "max-w-[320px] aspect-[9/16]" :
@@ -241,6 +272,7 @@ const SharedVideo = () => {
             ))}
           </div>
         </div>
+        )}
 
         {/* Scene details */}
         {scene && (
