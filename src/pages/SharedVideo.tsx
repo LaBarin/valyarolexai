@@ -39,7 +39,10 @@ const SharedVideo = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [sceneImages, setSceneImages] = useState<Record<number, string>>({});
   const [generatingImages, setGeneratingImages] = useState(false);
+  const [signedVideoUrl, setSignedVideoUrl] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const SIGNED_URL_ENDPOINT = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-shared-video-url`;
 
   useEffect(() => {
     if (!token) return;
@@ -52,6 +55,20 @@ const SharedVideo = () => {
         setProject(video);
         // Generate images for scenes
         generateImages(video);
+        // Fetch signed URL for exported video if available
+        if (video.exported_video_url) {
+          try {
+            const resp = await fetch(SIGNED_URL_ENDPOINT, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ share_token: token }),
+            });
+            if (resp.ok) {
+              const { signed_url } = await resp.json();
+              if (signed_url) setSignedVideoUrl(signed_url);
+            }
+          } catch { /* fall back to slideshow */ }
+        }
       }
       setLoading(false);
     };
@@ -164,7 +181,7 @@ const SharedVideo = () => {
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         {/* Native video player if exported */}
-        {project.exported_video_url && (
+        {signedVideoUrl && (
           <div className="space-y-4">
             <div className={`relative rounded-2xl overflow-hidden mx-auto ${
               project.format === "9:16" ? "max-w-[320px] aspect-[9/16]" :
@@ -172,7 +189,7 @@ const SharedVideo = () => {
               "aspect-video"
             }`}>
               <video
-                src={project.exported_video_url}
+                src={signedVideoUrl}
                 controls
                 autoPlay
                 loop
@@ -183,7 +200,7 @@ const SharedVideo = () => {
             <div className="flex items-center justify-center gap-3">
               <Button size="sm" variant="outline" onClick={() => {
                 const a = document.createElement("a");
-                a.href = project.exported_video_url;
+                a.href = signedVideoUrl;
                 a.download = `${project.title}.webm`;
                 a.click();
               }}>
@@ -194,7 +211,7 @@ const SharedVideo = () => {
         )}
 
         {/* Slideshow fallback when no exported video */}
-        {!project.exported_video_url && (
+        {!signedVideoUrl && (
         <div className="space-y-4">
           <div className={`relative glass rounded-2xl overflow-hidden mx-auto ${
             project.format === "9:16" ? "max-w-[320px] aspect-[9/16]" :

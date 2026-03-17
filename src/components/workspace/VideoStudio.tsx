@@ -683,14 +683,11 @@ const VideoStudio = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("video-exports")
-        .getPublicUrl(filePath);
-
-      // Save URL to project
+      // Store the file path (not public URL since bucket is private)
+      // Save path to project so we can generate signed URLs when needed
       await supabase
         .from("video_projects")
-        .update({ exported_video_url: publicUrl } as any)
+        .update({ exported_video_url: filePath } as any)
         .eq("id", p.id);
 
       // Also trigger download
