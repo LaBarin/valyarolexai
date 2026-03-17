@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anyone can view shared campaigns" ON public.marketing_campaigns;
