@@ -645,6 +645,70 @@ const VideoStudio = () => {
     }
   };
 
+  const exportVideo = async () => {
+    if (!activeProject || isExporting) return;
+    const p = activeProject;
+    const scenes = p.storyboard || p.script?.scenes || [];
+    
+    // Check all scenes have images
+    const sceneInputs = scenes.map((scene, i) => {
+      const key = `${p.id}-${scene.scene_number || i + 1}`;
+      return { imageUrl: sceneImages[key], durationSeconds: scene.duration_seconds || 3, textOverlay: scene.text_overlay };
+    });
+    
+    const missingImages = sceneInputs.filter(s => !s.imageUrl);
+    if (missingImages.length > 0) {
+      toast({ title: "Generate Images First", description: `${missingImages.length} scene(s) still need images. Click "Generate All Images" first.`, variant: "destructive" });
+      return;
+    }
+
+    setIsExporting(true);
+    setExportProgress(0);
+
+    try {
+      const blob = await renderVideo({
+        format: p.format,
+        scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
+        onProgress: setExportProgress,
+      });
+
+      // Upload to storage
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const filePath = `${session.user.id}/${p.id}.webm`;
+      const { error: uploadError } = await supabase.storage
+        .from("video-exports")
+        .upload(filePath, blob, { upsert: true, contentType: "video/webm" });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("video-exports")
+        .getPublicUrl(filePath);
+
+      // Save URL to project
+      await supabase
+        .from("video_projects")
+        .update({ exported_video_url: publicUrl } as any)
+        .eq("id", p.id);
+
+      // Also trigger download
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${p.title}.webm`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+
+      toast({ title: "Video Exported!", description: "Video rendered and downloaded. Share link will now include the video." });
+    } catch (e: any) {
+      toast({ title: "Export Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+      setExportProgress(null);
+    }
+  };
+
   // Storyboard playback simulation
   useEffect(() => {
     if (!isPlaying || !activeProject?.storyboard?.length) return;
