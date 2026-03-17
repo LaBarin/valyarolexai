@@ -156,7 +156,16 @@ Support ALL formats: shorts (5-15s for TikTok/Reels/Shorts), square (1:1 for fee
   }
 }
 
-Generate 3-8 scenes depending on duration. Include specific visual directions, text overlays, voiceover scripts, and transitions. Make it platform-native (e.g. TikTok = casual/trending, LinkedIn = professional, YouTube = polished). Always respond with valid JSON only.${companyContext}`,
+Generate 3-8 scenes depending on duration. Include specific visual directions, text overlays, voiceover scripts, and transitions. Make it platform-native (e.g. TikTok = casual/trending, LinkedIn = professional, YouTube = polished).
+
+IMPORTANT: The LAST scene must ALWAYS be a branded closing card. This final scene should have:
+- visual: "Clean branded end card with Valyarolex.AI logo centered on a dark gradient background. Below the logo, display the website URL www.valyarolexai.com and email XyzDiverseServices@Gmail.Com in clean white text. No social media icons. Minimal, professional, and elegant."
+- text_overlay: "www.valyarolexai.com"
+- voiceover: A brief closing line like "Visit valyarolexai.com to get started" or similar
+- duration_seconds: 3-5 seconds
+- transition: "fade"
+
+Always respond with valid JSON only.${companyContext}`,
     };
 
     const systemContent = systemPrompts[mode];
