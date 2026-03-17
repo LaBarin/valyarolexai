@@ -1013,6 +1013,13 @@ const VideoStudio = () => {
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
             </Button>
+            <Button size="sm" variant="outline" onClick={exportVideo} disabled={isExporting}>
+              {isExporting ? (
+                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {exportProgress !== null ? `${exportProgress}%` : "Exporting…"}</>
+              ) : (
+                <><FileVideo className="w-4 h-4 mr-1" /> Export Video</>
+              )}
+            </Button>
             {p.status === "approved" && (
               <Button size="sm" onClick={() => updateStatus(p.id, "production")}>
                 <Film className="w-4 h-4 mr-1" /> Send to Production
