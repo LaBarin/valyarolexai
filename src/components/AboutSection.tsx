@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin, Mail, Linkedin, Target, Users, Lightbulb } from "lucide-react";
+import { MapPin, Mail, Linkedin, Target, Users, Lightbulb, Globe } from "lucide-react";
 import logo from "@/assets/valyarolex-logo.png";
 
 const AboutSection = () => {
