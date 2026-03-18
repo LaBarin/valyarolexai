@@ -184,6 +184,38 @@ IMPORTANT: The LAST scene must ALWAYS be a branded closing card. This final scen
           ...sanitized,
         ],
         stream: mode === "chat",
+        ...(mode === "schedule" ? {
+          tools: [{
+            type: "function",
+            function: {
+              name: "schedule_suggestions",
+              description: "Return schedule optimization suggestions",
+              parameters: {
+                type: "object",
+                properties: {
+                  suggestions: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        event_type: { type: "string", enum: ["meeting", "focus", "task", "break"] },
+                        start_hour: { type: "integer" },
+                        duration_minutes: { type: "integer" },
+                        reason: { type: "string" }
+                      },
+                      required: ["title", "event_type", "start_hour", "duration_minutes", "reason"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["suggestions"],
+                additionalProperties: false
+              }
+            }
+          }],
+          tool_choice: { type: "function", function: { name: "schedule_suggestions" } }
+        } : {}),
       }),
     });
 
