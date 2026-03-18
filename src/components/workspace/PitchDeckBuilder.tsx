@@ -661,7 +661,7 @@ const PitchDeckBuilder = () => {
                 <Button size="sm" variant="outline" onClick={enterPresentation}>
                   <Presentation className="w-4 h-4 mr-1" /> Present
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => toast({ title: "Export", description: "PDF export coming soon — use Present mode for now." })}>
+                <Button size="sm" variant="outline" onClick={exportDeckAsPDF}>
                   <Download className="w-4 h-4 mr-1" /> Export PDF
                 </Button>
               </div>
