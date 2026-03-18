@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Sparkles, Loader2, Clock, Calendar, Brain, X } from "lucide-react";
+import { Plus, Sparkles, Loader2, Clock, Calendar as CalendarIcon, Brain, X } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
