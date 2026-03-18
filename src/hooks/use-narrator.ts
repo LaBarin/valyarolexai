@@ -15,11 +15,12 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const stepsRef = useRef<{ title: string; subtitle: string; description: string; highlights?: string[] }[]>([]);
   const currentStepRef = useRef(0);
+  // Flag to prevent sync loop when narrator itself advances slides
+  const narratorDrivenChangeRef = useRef(false);
 
   const loadVoice = useCallback(() => {
     const voices = window.speechSynthesis.getVoices();
     if (voices.length === 0) return;
-    // Prefer high-quality voices
     const preferred = voices.find(
       (v) =>
         v.lang.startsWith("en") &&
@@ -35,7 +36,6 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
     stepsRef.current = [];
   }, []);
 
-  // Narrate a single slide, then advance to next
   const narrateSingleSlide = useCallback(
     (stepIndex: number) => {
       if (!isNarratingRef.current || stepIndex >= stepsRef.current.length) {
@@ -69,8 +69,9 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
         if (nextStep < stepsRef.current.length) {
           currentStepRef.current = nextStep;
           setCurrentNarrationStep(nextStep);
+          // Mark this as narrator-driven so syncToSlide ignores it
+          narratorDrivenChangeRef.current = true;
           onStepChange(nextStep);
-          // Brief pause between slides for natural pacing
           setTimeout(() => narrateSingleSlide(nextStep), 1200);
         } else {
           stopNarration();
@@ -81,6 +82,7 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
           const nextStep = currentStepRef.current + 1;
           if (nextStep < stepsRef.current.length) {
             currentStepRef.current = nextStep;
+            narratorDrivenChangeRef.current = true;
             onStepChange(nextStep);
             setTimeout(() => narrateSingleSlide(nextStep), 600);
           } else {
@@ -92,7 +94,6 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
       utteranceRef.current = utterance;
       currentStepRef.current = stepIndex;
       setCurrentNarrationStep(stepIndex);
-      // Don't call onStepChange here — the slide is already set by the caller
       window.speechSynthesis.speak(utterance);
     },
     [onStepChange, loadVoice, stopNarration]
@@ -107,19 +108,24 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
       stepsRef.current = steps;
       loadVoice();
 
-      // Set slide to fromStep and start narrating
+      narratorDrivenChangeRef.current = true;
       onStepChange(fromStep);
       narrateSingleSlide(fromStep);
     },
     [narrateSingleSlide, loadVoice, onStepChange]
   );
 
-  // Sync narration when external slide change happens
+  // Sync narration when user manually changes slide (not narrator-driven)
   const syncToSlide = useCallback(
     (slideIndex: number) => {
+      // If this change was triggered by the narrator itself, skip
+      if (narratorDrivenChangeRef.current) {
+        narratorDrivenChangeRef.current = false;
+        return;
+      }
       if (!isNarratingRef.current || stepsRef.current.length === 0) return;
       if (slideIndex === currentStepRef.current) return;
-      // Cancel current speech, start narrating the new slide
+      // User manually navigated — cancel and narrate the new slide
       narrateSingleSlide(slideIndex);
     },
     [narrateSingleSlide]
