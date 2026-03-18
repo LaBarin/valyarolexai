@@ -9,9 +9,9 @@ const quickLinks = [
   { label: "AI Assistant", icon: MessageSquare, tab: "chat", color: "hsl(190 100% 50%)" },
   { label: "Tasks", icon: ListTodo, tab: "tasks", color: "hsl(150 70% 50%)" },
   { label: "Schedule", icon: Calendar, tab: "schedule", color: "hsl(35 95% 55%)" },
-  { label: "Workflows", icon: Zap, tab: "workflows", color: "hsl(280 70% 60%)" },
+  { label: "Workflows", icon: Zap, tab: "agents", color: "hsl(280 70% 60%)" },
   { label: "Integrations", icon: Plug, tab: "integrations", color: "hsl(190 100% 50%)" },
-  { label: "Dashboard", icon: BarChart3, tab: "dashboard", color: "hsl(150 70% 50%)" },
+  { label: "Analytics", icon: BarChart3, tab: "analytics", color: "hsl(150 70% 50%)" },
 ];
 
 const Dashboard = () => {
