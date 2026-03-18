@@ -30,7 +30,7 @@ const eventColors: Record<string, string> = {
   break: "hsl(280 70% 60%)",
 };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+
 
 const ScheduleView = () => {
   const { user } = useAuth();
@@ -124,7 +124,6 @@ const ScheduleView = () => {
     if (!user || aiOptimizing) return;
     setAiOptimizing(true);
     try {
-      const session = await supabase.auth.getSession();
       const existingEvents = events.map((e) => ({
         title: e.title,
         type: e.event_type,
@@ -132,49 +131,23 @@ const ScheduleView = () => {
         end: new Date(e.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }));
 
-      const resp = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.data.session?.access_token}`,
-        },
-        body: JSON.stringify({
+      const { data: fnData, error: fnError } = await supabase.functions.invoke("chat", {
+        body: {
           messages: [{
             role: "user",
-            content: `Here's my schedule for today: ${JSON.stringify(existingEvents)}. 
-Suggest 2-3 optimizations (like adding focus blocks, rearranging for energy levels, or adding breaks). 
-Return ONLY a JSON array of objects with "title", "event_type" (meeting/focus/task/break), "start_hour" (0-23), "duration_minutes", and "reason" fields. No markdown.`,
+            content: `Here's my schedule for today: ${JSON.stringify(existingEvents)}. Suggest 2-3 optimizations.`,
           }],
-          mode: "chat",
-        }),
+          mode: "schedule",
+        },
       });
 
-      if (!resp.ok) throw new Error("Failed");
-      
-      const reader = resp.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullText = "";
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          for (const line of chunk.split("\n")) {
-            if (!line.startsWith("data: ") || line.includes("[DONE]")) continue;
-            try {
-              const parsed = JSON.parse(line.slice(6));
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) fullText += content;
-            } catch {}
-          }
-        }
-      }
+      if (fnError) throw new Error(fnError.message || "AI request failed");
 
-      let jsonStr = fullText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      // Extract JSON array if surrounded by other text
-      const arrayMatch = jsonStr.match(/\[[\s\S]*\]/);
-      if (!arrayMatch) throw new Error("AI did not return valid suggestions. Please try again.");
-      const suggestions = JSON.parse(arrayMatch[0]);
+      const resultStr = fnData?.result || "{}";
+      const parsed = typeof resultStr === "string" ? JSON.parse(resultStr) : resultStr;
+      const suggestions = Array.isArray(parsed) ? parsed : parsed.suggestions || [];
+
+      if (!suggestions.length) throw new Error("AI returned no suggestions. Try again.");
 
       for (const s of suggestions) {
         const start = new Date(`${selectedDate}T${String(s.start_hour).padStart(2, "0")}:00:00Z`);

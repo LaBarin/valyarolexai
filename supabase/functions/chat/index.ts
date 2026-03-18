@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const MAX_MESSAGES = 20;
 const MAX_MSG_LENGTH = 4000;
-const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign", "video"];
+const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign", "video", "schedule"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -165,7 +165,8 @@ IMPORTANT: The LAST scene must ALWAYS be a branded closing card. This final scen
 - duration_seconds: 3-5 seconds
 - transition: "fade"
 
-Always respond with valid JSON only.${companyContext}`,
+      video: `You are Valyarolex.AI's video ad creative director...${companyContext}`,
+      schedule: `You are Valyarolex.AI's intelligent schedule optimizer. Given the user's existing schedule, suggest 2-3 optimizations such as adding focus blocks, breaks, or rearranging for energy levels. Return ONLY a valid JSON array of objects with these fields: "title" (string), "event_type" (one of: meeting, focus, task, break), "start_hour" (integer 0-23), "duration_minutes" (integer), "reason" (string explaining why). No markdown, no extra text, just the JSON array.`,
     };
 
     const systemContent = systemPrompts[mode];
@@ -183,6 +184,38 @@ Always respond with valid JSON only.${companyContext}`,
           ...sanitized,
         ],
         stream: mode === "chat",
+        ...(mode === "schedule" ? {
+          tools: [{
+            type: "function",
+            function: {
+              name: "schedule_suggestions",
+              description: "Return schedule optimization suggestions",
+              parameters: {
+                type: "object",
+                properties: {
+                  suggestions: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        event_type: { type: "string", enum: ["meeting", "focus", "task", "break"] },
+                        start_hour: { type: "integer" },
+                        duration_minutes: { type: "integer" },
+                        reason: { type: "string" }
+                      },
+                      required: ["title", "event_type", "start_hour", "duration_minutes", "reason"],
+                      additionalProperties: false
+                    }
+                  }
+                },
+                required: ["suggestions"],
+                additionalProperties: false
+              }
+            }
+          }],
+          tool_choice: { type: "function", function: { name: "schedule_suggestions" } }
+        } : {}),
       }),
     });
 
@@ -203,6 +236,21 @@ Always respond with valid JSON only.${companyContext}`,
       console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI service error" }), {
         status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (mode === "schedule") {
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (toolCall?.function?.arguments) {
+        return new Response(JSON.stringify({ result: toolCall.function.arguments }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Fallback to content
+      const content = data.choices?.[0]?.message?.content || "[]";
+      return new Response(JSON.stringify({ result: content }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
