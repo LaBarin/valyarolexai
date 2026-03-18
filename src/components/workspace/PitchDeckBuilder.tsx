@@ -88,17 +88,11 @@ const PitchDeckBuilder = () => {
     if (!activeDeck) return [];
     return activeDeck.slides.map((s) => {
       const c = s.content;
-      const parts: string[] = [];
-      if (c.headline) parts.push(c.headline);
-      else if (s.title) parts.push(s.title);
-      if (c.body) parts.push(c.body);
-      if (c.bullets?.length) parts.push(c.bullets.join(". "));
-      if (c.metric) parts.push(`Key metric: ${c.metric} ${c.metric_label || ""}`);
-      return { title: parts[0] || s.title, body: parts.slice(1).join(". ") };
+      return buildSalesNarration(s.slide_type, s.title, c);
     });
   }, [activeDeck]);
 
-  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
+  const { isNarrating, rate, setRate, startNarration, stopNarration, syncToSlide } = useNarrator({
     onStepChange: setCurrentSlide,
     totalSteps: narratorSlides.length,
   });
