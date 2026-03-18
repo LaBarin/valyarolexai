@@ -45,7 +45,7 @@ const Navbar = () => {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-4 pointer-events-none"
     >
-      <div className="container max-w-6xl mx-auto glass rounded-full px-5 sm:px-6 py-3 flex items-center justify-between">
+      <div className="container max-w-6xl mx-auto glass rounded-full px-5 sm:px-6 py-3 flex items-center justify-between pointer-events-auto">
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="Valyarolex.AI" className="w-16 h-16 rounded-lg object-cover" />
           <span className="text-lg font-bold tracking-tight">Valyarolex.AI</span>
