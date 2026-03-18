@@ -39,19 +39,26 @@ serve(async (req) => {
       });
     }
 
-    const filePath = data.exported_video_url;
+    let filePath = data.exported_video_url;
 
-    // If it's already a full URL (legacy), return as-is
+    // Strip legacy full URLs to extract just the storage path
     if (filePath.startsWith("http")) {
-      return new Response(JSON.stringify({ signed_url: filePath }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const urlObj = new URL(filePath);
+      const pathMatch = urlObj.pathname.match(/\/object\/(?:public|sign)\/video-exports\/(.+)/);
+      if (pathMatch) {
+        filePath = decodeURIComponent(pathMatch[1]);
+      } else {
+        return new Response(JSON.stringify({ error: "Invalid video path" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // Generate a signed URL valid for 1 hour
+    // Generate a signed URL valid for 15 minutes
     const { data: signedData, error: signError } = await supabase.storage
       .from("video-exports")
-      .createSignedUrl(filePath, 3600);
+      .createSignedUrl(filePath, 900);
 
     if (signError || !signedData?.signedUrl) {
       console.error("Signed URL error:", signError);
