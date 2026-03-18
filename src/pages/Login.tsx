@@ -45,7 +45,12 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex flex-col px-4">
+      <Link to="/" className="fixed top-4 left-4 z-50 flex items-center gap-2">
+        <img src={logo} alt="Valyarolex.AI" className="w-12 h-12 rounded-lg object-cover" />
+        <span className="text-sm font-bold tracking-tight">Valyarolex.AI</span>
+      </Link>
+      <div className="flex-1 flex items-center justify-center">
       <div className="w-full max-w-md">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to home
