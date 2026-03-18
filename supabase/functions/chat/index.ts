@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const MAX_MESSAGES = 20;
 const MAX_MSG_LENGTH = 4000;
-const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign", "video"];
+const ALLOWED_MODES = ["chat", "workflow", "pitch_deck", "campaign", "video", "schedule"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
