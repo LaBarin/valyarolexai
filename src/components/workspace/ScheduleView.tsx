@@ -136,8 +136,11 @@ Return ONLY a JSON array of objects with "title", "event_type" (meeting/focus/ta
         }
       }
 
-      const jsonStr = fullText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const suggestions = JSON.parse(jsonStr);
+      let jsonStr = fullText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      // Extract JSON array if surrounded by other text
+      const arrayMatch = jsonStr.match(/\[[\s\S]*\]/);
+      if (!arrayMatch) throw new Error("AI did not return valid suggestions. Please try again.");
+      const suggestions = JSON.parse(arrayMatch[0]);
 
       for (const s of suggestions) {
         const start = new Date(`${selectedDate}T${String(s.start_hour).padStart(2, "0")}:00:00Z`);
