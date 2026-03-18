@@ -750,7 +750,11 @@ const PitchDeckBuilder = () => {
                       transition={{ duration: 0.2 }}
                       className="flex min-h-[116px] items-center justify-center overflow-hidden sm:min-h-[132px]"
                     >
-                      <div className={`w-full ${isEditorExpanded ? "max-w-[500px] md:max-w-[600px] xl:max-w-[700px]" : "max-w-[340px] sm:max-w-[400px] md:max-w-[440px] xl:max-w-[480px]"}`}>
+                      <div className={`w-full transition-all duration-300 ${
+                        viewMode === "expanded" ? "max-w-[700px] lg:max-w-[900px] xl:max-w-[1000px]" :
+                        viewMode === "compact" ? "max-w-[240px] sm:max-w-[280px]" :
+                        "max-w-[340px] sm:max-w-[400px] md:max-w-[440px] xl:max-w-[480px]"
+                      }`}>
                         {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
                       </div>
                     </motion.div>
