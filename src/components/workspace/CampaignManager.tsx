@@ -290,8 +290,7 @@ const CampaignDetailView = ({ campaign: c, onBack, onUpdateStatus, copyShareLink
     </div>
   );
 };
-
-
+const CampaignManager = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
