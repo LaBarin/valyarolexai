@@ -374,24 +374,51 @@ const VideoStudio = () => {
     setLoading(false);
   };
 
+  const handleReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 5MB for reference images.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setReferenceImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string) => {
     const key = `${projectId}-${scene.scene_number}`;
     if (generatingImages[key]) return;
     setGeneratingImages(prev => ({ ...prev, [key]: true }));
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const body: Record<string, any> = {
+        visual: scene.visual,
+        text_overlay: scene.text_overlay,
+        format,
+        platform,
+      };
+      if (referenceImage) body.reference_image_url = referenceImage;
+      // Auto-include branding logo as base64
+      if (includeBranding) {
+        try {
+          const logoResp = await fetch(logoImg);
+          const logoBlob = await logoResp.blob();
+          const logoBase64 = await new Promise<string>((resolve) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result as string);
+            r.readAsDataURL(logoBlob);
+          });
+          body.brand_logo_url = logoBase64;
+        } catch { /* skip branding if logo fetch fails */ }
+      }
       const resp = await fetch(SCENE_IMAGE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({
-          visual: scene.visual,
-          text_overlay: scene.text_overlay,
-          format,
-          platform,
-        }),
+        body: JSON.stringify(body),
       });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Image generation failed" }));
