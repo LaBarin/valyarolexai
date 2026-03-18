@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Brain, Send, Loader2, TrendingDown, TrendingUp, Sparkles, BarChart3, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import type { ChartConfig } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid } from "recharts";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
