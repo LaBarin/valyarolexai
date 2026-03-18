@@ -7,6 +7,8 @@ import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
   Plug, Presentation, Megaphone, MessageSquare, Menu, Video
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import logo from "@/assets/valyarolex-logo.png";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
   SidebarGroupContent, SidebarMenu, SidebarMenuItem,
@@ -146,8 +148,12 @@ const WorkspaceContent = () => {
           <SidebarTrigger className="text-muted-foreground hover:text-foreground">
             <Menu className="w-5 h-5" />
           </SidebarTrigger>
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Valyarolex.AI" className="w-8 h-8 rounded-md object-cover" />
+            <span className="text-sm font-bold tracking-tight hidden sm:block">Valyarolex.AI</span>
+          </Link>
           <div className="flex-1">
-            <h1 className="text-sm font-semibold">{titles[activeTab]}</h1>
+            <h1 className="text-sm font-semibold text-muted-foreground">{titles[activeTab]}</h1>
           </div>
         </header>
 
