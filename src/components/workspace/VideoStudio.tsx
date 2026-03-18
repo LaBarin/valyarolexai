@@ -1147,7 +1147,7 @@ const VideoStudio = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <Button size="sm" variant="ghost" onClick={() => { setActiveProject(null); setIsPlaying(false); setActiveScene(0); loadProjects(); }}>
+            <Button size="sm" variant="ghost" onClick={() => { setActiveProject(null); setIsPlaying(false); setActiveScene(0); setRenderedVideoUrl(null); setAutoRenderStage("idle"); setShowVideoPreview(false); loadProjects(); }}>
               <ChevronLeft className="w-4 h-4 mr-1" /> Back
             </Button>
             <div>
