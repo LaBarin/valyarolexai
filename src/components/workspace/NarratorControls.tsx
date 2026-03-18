@@ -1,4 +1,4 @@
-import { Volume2, VolumeX, Gauge } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
