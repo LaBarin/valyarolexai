@@ -335,6 +335,10 @@ const VideoStudio = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [includeBranding, setIncludeBranding] = useState(true);
+  // Auto-render pipeline state
+  const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
+  const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
+  const [showVideoPreview, setShowVideoPreview] = useState(false);
 
   // Narrator for video scenes
   const videoNarratorSlides = useMemo(() => {
