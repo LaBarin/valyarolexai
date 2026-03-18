@@ -142,6 +142,11 @@ const PitchDeckBuilder = () => {
   // Stop narration when leaving deck
   useEffect(() => () => { stopNarration(); }, [stopNarration]);
 
+  // Sync narrator when slide changes manually
+  useEffect(() => {
+    if (isNarrating) syncToSlide(currentSlide);
+  }, [currentSlide, isNarrating, syncToSlide]);
+
   // Preview narrator slides (for generated deck preview)
   const previewNarratorSlides = useMemo(() => {
     if (!previewData) return [];
