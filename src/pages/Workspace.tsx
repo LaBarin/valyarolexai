@@ -5,9 +5,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
-  Plug, Presentation, Megaphone, MessageSquare, Menu, Video
+  Plug, Presentation, Megaphone, MessageSquare, Menu, Video,
+  ArrowLeft, LogOut
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
