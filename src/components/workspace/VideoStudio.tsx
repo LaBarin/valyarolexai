@@ -1332,6 +1332,12 @@ const VideoStudio = () => {
           </TabsContent>
         </Tabs>
 
+        {/* Logo footer */}
+        <div className="text-center py-4 text-xs text-muted-foreground">
+          <img src={logoImg} alt="Valyarolex.AI" className="h-6 mx-auto mb-1 opacity-60" />
+          Powered by <span className="text-primary font-semibold">Valyarolex.AI</span>
+        </div>
+
         {sceneEditDialogJsx}
       </div>
       <PreviewDialogComponent />
