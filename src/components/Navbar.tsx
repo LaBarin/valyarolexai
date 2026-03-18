@@ -51,16 +51,27 @@ const Navbar = () => {
           <span className="text-lg font-bold tracking-tight">Valyarolex.AI</span>
         </Link>
 
-        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          {navLinks.map((l) => (
-            <a key={l.href} href={l.href} onClick={(e) => handleAnchorClick(e, l.href)} className="hover:text-foreground transition-colors">
-              {l.label}
-            </a>
-          ))}
-          <Link to="/demo" className="hover:text-foreground transition-colors">
-            Demo
-          </Link>
+          {user ? (
+            <>
+              <Link to="/workspace?tab=command" className="hover:text-foreground transition-colors">Command</Link>
+              <Link to="/workspace?tab=tasks" className="hover:text-foreground transition-colors">Tasks</Link>
+              <Link to="/workspace?tab=schedule" className="hover:text-foreground transition-colors">Calendar</Link>
+              <Link to="/workspace?tab=agents" className="hover:text-foreground transition-colors">AI Agents</Link>
+              <Link to="/workspace?tab=campaigns" className="hover:text-foreground transition-colors">Campaigns</Link>
+            </>
+          ) : (
+            <>
+              {navLinks.map((l) => (
+                <a key={l.href} href={l.href} onClick={(e) => handleAnchorClick(e, l.href)} className="hover:text-foreground transition-colors">
+                  {l.label}
+                </a>
+              ))}
+              <Link to="/demo" className="hover:text-foreground transition-colors">
+                Demo
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -108,23 +119,41 @@ const Navbar = () => {
             transition={{ duration: 0.2 }}
             className="md:hidden mt-2 mx-2 glass rounded-2xl p-4 flex flex-col gap-1 pointer-events-auto"
           >
-            {navLinks.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={(e) => handleAnchorClick(e, l.href)}
-                className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-              >
-                {l.label}
-              </a>
-            ))}
-            <Link
-              to="/demo"
-              onClick={() => setMobileOpen(false)}
-              className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-            >
-              Demo
-            </Link>
+            {user ? (
+              <>
+                {[
+                  { to: "/workspace?tab=command", label: "Command" },
+                  { to: "/workspace?tab=tasks", label: "Tasks" },
+                  { to: "/workspace?tab=schedule", label: "Calendar" },
+                  { to: "/workspace?tab=agents", label: "AI Agents" },
+                  { to: "/workspace?tab=campaigns", label: "Campaigns" },
+                ].map((l) => (
+                  <Link key={l.to} to={l.to} onClick={() => setMobileOpen(false)} className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
+                    {l.label}
+                  </Link>
+                ))}
+              </>
+            ) : (
+              <>
+                {navLinks.map((l) => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    onClick={(e) => handleAnchorClick(e, l.href)}
+                    className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  >
+                    {l.label}
+                  </a>
+                ))}
+                <Link
+                  to="/demo"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-4 py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                >
+                  Demo
+                </Link>
+              </>
+            )}
             <div className="border-t border-border my-2" />
             {user ? (
               <>
