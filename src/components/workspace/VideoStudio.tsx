@@ -573,7 +573,7 @@ const VideoStudio = () => {
     if (!previewData || !user) return;
     setIsSaving(true);
     try {
-      const { error } = await supabase.from("video_projects").insert({
+      const { data, error } = await supabase.from("video_projects").insert({
         user_id: user.id,
         title: previewData.title || "AI Video",
         description: previewData.description,
@@ -584,19 +584,118 @@ const VideoStudio = () => {
         storyboard: previewData.scenes as any,
         ai_generated: true,
         status: "approved",
-      });
-      if (error) throw error;
+      }).select("*").single();
+      if (error || !data) throw error || new Error("Failed to save");
+      const newProject = mapVideoProject(data);
       setPreviewData(null);
       setPreviewImages({});
       setGeneratingPreviewImages({});
       setPreviewImagesRequested(false);
       setPrompt("");
       await loadProjects();
-      toast({ title: "Video Approved", description: `"${previewData.title}" saved to your projects.` });
+      // Auto-navigate to the project and start rendering pipeline
+      setActiveProject(newProject);
+      setActiveScene(0);
+      toast({ title: "Video Approved", description: `Generating video for "${previewData.title}"…` });
+      // Kick off auto-render pipeline
+      autoRenderPipeline(newProject);
     } catch (e: any) {
       toast({ title: "Save Failed", description: e.message, variant: "destructive" });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const autoRenderPipeline = async (project: VideoProject) => {
+    const scenes = project.storyboard || project.script?.scenes || [];
+    if (scenes.length === 0) return;
+
+    // Stage 1: Generate all scene images
+    setAutoRenderStage("generating-images");
+    setExportProgress(0);
+    const imageMap: Record<string, string> = {};
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i];
+      const key = `${project.id}-${scene.scene_number || i + 1}`;
+      setExportProgress(Math.round((i / scenes.length) * 50));
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const body: Record<string, any> = {
+          visual: scene.visual,
+          text_overlay: scene.text_overlay,
+          format: project.format,
+          platform: project.platform,
+        };
+        if (referenceImage) body.reference_image_url = referenceImage;
+        if (includeBranding) {
+          try {
+            const logoResp = await fetch(logoImg);
+            const logoBlob = await logoResp.blob();
+            const logoBase64 = await new Promise<string>((resolve) => {
+              const r = new FileReader();
+              r.onload = () => resolve(r.result as string);
+              r.readAsDataURL(logoBlob);
+            });
+            body.brand_logo_url = logoBase64;
+          } catch { /* skip */ }
+        }
+        const resp = await fetch(SCENE_IMAGE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+          body: JSON.stringify(body),
+        });
+        if (resp.ok) {
+          const { image_url } = await resp.json();
+          if (image_url) {
+            imageMap[key] = image_url;
+            setSceneImages(prev => ({ ...prev, [key]: image_url }));
+          }
+        }
+      } catch { /* continue with remaining scenes */ }
+    }
+
+    // Stage 2: Render video from images
+    setAutoRenderStage("rendering-video");
+    setExportProgress(50);
+    const sceneInputs = scenes.map((scene, i) => {
+      const key = `${project.id}-${scene.scene_number || i + 1}`;
+      return { imageUrl: imageMap[key], durationSeconds: scene.duration_seconds || 3, textOverlay: scene.text_overlay };
+    }).filter(s => s.imageUrl);
+
+    if (sceneInputs.length === 0) {
+      setAutoRenderStage("idle");
+      setExportProgress(null);
+      toast({ title: "Rendering Failed", description: "No scene images were generated.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const blob = await renderVideo({
+        format: project.format,
+        scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
+        onProgress: (p) => setExportProgress(50 + Math.round(p * 0.5)),
+      });
+
+      // Upload to storage
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      const filePath = `${session.user.id}/${project.id}.webm`;
+      await supabase.storage.from("video-exports").upload(filePath, blob, { upsert: true, contentType: "video/webm" });
+      await supabase.from("video_projects").update({ exported_video_url: filePath, status: "completed" } as any).eq("id", project.id);
+
+      const videoObjectUrl = URL.createObjectURL(blob);
+      setRenderedVideoUrl(videoObjectUrl);
+      setAutoRenderStage("done");
+      setExportProgress(null);
+      setShowVideoPreview(true);
+      // Update project status locally
+      setActiveProject(prev => prev ? { ...prev, status: "completed" } : null);
+      setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed" } : p));
+      toast({ title: "Video Ready!", description: "Your video has been rendered. Review and share it." });
+    } catch (e: any) {
+      setAutoRenderStage("idle");
+      setExportProgress(null);
+      toast({ title: "Rendering Failed", description: e.message, variant: "destructive" });
     }
   };
 
