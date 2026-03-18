@@ -41,6 +41,8 @@ const ScheduleView = () => {
   const [showAdd, setShowAdd] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: "", event_type: "meeting", duration: "60" });
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<{ title: string; start: string; end: string; event_type: string } | null>(null);
 
   useEffect(() => {
     if (user) fetchEvents();
