@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Presentation, Plus, Sparkles, ChevronLeft, ChevronRight, Maximize2,
   Minimize2, Download, Trash2, GripVertical, Edit3, Loader2, FileText,
-  Play, Pause
+  Play, Pause, Link, Copy, ExternalLink
 } from "lucide-react";
 import { NarratorControls } from "./NarratorControls";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ type Deck = {
   title: string;
   description?: string;
   slides: Slide[];
+  share_token?: string | null;
 };
 
 const SLIDE_TYPE_COLORS: Record<string, string> = {
@@ -176,6 +177,7 @@ const PitchDeckBuilder = () => {
           id: d.id,
           title: d.title,
           description: d.description ?? undefined,
+          share_token: (d as any).share_token ?? null,
           slides: (slides ?? []).map((s) => ({
             id: s.id,
             slide_type: (s.content as any)?.slide_type || s.slide_type,
@@ -365,6 +367,29 @@ const PitchDeckBuilder = () => {
       <div class="slide-container">${slideHTML}</div></body></html>`);
     printWindow.document.close();
   }, [activeDeck, toast]);
+
+  const shareDeck = async (deckId: string) => {
+    const deck = decks.find(d => d.id === deckId) || activeDeck;
+    if (deck?.share_token) {
+      const url = `${window.location.origin}/deck/${deck.share_token}`;
+      await navigator.clipboard.writeText(url);
+      toast({ title: "Link Copied!", description: url });
+      return;
+    }
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    const token = Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+    const { error } = await supabase.from("pitch_decks").update({ share_token: token }).eq("id", deckId);
+    if (error) {
+      toast({ title: "Share Failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setDecks(prev => prev.map(d => d.id === deckId ? { ...d, share_token: token } : d));
+    if (activeDeck?.id === deckId) setActiveDeck(prev => prev ? { ...prev, share_token: token } : null);
+    const url = `${window.location.origin}/deck/${token}`;
+    await navigator.clipboard.writeText(url);
+    toast({ title: "Share Link Created!", description: "Link copied to clipboard." });
+  };
 
   const exitPresentation = () => {
     setIsPresenting(false);
@@ -663,6 +688,9 @@ const PitchDeckBuilder = () => {
                 </Button>
                 <Button size="sm" variant="outline" onClick={exportDeckAsPDF}>
                   <Download className="w-4 h-4 mr-1" /> Export PDF
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => shareDeck(activeDeck.id)}>
+                  <Link className="w-4 h-4 mr-1" /> {activeDeck.share_token ? "Copy Link" : "Share"}
                 </Button>
               </div>
             </div>

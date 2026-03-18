@@ -238,6 +238,7 @@ export type Database = {
           description: string | null
           id: string
           is_public: boolean
+          share_token: string | null
           theme: Json | null
           title: string
           updated_at: string
@@ -248,6 +249,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          share_token?: string | null
           theme?: Json | null
           title?: string
           updated_at?: string
@@ -258,6 +260,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          share_token?: string | null
           theme?: Json | null
           title?: string
           updated_at?: string
@@ -539,6 +542,18 @@ export type Database = {
           schedule: Json
           status: string
           target_audience: string
+          updated_at: string
+        }[]
+      }
+      get_shared_deck: {
+        Args: { p_share_token: string }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          slides: Json
+          theme: Json
+          title: string
           updated_at: string
         }[]
       }

@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef } from "react";
+import { useState, useEffect, forwardRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
@@ -22,6 +22,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "@/assets/valyarolex-logo.png";
 import { renderVideo } from "@/lib/render-video";
+import { NarratorControls } from "./NarratorControls";
+import { useNarrator } from "@/hooks/use-narrator";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
@@ -331,6 +333,26 @@ const VideoStudio = () => {
   const [isAiEditing, setIsAiEditing] = useState(false);
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Narrator for video scenes
+  const videoNarratorSlides = useMemo(() => {
+    if (!activeProject) return [];
+    const scenes = activeProject.storyboard || activeProject.script?.scenes || [];
+    return scenes.map((s) => {
+      const parts: string[] = [];
+      if (s.text_overlay) parts.push(s.text_overlay);
+      if (s.voiceover) parts.push(s.voiceover);
+      if (s.visual) parts.push(s.visual);
+      return { title: `Scene ${s.scene_number || 1}`, body: parts.join(". ") };
+    });
+  }, [activeProject]);
+
+  const { isNarrating: isVideoNarrating, rate: videoRate, setRate: setVideoRate, startNarration: startVideoNarration, stopNarration: stopVideoNarration } = useNarrator({
+    onStepChange: setActiveScene,
+    totalSteps: videoNarratorSlides.length,
+  });
+
+  useEffect(() => () => { stopVideoNarration(); }, [stopVideoNarration]);
 
   useEffect(() => {
     if (user) loadProjects();
@@ -1126,6 +1148,16 @@ const VideoStudio = () => {
                 </Button>
                 <span className="text-xs text-muted-foreground min-w-[36px] text-center">{activeScene + 1}/{scenes.length}</span>
                 <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-24 h-1.5" />
+                <NarratorControls
+                  slides={videoNarratorSlides}
+                  currentSlide={activeScene}
+                  compact
+                  isNarrating={isVideoNarrating}
+                  rate={videoRate}
+                  onStart={startVideoNarration}
+                  onStop={stopVideoNarration}
+                  onRateChange={setVideoRate}
+                />
               </div>
             )}
 
@@ -1299,6 +1331,12 @@ const VideoStudio = () => {
             }} />
           </TabsContent>
         </Tabs>
+
+        {/* Logo footer */}
+        <div className="text-center py-4 text-xs text-muted-foreground">
+          <img src={logoImg} alt="Valyarolex.AI" className="h-6 mx-auto mb-1 opacity-60" />
+          Powered by <span className="text-primary font-semibold">Valyarolex.AI</span>
+        </div>
 
         {sceneEditDialogJsx}
       </div>
