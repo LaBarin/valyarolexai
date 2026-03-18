@@ -11,6 +11,7 @@ const navLinks = [
   { href: "#integrations", label: "Integrations" },
   { href: "#comparison", label: "Compare" },
   { href: "#pricing", label: "Pricing" },
+  { href: "#about", label: "About" },
 ];
 
 const Navbar = () => {

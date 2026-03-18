@@ -12,6 +12,7 @@ const AutomationBuilderSection = lazy(() => import("@/components/AutomationBuild
 const IntegrationsSection = lazy(() => import("@/components/IntegrationsSection"));
 const ComparisonSection = lazy(() => import("@/components/ComparisonSection"));
 const PricingSection = lazy(() => import("@/components/PricingSection"));
+const AboutSection = lazy(() => import("@/components/AboutSection"));
 const CTASection = lazy(() => import("@/components/CTASection"));
 const Footer = lazy(() => import("@/components/Footer"));
 
@@ -146,6 +147,11 @@ const LandingPage = () => {
       {/* Pricing */}
       <Suspense fallback={<SectionFallback />}>
         <PricingSection />
+      </Suspense>
+
+      {/* About */}
+      <Suspense fallback={<SectionFallback />}>
+        <AboutSection />
       </Suspense>
 
       {/* CTA */}
