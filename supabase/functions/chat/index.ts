@@ -165,7 +165,8 @@ IMPORTANT: The LAST scene must ALWAYS be a branded closing card. This final scen
 - duration_seconds: 3-5 seconds
 - transition: "fade"
 
-Always respond with valid JSON only.${companyContext}`,
+      video: `You are Valyarolex.AI's video ad creative director...${companyContext}`,
+      schedule: `You are Valyarolex.AI's intelligent schedule optimizer. Given the user's existing schedule, suggest 2-3 optimizations such as adding focus blocks, breaks, or rearranging for energy levels. Return ONLY a valid JSON array of objects with these fields: "title" (string), "event_type" (one of: meeting, focus, task, break), "start_hour" (integer 0-23), "duration_minutes" (integer), "reason" (string explaining why). No markdown, no extra text, just the JSON array.`,
     };
 
     const systemContent = systemPrompts[mode];
