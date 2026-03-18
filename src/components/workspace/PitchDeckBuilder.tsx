@@ -177,6 +177,7 @@ const PitchDeckBuilder = () => {
           id: d.id,
           title: d.title,
           description: d.description ?? undefined,
+          share_token: (d as any).share_token ?? null,
           slides: (slides ?? []).map((s) => ({
             id: s.id,
             slide_type: (s.content as any)?.slide_type || s.slide_type,
