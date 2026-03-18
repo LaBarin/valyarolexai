@@ -1148,6 +1148,16 @@ const VideoStudio = () => {
                 </Button>
                 <span className="text-xs text-muted-foreground min-w-[36px] text-center">{activeScene + 1}/{scenes.length}</span>
                 <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-24 h-1.5" />
+                <NarratorControls
+                  slides={videoNarratorSlides}
+                  currentSlide={activeScene}
+                  compact
+                  isNarrating={isVideoNarrating}
+                  rate={videoRate}
+                  onStart={startVideoNarration}
+                  onStop={stopVideoNarration}
+                  onRateChange={setVideoRate}
+                />
               </div>
             )}
 
