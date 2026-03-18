@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Brain, Send, Loader2, TrendingDown, TrendingUp, Sparkles, BarChart3, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import type { ChartConfig } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, Cell, PieChart, Pie, AreaChart, Area, CartesianGrid } from "recharts";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
@@ -54,11 +58,75 @@ const severityStyles = {
 };
 
 const AIInsights = ({ compact = false }: { compact?: boolean }) => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<InsightMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Chart data state
+  const [taskData, setTaskData] = useState<{ status: string; count: number; fill: string }[]>([]);
+  const [weeklyData, setWeeklyData] = useState<{ day: string; created: number; completed: number }[]>([]);
+  const [overviewData, setOverviewData] = useState<{ name: string; value: number; fill: string }[]>([]);
+
+  useEffect(() => {
+    if (user) fetchChartData();
+  }, [user]);
+
+  const fetchChartData = async () => {
+    const [tasksRes, workflowsRes, eventsRes, integrationsRes] = await Promise.all([
+      supabase.from("tasks").select("status, created_at, completed_at"),
+      supabase.from("saved_workflows").select("is_active"),
+      supabase.from("schedule_events").select("id, start_time"),
+      supabase.from("connected_integrations").select("id"),
+    ]);
+
+    const tasks = tasksRes.data || [];
+    const todo = tasks.filter((t) => t.status === "todo").length;
+    const inProgress = tasks.filter((t) => t.status === "in_progress").length;
+    const done = tasks.filter((t) => t.status === "done").length;
+
+    setTaskData([
+      { status: "To Do", count: todo, fill: "hsl(190, 100%, 50%)" },
+      { status: "In Progress", count: inProgress, fill: "hsl(35, 95%, 55%)" },
+      { status: "Done", count: done, fill: "hsl(150, 70%, 50%)" },
+    ]);
+
+    // Weekly activity (last 7 days)
+    const days: { day: string; created: number; completed: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      const label = d.toLocaleDateString("en", { weekday: "short" });
+      days.push({
+        day: label,
+        created: tasks.filter((t) => t.created_at?.startsWith(dateStr)).length,
+        completed: tasks.filter((t) => t.completed_at?.startsWith(dateStr)).length,
+      });
+    }
+    setWeeklyData(days);
+
+    // Overview pie
+    setOverviewData([
+      { name: "Tasks", value: tasks.length, fill: "hsl(190, 100%, 50%)" },
+      { name: "Workflows", value: workflowsRes.data?.length || 0, fill: "hsl(35, 95%, 55%)" },
+      { name: "Events", value: eventsRes.data?.length || 0, fill: "hsl(280, 70%, 60%)" },
+      { name: "Integrations", value: integrationsRes.data?.length || 0, fill: "hsl(150, 70%, 50%)" },
+    ]);
+  };
+
+  const taskChartConfig: ChartConfig = {
+    count: { label: "Count" },
+  };
+  const weeklyChartConfig: ChartConfig = {
+    created: { label: "Created", color: "hsl(190, 100%, 50%)" },
+    completed: { label: "Completed", color: "hsl(150, 70%, 50%)" },
+  };
+  const overviewChartConfig: ChartConfig = {
+    value: { label: "Items" },
+  };
 
   const askQuestion = async (question?: string) => {
     const q = question || input.trim();
@@ -174,6 +242,61 @@ const AIInsights = ({ compact = false }: { compact?: boolean }) => {
   // Full analytics view
   return (
     <div className="space-y-6">
+      {/* Charts */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Task Status Bar Chart */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-5">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-primary" /> Tasks by Status
+          </h3>
+          <ChartContainer config={taskChartConfig} className="h-[220px] w-full">
+            <BarChart data={taskData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+              <XAxis dataKey="status" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {taskData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        </motion.div>
+
+        {/* Workspace Overview Pie */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass rounded-xl p-5">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" /> Workspace Overview
+          </h3>
+          <ChartContainer config={overviewChartConfig} className="h-[220px] w-full">
+            <PieChart>
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Pie data={overviewData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                {overviewData.map((entry, index) => (
+                  <Cell key={`pie-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+        </motion.div>
+      </div>
+
+      {/* Weekly Activity Area Chart */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-xl p-5">
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-primary" /> Weekly Activity
+        </h3>
+        <ChartContainer config={weeklyChartConfig} className="h-[220px] w-full">
+          <AreaChart data={weeklyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Area type="monotone" dataKey="created" stackId="1" stroke="hsl(190, 100%, 50%)" fill="hsl(190, 100%, 50%)" fillOpacity={0.3} />
+            <Area type="monotone" dataKey="completed" stackId="2" stroke="hsl(150, 70%, 50%)" fill="hsl(150, 70%, 50%)" fillOpacity={0.3} />
+          </AreaChart>
+        </ChartContainer>
+      </motion.div>
       {/* Insight Cards */}
       <div className="grid gap-3 sm:grid-cols-3">
         {defaultInsights.map((insight, i) => {
