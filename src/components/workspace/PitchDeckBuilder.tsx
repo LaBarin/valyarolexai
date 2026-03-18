@@ -147,13 +147,7 @@ const PitchDeckBuilder = () => {
     if (!previewData) return [];
     return previewData.slides.map((s) => {
       const c = s.content as SlideContent;
-      const parts: string[] = [];
-      if (c.headline) parts.push(c.headline);
-      else if (s.title) parts.push(s.title);
-      if (c.body) parts.push(c.body);
-      if (c.bullets?.length) parts.push(c.bullets.join(". "));
-      if (c.metric) parts.push(`Key metric: ${c.metric} ${c.metric_label || ""}`);
-      return { title: parts[0] || s.title, body: parts.slice(1).join(". ") };
+      return buildSalesNarration(s.slide_type, s.title, c);
     });
   }, [previewData]);
 
