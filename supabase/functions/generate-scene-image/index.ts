@@ -40,7 +40,7 @@ serve(async (req) => {
     const ALLOWED_FORMATS = ["9:16", "1:1", "16:9"];
     const ALLOWED_PLATFORMS = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "twitter", "snapchat", "pinterest", "general"];
 
-    const { visual, text_overlay, format, platform } = await req.json();
+    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url } = await req.json();
     if (!visual || typeof visual !== "string" || visual.length > MAX_VISUAL_LEN) {
       return new Response(JSON.stringify({ error: "Invalid or too-long visual description" }), {
         status: 400,
@@ -71,7 +71,18 @@ serve(async (req) => {
 
     // Build image prompt from scene data
     const aspectDesc = format === "9:16" ? "vertical mobile portrait" : format === "1:1" ? "square" : "widescreen landscape 16:9";
-    const prompt = `Create a cinematic, professional video ad frame/still image. ${aspectDesc} aspect ratio. Scene: ${visual}${text_overlay ? `. Text overlay: "${text_overlay}"` : ""}. Platform: ${platform || "general"}. Style: high-end commercial photography, dramatic lighting, modern and sleek. Do NOT include any watermarks.`;
+    const brandingNote = brand_logo_url ? " Include subtle brand logo watermark in corner." : "";
+    const referenceNote = reference_image_url ? " Use the provided reference image as style/content inspiration." : "";
+    const prompt = `Create a cinematic, professional video ad frame/still image. ${aspectDesc} aspect ratio. Scene: ${visual}${text_overlay ? `. Text overlay: "${text_overlay}"` : ""}.${brandingNote}${referenceNote} Platform: ${platform || "general"}. Style: high-end commercial photography, dramatic lighting, modern and sleek. Do NOT include any watermarks.`;
+
+    // Build message content - support reference images
+    const messageContent: any[] = [{ type: "text", text: prompt }];
+    if (reference_image_url) {
+      messageContent.push({ type: "image_url", image_url: { url: reference_image_url } });
+    }
+    if (brand_logo_url) {
+      messageContent.push({ type: "image_url", image_url: { url: brand_logo_url } });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -81,7 +92,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3.1-flash-image-preview",
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content: messageContent.length === 1 ? prompt : messageContent }],
         modalities: ["image", "text"],
       }),
     });

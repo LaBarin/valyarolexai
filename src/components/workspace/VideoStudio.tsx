@@ -4,7 +4,7 @@ import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
   Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download,
-  FileVideo
+  FileVideo, Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -333,6 +333,8 @@ const VideoStudio = () => {
   const [isAiEditing, setIsAiEditing] = useState(false);
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [includeBranding, setIncludeBranding] = useState(true);
 
   // Narrator for video scenes
   const videoNarratorSlides = useMemo(() => {
@@ -372,24 +374,51 @@ const VideoStudio = () => {
     setLoading(false);
   };
 
+  const handleReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 5MB for reference images.", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setReferenceImage(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string) => {
     const key = `${projectId}-${scene.scene_number}`;
     if (generatingImages[key]) return;
     setGeneratingImages(prev => ({ ...prev, [key]: true }));
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const body: Record<string, any> = {
+        visual: scene.visual,
+        text_overlay: scene.text_overlay,
+        format,
+        platform,
+      };
+      if (referenceImage) body.reference_image_url = referenceImage;
+      // Auto-include branding logo as base64
+      if (includeBranding) {
+        try {
+          const logoResp = await fetch(logoImg);
+          const logoBlob = await logoResp.blob();
+          const logoBase64 = await new Promise<string>((resolve) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result as string);
+            r.readAsDataURL(logoBlob);
+          });
+          body.brand_logo_url = logoBase64;
+        } catch { /* skip branding if logo fetch fails */ }
+      }
       const resp = await fetch(SCENE_IMAGE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({
-          visual: scene.visual,
-          text_overlay: scene.text_overlay,
-          format,
-          platform,
-        }),
+        body: JSON.stringify(body),
       });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Image generation failed" }));
@@ -1368,6 +1397,30 @@ const VideoStudio = () => {
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-[80px] bg-background/50"
         />
+
+        {/* Reference image upload + branding toggle */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors">
+            <Upload className="w-3.5 h-3.5 text-primary" />
+            <span>{referenceImage ? "Change Reference Image" : "Upload Logo / Reference Image"}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleReferenceUpload} />
+          </label>
+          {referenceImage && (
+            <div className="flex items-center gap-2">
+              <img src={referenceImage} alt="Reference" className="h-8 w-8 rounded object-cover border border-border/50" />
+              <button onClick={() => setReferenceImage(null)} className="text-[10px] text-destructive hover:underline">Remove</button>
+            </div>
+          )}
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground ml-auto">
+            <input
+              type="checkbox"
+              checked={includeBranding}
+              onChange={(e) => setIncludeBranding(e.target.checked)}
+              className="rounded border-border"
+            />
+            Auto-include brand logo
+          </label>
+        </div>
 
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1">
