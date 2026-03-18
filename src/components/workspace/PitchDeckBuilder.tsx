@@ -715,10 +715,17 @@ const PitchDeckBuilder = () => {
                 <h2 className="text-xl font-bold truncate">{activeDeck.title}</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant={isEditorExpanded ? "default" : "outline"} onClick={() => setIsEditorExpanded((v) => !v)}>
-                  {isEditorExpanded ? <Minimize2 className="w-4 h-4 mr-1" /> : <Maximize2 className="w-4 h-4 mr-1" />}
-                  {isEditorExpanded ? "Minimize" : "Expand"}
-                </Button>
+                <div className="flex items-center gap-1 glass rounded-lg p-0.5">
+                  <Button size="sm" variant={viewMode === "compact" ? "default" : "ghost"} className="h-7 px-2 text-xs" onClick={() => setViewMode("compact")}>
+                    <Minimize2 className="w-3.5 h-3.5 mr-1" /> Compact
+                  </Button>
+                  <Button size="sm" variant={viewMode === "normal" ? "default" : "ghost"} className="h-7 px-2 text-xs" onClick={() => setViewMode("normal")}>
+                    Normal
+                  </Button>
+                  <Button size="sm" variant={viewMode === "expanded" ? "default" : "ghost"} className="h-7 px-2 text-xs" onClick={() => setViewMode("expanded")}>
+                    <Maximize2 className="w-3.5 h-3.5 mr-1" /> Large
+                  </Button>
+                </div>
                 <Button size="sm" variant="outline" onClick={enterPresentation}>
                   <Presentation className="w-4 h-4 mr-1" /> Present
                 </Button>
