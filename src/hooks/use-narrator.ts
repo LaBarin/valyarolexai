@@ -13,54 +13,89 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   const isNarratingRef = useRef(false);
   const rateRef = useRef(1);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const stepsRef = useRef<{ title: string; subtitle: string; description: string; highlights?: string[] }[]>([]);
+  const currentStepRef = useRef(0);
 
-  const voiceReadyRef = useRef(false);
-
-  // Preload and cache a good voice
   const loadVoice = useCallback(() => {
     const voices = window.speechSynthesis.getVoices();
     if (voices.length === 0) return;
+    // Prefer high-quality voices
     const preferred = voices.find(
       (v) =>
         v.lang.startsWith("en") &&
-        (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Daniel"))
+        (v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Daniel") || v.name.includes("Karen") || v.name.includes("Moira"))
     );
     voiceRef.current = preferred || voices.find((v) => v.lang.startsWith("en")) || null;
-    voiceReadyRef.current = true;
   }, []);
 
   const stopNarration = useCallback(() => {
     isNarratingRef.current = false;
     setIsNarrating(false);
     window.speechSynthesis.cancel();
+    stepsRef.current = [];
   }, []);
 
-  const narrateStep = useCallback(
-    (stepIndex: number, text: string, onDone: () => void) => {
+  // Narrate a single slide, then advance to next
+  const narrateSingleSlide = useCallback(
+    (stepIndex: number) => {
+      if (!isNarratingRef.current || stepIndex >= stepsRef.current.length) {
+        stopNarration();
+        return;
+      }
+
       window.speechSynthesis.cancel();
+
+      const s = stepsRef.current[stepIndex];
+      const textParts: string[] = [];
+      if (s.title) textParts.push(s.title);
+      if (s.subtitle) textParts.push(s.subtitle);
+      if (s.description) textParts.push(s.description);
+      if (s.highlights?.length) {
+        textParts.push("Key highlights include: " + s.highlights.join(". "));
+      }
+      const text = textParts.join(". ") + ".";
+
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = rateRef.current;
-      utterance.pitch = 1;
+      utterance.pitch = 1.05;
       utterance.volume = 1;
 
       if (!voiceRef.current) loadVoice();
       if (voiceRef.current) utterance.voice = voiceRef.current;
 
       utterance.onend = () => {
-        if (isNarratingRef.current) {
-          setTimeout(onDone, 800);
+        if (!isNarratingRef.current) return;
+        const nextStep = currentStepRef.current + 1;
+        if (nextStep < stepsRef.current.length) {
+          currentStepRef.current = nextStep;
+          setCurrentNarrationStep(nextStep);
+          onStepChange(nextStep);
+          // Brief pause between slides for natural pacing
+          setTimeout(() => narrateSingleSlide(nextStep), 1200);
+        } else {
+          stopNarration();
         }
       };
       utterance.onerror = () => {
-        if (isNarratingRef.current) onDone();
+        if (isNarratingRef.current) {
+          const nextStep = currentStepRef.current + 1;
+          if (nextStep < stepsRef.current.length) {
+            currentStepRef.current = nextStep;
+            onStepChange(nextStep);
+            setTimeout(() => narrateSingleSlide(nextStep), 600);
+          } else {
+            stopNarration();
+          }
+        }
       };
 
       utteranceRef.current = utterance;
-      onStepChange(stepIndex);
+      currentStepRef.current = stepIndex;
       setCurrentNarrationStep(stepIndex);
+      // Don't call onStepChange here — the slide is already set by the caller
       window.speechSynthesis.speak(utterance);
     },
-    [onStepChange, loadVoice]
+    [onStepChange, loadVoice, stopNarration]
   );
 
   const startNarration = useCallback(
@@ -69,34 +104,28 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
 
       isNarratingRef.current = true;
       setIsNarrating(true);
+      stepsRef.current = steps;
       loadVoice();
 
-      const narrateSequence = (index: number) => {
-        if (index >= steps.length || !isNarratingRef.current) {
-          stopNarration();
-          return;
-        }
-
-        const s = steps[index];
-        const textParts: string[] = [];
-        if (s.title) textParts.push(s.title);
-        if (s.subtitle) textParts.push(s.subtitle);
-        if (s.description) textParts.push(s.description);
-        if (s.highlights?.length) {
-          textParts.push("Key highlights include: " + s.highlights.join(". "));
-        }
-        let text = textParts.join(". ") + ".";
-
-        narrateStep(index, text, () => narrateSequence(index + 1));
-      };
-
-      narrateSequence(fromStep);
+      // Set slide to fromStep and start narrating
+      onStepChange(fromStep);
+      narrateSingleSlide(fromStep);
     },
-    [narrateStep, stopNarration, loadVoice]
+    [narrateSingleSlide, loadVoice, onStepChange]
+  );
+
+  // Sync narration when external slide change happens
+  const syncToSlide = useCallback(
+    (slideIndex: number) => {
+      if (!isNarratingRef.current || stepsRef.current.length === 0) return;
+      if (slideIndex === currentStepRef.current) return;
+      // Cancel current speech, start narrating the new slide
+      narrateSingleSlide(slideIndex);
+    },
+    [narrateSingleSlide]
   );
 
   useEffect(() => {
-    // Eagerly trigger voice loading
     loadVoice();
     window.speechSynthesis?.getVoices();
     window.speechSynthesis?.addEventListener?.("voiceschanged", loadVoice);
@@ -109,7 +138,6 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
   const updateRate = useCallback((newRate: number) => {
     rateRef.current = newRate;
     setRate(newRate);
-    // Update current utterance if speaking
     if (utteranceRef.current && isNarratingRef.current) {
       utteranceRef.current.rate = newRate;
     }
@@ -122,5 +150,6 @@ export function useNarrator({ onStepChange, totalSteps }: NarratorOptions) {
     setRate: updateRate,
     startNarration,
     stopNarration,
+    syncToSlide,
   };
 }
