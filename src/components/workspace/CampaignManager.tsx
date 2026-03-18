@@ -81,7 +81,217 @@ const STATUS_COLORS: Record<string, string> = {
   completed: "bg-primary/20 text-primary",
 };
 
-const CampaignManager = () => {
+const CampaignDetailView = ({ campaign: c, onBack, onUpdateStatus, copyShareLink, getShareUrl }: {
+  campaign: Campaign;
+  onBack: () => void;
+  onUpdateStatus: (id: string, status: string) => void;
+  copyShareLink: (token: string) => void;
+  getShareUrl: (token: string) => string;
+}) => {
+  const narratorSlides = useMemo(() => {
+    const items: { title: string; body: string }[] = [];
+    items.push({
+      title: c.name,
+      body: `${c.description || ""}. Campaign type: ${c.campaign_type || "general"}. Target audience: ${c.target_audience || "broad audience"}.`,
+    });
+    if (c.goals.length > 0) {
+      items.push({ title: "Campaign Goals", body: c.goals.map((g) => `${g.goal}: target ${g.target} measured by ${g.metric}`).join(". ") });
+    }
+    if (c.channels.length > 0) {
+      items.push({ title: "Channel Strategy", body: c.channels.map((ch) => `${ch.channel} at ${ch.budget_pct}% budget: ${ch.strategy}`).join(". ") });
+    }
+    c.content_plan.forEach((item) => {
+      items.push({ title: item.title, body: `${item.type} on ${item.channel}. ${item.description}` });
+    });
+    if (c.schedule.phases && c.schedule.phases.length > 0) {
+      items.push({ title: "Timeline", body: c.schedule.phases.map((p) => `${p.name}, weeks ${p.weeks}: ${p.focus}`).join(". ") });
+    }
+    return items;
+  }, [c]);
+
+  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
+    onStepChange: () => {},
+    totalSteps: narratorSlides.length,
+  });
+
+  useEffect(() => () => { stopNarration(); }, [stopNarration]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button size="sm" variant="ghost" onClick={onBack}>
+            <ChevronLeft className="w-4 h-4 mr-1" /> Back
+          </Button>
+          <div>
+            <h2 className="text-xl font-bold">{c.name}</h2>
+            <p className="text-sm text-muted-foreground">{c.description}</p>
+          </div>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <NarratorControls
+            slides={narratorSlides}
+            currentSlide={0}
+            isNarrating={isNarrating}
+            rate={rate}
+            onStart={startNarration}
+            onStop={stopNarration}
+            onRateChange={setRate}
+          />
+          <Badge className={STATUS_COLORS[c.status] || STATUS_COLORS.draft}>{c.status}</Badge>
+          {c.share_token && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => copyShareLink(c.share_token!)}>
+                <Copy className="w-3.5 h-3.5 mr-1" /> Copy Link
+              </Button>
+              <a href={getShareUrl(c.share_token)} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="outline">
+                  <ExternalLink className="w-3.5 h-3.5 mr-1" /> View
+                </Button>
+              </a>
+            </>
+          )}
+          {c.status === "draft" && (
+            <Button size="sm" onClick={() => onUpdateStatus(c.id, "active")}>
+              <Zap className="w-4 h-4 mr-1" /> Launch
+            </Button>
+          )}
+          {c.status === "active" && (
+            <Button size="sm" variant="outline" onClick={() => onUpdateStatus(c.id, "paused")}>Pause</Button>
+          )}
+        </div>
+      </div>
+
+      <Tabs defaultValue="ads" className="space-y-4">
+        <TabsList className="glass">
+          <TabsTrigger value="ads">Ad Creatives</TabsTrigger>
+          <TabsTrigger value="overview">Strategy</TabsTrigger>
+          <TabsTrigger value="content">Content Plan</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ads" className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {c.content_plan.map((item, i) => {
+              const colorClass = PLATFORM_COLORS[item.channel] || PLATFORM_COLORS.social;
+              return (
+                <div key={i} className="glass rounded-xl p-5 space-y-3 hover:border-primary/30 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <Badge className={colorClass}>{item.channel}</Badge>
+                    <Badge variant="outline" className="text-[10px]">Week {item.week}</Badge>
+                  </div>
+                  <h3 className="font-semibold text-sm">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.description}</p>
+                  <Badge variant="outline" className="text-[10px]">{item.type.replace(/_/g, " ")}</Badge>
+                </div>
+              );
+            })}
+          </div>
+          {c.content_plan.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground text-sm">No ad creatives in this campaign.</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="overview" className="space-y-4">
+          <div className="glass rounded-xl p-5">
+            <h3 className="font-semibold mb-3 flex items-center gap-2"><Target className="w-4 h-4 text-primary" /> Campaign Goals</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {c.goals.map((g, i) => (
+                <div key={i} className="bg-background/50 rounded-lg p-4 space-y-2">
+                  <p className="text-sm font-medium">{g.goal}</p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{g.metric}</span>
+                    <span className="text-primary font-semibold">{g.target}</span>
+                  </div>
+                  <Progress value={0} className="h-1.5" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="glass rounded-xl p-5">
+            <h3 className="font-semibold mb-3 flex items-center gap-2"><Share2 className="w-4 h-4 text-primary" /> Channels & Budget</h3>
+            <div className="space-y-3">
+              {c.channels.map((ch, i) => {
+                const Icon = CHANNEL_ICONS[ch.channel] || Megaphone;
+                return (
+                  <div key={i} className="bg-background/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium capitalize">{ch.channel.replace(/_/g, " ")}</span>
+                      </div>
+                      <Badge variant="outline">{ch.budget_pct}% budget</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{ch.strategy}</p>
+                    <Progress value={ch.budget_pct} className="h-1.5 mt-2" />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {c.target_audience && (
+            <div className="glass rounded-xl p-5">
+              <h3 className="font-semibold mb-2">Target Audience</h3>
+              <p className="text-sm text-muted-foreground">{c.target_audience}</p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="content" className="space-y-3">
+          <div className="glass rounded-xl p-5">
+            <h3 className="font-semibold mb-3 flex items-center gap-2"><FileText className="w-4 h-4 text-primary" /> Content Pieces</h3>
+            <div className="space-y-2">
+              {c.content_plan.map((item, i) => (
+                <div key={i} className="bg-background/50 rounded-lg p-4 flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="text-[10px]">{item.type}</Badge>
+                      <Badge variant="outline" className="text-[10px]">{item.channel}</Badge>
+                      <span className="text-[10px] text-muted-foreground">Week {item.week}</span>
+                    </div>
+                    <p className="text-sm font-medium">{item.title}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="timeline" className="space-y-3">
+          <div className="glass rounded-xl p-5">
+            <h3 className="font-semibold mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Campaign Timeline</h3>
+            {c.schedule.duration_weeks && (
+              <p className="text-sm text-muted-foreground mb-4">Duration: {c.schedule.duration_weeks} weeks</p>
+            )}
+            <div className="relative space-y-4 pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
+              {(c.schedule.phases || []).map((phase, i) => (
+                <div key={i} className="relative">
+                  <div className="absolute left-[-20px] top-1 w-3 h-3 rounded-full bg-primary border-2 border-background" />
+                  <div className="bg-background/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-sm font-semibold">{phase.name}</h4>
+                      <Badge variant="outline" className="text-xs">Weeks {phase.weeks}</Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{phase.focus}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Logo footer */}
+      <div className="text-center py-4 text-xs text-muted-foreground">
+        <img src={logoImg} alt="Valyarolex.AI" className="h-6 mx-auto mb-1 opacity-60" />
+        Powered by <span className="text-primary font-semibold">Valyarolex.AI</span>
+      </div>
+    </div>
+  );
+};
+
+
   const { user } = useAuth();
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
