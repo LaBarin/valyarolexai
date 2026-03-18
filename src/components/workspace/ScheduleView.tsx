@@ -92,6 +92,34 @@ const ScheduleView = () => {
     setEvents((prev) => prev.filter((e) => e.id !== id));
   };
 
+  const startEditing = (event: ScheduleEvent) => {
+    setEditingId(event.id);
+    setEditData({
+      title: event.title,
+      start: new Date(event.start_time).toTimeString().slice(0, 5),
+      end: new Date(event.end_time).toTimeString().slice(0, 5),
+      event_type: event.event_type,
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingId || !editData) return;
+    const start_time = new Date(`${selectedDate}T${editData.start}:00`).toISOString();
+    const end_time = new Date(`${selectedDate}T${editData.end}:00`).toISOString();
+    const { error } = await supabase
+      .from("schedule_events")
+      .update({ title: editData.title, start_time, end_time, event_type: editData.event_type, is_focus_block: editData.event_type === "focus" })
+      .eq("id", editingId);
+    if (!error) {
+      setEvents((prev) =>
+        prev.map((e) => e.id === editingId ? { ...e, title: editData.title, start_time, end_time, event_type: editData.event_type, is_focus_block: editData.event_type === "focus" } : e)
+          .sort((a, b) => a.start_time.localeCompare(b.start_time))
+      );
+    }
+    setEditingId(null);
+    setEditData(null);
+  };
+
   const aiOptimizeSchedule = async () => {
     if (!user || aiOptimizing) return;
     setAiOptimizing(true);
