@@ -334,8 +334,26 @@ const VideoStudio = () => {
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  useEffect(() => {
-    if (user) loadProjects();
+  // Narrator for video scenes
+  const videoNarratorSlides = useMemo(() => {
+    if (!activeProject) return [];
+    const scenes = activeProject.storyboard || activeProject.script?.scenes || [];
+    return scenes.map((s) => {
+      const parts: string[] = [];
+      if (s.text_overlay) parts.push(s.text_overlay);
+      if (s.voiceover) parts.push(s.voiceover);
+      if (s.visual) parts.push(s.visual);
+      return { title: `Scene ${s.scene_number || 1}`, body: parts.join(". ") };
+    });
+  }, [activeProject]);
+
+  const { isNarrating: isVideoNarrating, rate: videoRate, setRate: setVideoRate, startNarration: startVideoNarration, stopNarration: stopVideoNarration } = useNarrator({
+    onStepChange: setActiveScene,
+    totalSteps: videoNarratorSlides.length,
+  });
+
+  useEffect(() => () => { stopVideoNarration(); }, [stopVideoNarration]);
+
   }, [user]);
 
   const loadProjects = async () => {
