@@ -64,6 +64,48 @@ const SLIDE_TYPE_COLORS: Record<string, string> = {
   budget: "from-primary/50 to-green-500/30",
 };
 
+// Build compelling, professional sales narration from slide content
+function buildSalesNarration(slideType: string, title: string, c: SlideContent): { title: string; body: string } {
+  const headline = c.headline || title;
+  const bullets = c.bullets?.join(". ") || "";
+  const metric = c.metric ? `${c.metric} ${c.metric_label || ""}` : "";
+
+  const intros: Record<string, string> = {
+    title: `Welcome. ${headline}.`,
+    problem: `Let's talk about the challenge.`,
+    solution: `Here's how we solve this.`,
+    market: `The market opportunity is massive.`,
+    product: `Let me walk you through what we've built.`,
+    traction: `The numbers speak for themselves.`,
+    business_model: `Here's how we make money.`,
+    team: `Behind this vision is a world-class team.`,
+    financials: `Let's look at the financials.`,
+    ask: `Here's what we're asking for, and why.`,
+    closing: `Thank you for your time. Let's build the future together.`,
+    ad_strategy: `Our advertising strategy is designed for maximum impact.`,
+    platform_breakdown: `Let me break down our platform capabilities.`,
+    creative_brief: `Here's our creative direction.`,
+    targeting: `We've identified our ideal audience.`,
+    budget: `Here's our budget allocation.`,
+  };
+
+  const intro = intros[slideType] || `Let's look at ${headline}.`;
+  const bodyParts: string[] = [];
+
+  if (c.body) bodyParts.push(c.body);
+  if (bullets) bodyParts.push(bullets);
+  if (metric) bodyParts.push(`And here's a number that matters: ${metric}.`);
+
+  const narrationBody = bodyParts.length > 0
+    ? bodyParts.join(". ")
+    : `${headline}.`;
+
+  return {
+    title: intro,
+    body: narrationBody,
+  };
+}
+
 const PitchDeckBuilder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -88,17 +130,11 @@ const PitchDeckBuilder = () => {
     if (!activeDeck) return [];
     return activeDeck.slides.map((s) => {
       const c = s.content;
-      const parts: string[] = [];
-      if (c.headline) parts.push(c.headline);
-      else if (s.title) parts.push(s.title);
-      if (c.body) parts.push(c.body);
-      if (c.bullets?.length) parts.push(c.bullets.join(". "));
-      if (c.metric) parts.push(`Key metric: ${c.metric} ${c.metric_label || ""}`);
-      return { title: parts[0] || s.title, body: parts.slice(1).join(". ") };
+      return buildSalesNarration(s.slide_type, s.title, c);
     });
   }, [activeDeck]);
 
-  const { isNarrating, rate, setRate, startNarration, stopNarration } = useNarrator({
+  const { isNarrating, rate, setRate, startNarration, stopNarration, syncToSlide } = useNarrator({
     onStepChange: setCurrentSlide,
     totalSteps: narratorSlides.length,
   });
@@ -106,18 +142,17 @@ const PitchDeckBuilder = () => {
   // Stop narration when leaving deck
   useEffect(() => () => { stopNarration(); }, [stopNarration]);
 
+  // Sync narrator when slide changes manually
+  useEffect(() => {
+    if (isNarrating) syncToSlide(currentSlide);
+  }, [currentSlide, isNarrating, syncToSlide]);
+
   // Preview narrator slides (for generated deck preview)
   const previewNarratorSlides = useMemo(() => {
     if (!previewData) return [];
     return previewData.slides.map((s) => {
       const c = s.content as SlideContent;
-      const parts: string[] = [];
-      if (c.headline) parts.push(c.headline);
-      else if (s.title) parts.push(s.title);
-      if (c.body) parts.push(c.body);
-      if (c.bullets?.length) parts.push(c.bullets.join(". "));
-      if (c.metric) parts.push(`Key metric: ${c.metric} ${c.metric_label || ""}`);
-      return { title: parts[0] || s.title, body: parts.slice(1).join(". ") };
+      return buildSalesNarration(s.slide_type, s.title, c);
     });
   }, [previewData]);
 
