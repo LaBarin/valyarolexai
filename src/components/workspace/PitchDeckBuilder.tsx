@@ -343,6 +343,9 @@ const PitchDeckBuilder = () => {
   const exportDeckAsPDF = useCallback(() => {
     if (!activeDeck || activeDeck.slides.length === 0) return;
 
+    const esc = (s = '') =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     const slideHTML = activeDeck.slides.map((slide, i) => {
       const gradientMap: Record<string, string> = {
         title: "linear-gradient(135deg, hsl(190,100%,50%), hsl(150,70%,50%))",
@@ -359,19 +362,19 @@ const PitchDeckBuilder = () => {
       const bg = gradientMap[slide.slide_type] || "linear-gradient(135deg, hsl(190,80%,40%), hsl(210,20%,20%))";
       const c = slide.content;
       const bulletsHTML = c.bullets?.length
-        ? `<ul style="margin:12px 0;padding-left:24px;list-style:disc">${c.bullets.map(b => `<li style="margin:4px 0;color:#e0e0e0;font-size:14px">${b}</li>`).join("")}</ul>`
+        ? `<ul style="margin:12px 0;padding-left:24px;list-style:disc">${c.bullets.map(b => `<li style="margin:4px 0;color:#e0e0e0;font-size:14px">${esc(b)}</li>`).join("")}</ul>`
         : "";
       const metricHTML = c.metric
-        ? `<div style="margin-top:12px;background:rgba(255,255,255,0.1);border-radius:12px;padding:12px 20px;display:inline-block"><span style="font-size:32px;font-weight:700;color:hsl(190,100%,60%)">${c.metric}</span>${c.metric_label ? `<span style="margin-left:8px;color:#aaa;font-size:12px">${c.metric_label}</span>` : ""}</div>`
+        ? `<div style="margin-top:12px;background:rgba(255,255,255,0.1);border-radius:12px;padding:12px 20px;display:inline-block"><span style="font-size:32px;font-weight:700;color:hsl(190,100%,60%)">${esc(c.metric)}</span>${c.metric_label ? `<span style="margin-left:8px;color:#aaa;font-size:12px">${esc(c.metric_label)}</span>` : ""}</div>`
         : "";
 
       return `<div style="width:100%;aspect-ratio:16/9;background:${bg};border-radius:16px;display:flex;flex-direction:column;justify-content:center;padding:48px 56px;position:relative;page-break-after:always;page-break-inside:avoid;box-sizing:border-box;overflow:hidden;color:#f0f0f0;font-family:'Space Grotesk',system-ui,sans-serif">
         <div style="position:absolute;top:0;right:0;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.05);transform:translate(30%,-30%)"></div>
         ${slide.slide_type === "title"
-          ? `<div style="text-align:center"><h1 style="font-size:36px;font-weight:700;margin:0">${c.headline || slide.title}</h1>${c.body ? `<p style="font-size:16px;color:#bbb;margin-top:16px;max-width:600px;margin-left:auto;margin-right:auto">${c.body}</p>` : ""}${bulletsHTML}</div>`
-          : `<p style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:hsl(190,100%,60%);margin:0 0 8px">${slide.slide_type.replace(/_/g, " ")}</p>
-             <h2 style="font-size:28px;font-weight:700;margin:0">${c.headline || slide.title}</h2>
-             ${c.body ? `<p style="font-size:14px;color:#ccc;margin-top:8px;line-height:1.6">${c.body}</p>` : ""}
+          ? `<div style="text-align:center"><h1 style="font-size:36px;font-weight:700;margin:0">${esc(c.headline || slide.title)}</h1>${c.body ? `<p style="font-size:16px;color:#bbb;margin-top:16px;max-width:600px;margin-left:auto;margin-right:auto">${esc(c.body)}</p>` : ""}${bulletsHTML}</div>`
+          : `<p style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:hsl(190,100%,60%);margin:0 0 8px">${esc(slide.slide_type.replace(/_/g, " "))}</p>
+             <h2 style="font-size:28px;font-weight:700;margin:0">${esc(c.headline || slide.title)}</h2>
+             ${c.body ? `<p style="font-size:14px;color:#ccc;margin-top:8px;line-height:1.6">${esc(c.body)}</p>` : ""}
              ${bulletsHTML}${metricHTML}`
         }
         <div style="position:absolute;bottom:16px;right:24px;color:rgba(255,255,255,0.3);font-size:12px">${i + 1}</div>
