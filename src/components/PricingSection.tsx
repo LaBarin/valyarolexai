@@ -101,7 +101,12 @@ const PricingSection = () => {
             >
               {plan.highlight && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-primary-foreground text-xs font-semibold px-4 py-1 rounded-full">
-                  Most Popular
+                  Best Value
+                </div>
+              )}
+              {"savings" in plan && plan.savings && (
+                <div className="mb-3 inline-block text-xs font-medium text-accent bg-accent/10 px-3 py-1 rounded-full">
+                  {plan.savings}
                 </div>
               )}
               <h3 className="text-lg font-semibold mb-2">{plan.name}</h3>
