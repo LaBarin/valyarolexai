@@ -1398,6 +1398,30 @@ const VideoStudio = () => {
           className="min-h-[80px] bg-background/50"
         />
 
+        {/* Reference image upload + branding toggle */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors">
+            <Upload className="w-3.5 h-3.5 text-primary" />
+            <span>{referenceImage ? "Change Reference Image" : "Upload Logo / Reference Image"}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleReferenceUpload} />
+          </label>
+          {referenceImage && (
+            <div className="flex items-center gap-2">
+              <img src={referenceImage} alt="Reference" className="h-8 w-8 rounded object-cover border border-border/50" />
+              <button onClick={() => setReferenceImage(null)} className="text-[10px] text-destructive hover:underline">Remove</button>
+            </div>
+          )}
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground ml-auto">
+            <input
+              type="checkbox"
+              checked={includeBranding}
+              onChange={(e) => setIncludeBranding(e.target.checked)}
+              className="rounded border-border"
+            />
+            Auto-include brand logo
+          </label>
+        </div>
+
         <div className="flex flex-wrap gap-3 items-end">
           <div className="space-y-1">
             <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Format</label>
