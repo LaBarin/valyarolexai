@@ -122,7 +122,8 @@ const PitchDeckBuilder = () => {
   const [isSavingPreview, setIsSavingPreview] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
-  const [isEditorExpanded, setIsEditorExpanded] = useState(false);
+  // View modes: "compact" | "normal" | "expanded"
+  const [viewMode, setViewMode] = useState<"compact" | "normal" | "expanded">("normal");
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const presentRef = useRef<HTMLDivElement>(null);
 
