@@ -335,6 +335,10 @@ const VideoStudio = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [includeBranding, setIncludeBranding] = useState(true);
+  // Auto-render pipeline state
+  const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
+  const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
+  const [showVideoPreview, setShowVideoPreview] = useState(false);
 
   // Narrator for video scenes
   const videoNarratorSlides = useMemo(() => {
@@ -569,7 +573,7 @@ const VideoStudio = () => {
     if (!previewData || !user) return;
     setIsSaving(true);
     try {
-      const { error } = await supabase.from("video_projects").insert({
+      const { data, error } = await supabase.from("video_projects").insert({
         user_id: user.id,
         title: previewData.title || "AI Video",
         description: previewData.description,
@@ -580,19 +584,118 @@ const VideoStudio = () => {
         storyboard: previewData.scenes as any,
         ai_generated: true,
         status: "approved",
-      });
-      if (error) throw error;
+      }).select("*").single();
+      if (error || !data) throw error || new Error("Failed to save");
+      const newProject = mapVideoProject(data);
       setPreviewData(null);
       setPreviewImages({});
       setGeneratingPreviewImages({});
       setPreviewImagesRequested(false);
       setPrompt("");
       await loadProjects();
-      toast({ title: "Video Approved", description: `"${previewData.title}" saved to your projects.` });
+      // Auto-navigate to the project and start rendering pipeline
+      setActiveProject(newProject);
+      setActiveScene(0);
+      toast({ title: "Video Approved", description: `Generating video for "${previewData.title}"…` });
+      // Kick off auto-render pipeline
+      autoRenderPipeline(newProject);
     } catch (e: any) {
       toast({ title: "Save Failed", description: e.message, variant: "destructive" });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const autoRenderPipeline = async (project: VideoProject) => {
+    const scenes = project.storyboard || project.script?.scenes || [];
+    if (scenes.length === 0) return;
+
+    // Stage 1: Generate all scene images
+    setAutoRenderStage("generating-images");
+    setExportProgress(0);
+    const imageMap: Record<string, string> = {};
+    for (let i = 0; i < scenes.length; i++) {
+      const scene = scenes[i];
+      const key = `${project.id}-${scene.scene_number || i + 1}`;
+      setExportProgress(Math.round((i / scenes.length) * 50));
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const body: Record<string, any> = {
+          visual: scene.visual,
+          text_overlay: scene.text_overlay,
+          format: project.format,
+          platform: project.platform,
+        };
+        if (referenceImage) body.reference_image_url = referenceImage;
+        if (includeBranding) {
+          try {
+            const logoResp = await fetch(logoImg);
+            const logoBlob = await logoResp.blob();
+            const logoBase64 = await new Promise<string>((resolve) => {
+              const r = new FileReader();
+              r.onload = () => resolve(r.result as string);
+              r.readAsDataURL(logoBlob);
+            });
+            body.brand_logo_url = logoBase64;
+          } catch { /* skip */ }
+        }
+        const resp = await fetch(SCENE_IMAGE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+          body: JSON.stringify(body),
+        });
+        if (resp.ok) {
+          const { image_url } = await resp.json();
+          if (image_url) {
+            imageMap[key] = image_url;
+            setSceneImages(prev => ({ ...prev, [key]: image_url }));
+          }
+        }
+      } catch { /* continue with remaining scenes */ }
+    }
+
+    // Stage 2: Render video from images
+    setAutoRenderStage("rendering-video");
+    setExportProgress(50);
+    const sceneInputs = scenes.map((scene, i) => {
+      const key = `${project.id}-${scene.scene_number || i + 1}`;
+      return { imageUrl: imageMap[key], durationSeconds: scene.duration_seconds || 3, textOverlay: scene.text_overlay };
+    }).filter(s => s.imageUrl);
+
+    if (sceneInputs.length === 0) {
+      setAutoRenderStage("idle");
+      setExportProgress(null);
+      toast({ title: "Rendering Failed", description: "No scene images were generated.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const blob = await renderVideo({
+        format: project.format,
+        scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
+        onProgress: (p) => setExportProgress(50 + Math.round(p * 0.5)),
+      });
+
+      // Upload to storage
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+      const filePath = `${session.user.id}/${project.id}.webm`;
+      await supabase.storage.from("video-exports").upload(filePath, blob, { upsert: true, contentType: "video/webm" });
+      await supabase.from("video_projects").update({ exported_video_url: filePath, status: "completed" } as any).eq("id", project.id);
+
+      const videoObjectUrl = URL.createObjectURL(blob);
+      setRenderedVideoUrl(videoObjectUrl);
+      setAutoRenderStage("done");
+      setExportProgress(null);
+      setShowVideoPreview(true);
+      // Update project status locally
+      setActiveProject(prev => prev ? { ...prev, status: "completed" } : null);
+      setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed" } : p));
+      toast({ title: "Video Ready!", description: "Your video has been rendered. Review and share it." });
+    } catch (e: any) {
+      setAutoRenderStage("idle");
+      setExportProgress(null);
+      toast({ title: "Rendering Failed", description: e.message, variant: "destructive" });
     }
   };
 
@@ -1044,7 +1147,7 @@ const VideoStudio = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <Button size="sm" variant="ghost" onClick={() => { setActiveProject(null); setIsPlaying(false); setActiveScene(0); loadProjects(); }}>
+            <Button size="sm" variant="ghost" onClick={() => { setActiveProject(null); setIsPlaying(false); setActiveScene(0); setRenderedVideoUrl(null); setAutoRenderStage("idle"); setShowVideoPreview(false); loadProjects(); }}>
               <ChevronLeft className="w-4 h-4 mr-1" /> Back
             </Button>
             <div>
@@ -1059,16 +1162,19 @@ const VideoStudio = () => {
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
             </Button>
-            <Button size="sm" variant="outline" onClick={exportVideo} disabled={isExporting}>
-              {isExporting ? (
-                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {exportProgress !== null ? `${exportProgress}%` : "Exporting…"}</>
-              ) : (
-                <><FileVideo className="w-4 h-4 mr-1" /> Export Video</>
-              )}
-            </Button>
-            {p.status === "approved" && (
-              <Button size="sm" onClick={() => updateStatus(p.id, "production")}>
-                <Film className="w-4 h-4 mr-1" /> Send to Production
+            {!renderedVideoUrl && autoRenderStage === "idle" && (
+              <Button size="sm" variant="outline" onClick={() => autoRenderPipeline(p)} disabled={isExporting || autoRenderStage !== "idle"}>
+                <FileVideo className="w-4 h-4 mr-1" /> Render Video
+              </Button>
+            )}
+            {renderedVideoUrl && (
+              <Button size="sm" variant="outline" onClick={() => {
+                const a = document.createElement("a");
+                a.href = renderedVideoUrl;
+                a.download = `${p.title}.webm`;
+                a.click();
+              }}>
+                <Download className="w-4 h-4 mr-1" /> Download
               </Button>
             )}
           </div>
@@ -1082,6 +1188,67 @@ const VideoStudio = () => {
           </TabsList>
 
           <TabsContent value="storyboard" className="space-y-4">
+            {/* Auto-render progress */}
+            {autoRenderStage !== "idle" && autoRenderStage !== "done" && (
+              <div className="glass rounded-2xl p-6 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <div>
+                    <h4 className="font-semibold text-sm">
+                      {autoRenderStage === "generating-images" ? "Generating scene visuals…" : "Rendering video…"}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {autoRenderStage === "generating-images"
+                        ? "AI is creating images for each scene"
+                        : "Stitching scenes into your final video"}
+                    </p>
+                  </div>
+                </div>
+                <Progress value={exportProgress ?? 0} className="h-2" />
+                <p className="text-[10px] text-muted-foreground text-right">{exportProgress ?? 0}%</p>
+              </div>
+            )}
+
+            {/* Rendered video player */}
+            {(renderedVideoUrl || autoRenderStage === "done") && (
+              <div className="glass rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <FileVideo className="w-4 h-4 text-primary" /> Final Video
+                  </h4>
+                  <Badge className="bg-green-500/20 text-green-400">Ready</Badge>
+                </div>
+                {renderedVideoUrl && (
+                  <div className={`rounded-xl overflow-hidden ${p.format === "9:16" ? "max-w-xs mx-auto" : p.format === "1:1" ? "max-w-md mx-auto" : ""}`}>
+                    <video
+                      src={renderedVideoUrl}
+                      controls
+                      className="w-full rounded-xl"
+                      style={{ maxHeight: "400px" }}
+                    />
+                  </div>
+                )}
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <Button onClick={() => {
+                    if (!renderedVideoUrl) return;
+                    const a = document.createElement("a");
+                    a.href = renderedVideoUrl;
+                    a.download = `${p.title}.webm`;
+                    a.click();
+                  }}>
+                    <Download className="w-4 h-4 mr-1.5" /> Download Video
+                  </Button>
+                  <Button variant="outline" onClick={() => shareVideo(p.id)}>
+                    <Link className="w-4 h-4 mr-1.5" /> {p.share_token ? "Copy Share Link" : "Share Video"}
+                  </Button>
+                  {p.status !== "completed" && (
+                    <Button variant="hero" onClick={() => updateStatus(p.id, "completed")}>
+                      <Check className="w-4 h-4 mr-1.5" /> Approve Video
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
             {/* Generate all images button */}
             {scenes.length > 0 && (
               <div className="flex justify-end">
