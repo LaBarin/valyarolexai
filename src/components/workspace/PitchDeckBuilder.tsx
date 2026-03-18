@@ -302,6 +302,70 @@ const PitchDeckBuilder = () => {
     presentRef.current?.requestFullscreen?.();
   };
 
+  const exportDeckAsPDF = useCallback(() => {
+    if (!activeDeck || activeDeck.slides.length === 0) return;
+
+    const slideHTML = activeDeck.slides.map((slide, i) => {
+      const gradientMap: Record<string, string> = {
+        title: "linear-gradient(135deg, hsl(190,100%,50%), hsl(150,70%,50%))",
+        problem: "linear-gradient(135deg, hsl(0,60%,50%), hsl(0,60%,35%))",
+        solution: "linear-gradient(135deg, hsl(150,70%,45%), hsl(190,100%,40%))",
+        market: "linear-gradient(135deg, hsl(190,80%,45%), hsl(220,70%,50%))",
+        product: "linear-gradient(135deg, hsl(150,70%,50%), hsl(190,100%,40%))",
+        traction: "linear-gradient(135deg, hsl(140,60%,45%), hsl(150,70%,45%))",
+        business_model: "linear-gradient(135deg, hsl(190,100%,45%), hsl(150,70%,45%))",
+        financials: "linear-gradient(135deg, hsl(190,80%,40%), hsl(140,60%,45%))",
+        ask: "linear-gradient(135deg, hsl(190,100%,50%), hsl(150,70%,50%))",
+        closing: "linear-gradient(135deg, hsl(150,70%,50%), hsl(190,100%,50%))",
+      };
+      const bg = gradientMap[slide.slide_type] || "linear-gradient(135deg, hsl(190,80%,40%), hsl(210,20%,20%))";
+      const c = slide.content;
+      const bulletsHTML = c.bullets?.length
+        ? `<ul style="margin:12px 0;padding-left:24px;list-style:disc">${c.bullets.map(b => `<li style="margin:4px 0;color:#e0e0e0;font-size:14px">${b}</li>`).join("")}</ul>`
+        : "";
+      const metricHTML = c.metric
+        ? `<div style="margin-top:12px;background:rgba(255,255,255,0.1);border-radius:12px;padding:12px 20px;display:inline-block"><span style="font-size:32px;font-weight:700;color:hsl(190,100%,60%)">${c.metric}</span>${c.metric_label ? `<span style="margin-left:8px;color:#aaa;font-size:12px">${c.metric_label}</span>` : ""}</div>`
+        : "";
+
+      return `<div style="width:100%;aspect-ratio:16/9;background:${bg};border-radius:16px;display:flex;flex-direction:column;justify-content:center;padding:48px 56px;position:relative;page-break-after:always;page-break-inside:avoid;box-sizing:border-box;overflow:hidden;color:#f0f0f0;font-family:'Space Grotesk',system-ui,sans-serif">
+        <div style="position:absolute;top:0;right:0;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.05);transform:translate(30%,-30%)"></div>
+        ${slide.slide_type === "title"
+          ? `<div style="text-align:center"><h1 style="font-size:36px;font-weight:700;margin:0">${c.headline || slide.title}</h1>${c.body ? `<p style="font-size:16px;color:#bbb;margin-top:16px;max-width:600px;margin-left:auto;margin-right:auto">${c.body}</p>` : ""}${bulletsHTML}</div>`
+          : `<p style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:hsl(190,100%,60%);margin:0 0 8px">${slide.slide_type.replace(/_/g, " ")}</p>
+             <h2 style="font-size:28px;font-weight:700;margin:0">${c.headline || slide.title}</h2>
+             ${c.body ? `<p style="font-size:14px;color:#ccc;margin-top:8px;line-height:1.6">${c.body}</p>` : ""}
+             ${bulletsHTML}${metricHTML}`
+        }
+        <div style="position:absolute;bottom:16px;right:24px;color:rgba(255,255,255,0.3);font-size:12px">${i + 1}</div>
+      </div>`;
+    }).join("");
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast({ title: "Export Failed", description: "Please allow popups and try again.", variant: "destructive" });
+      return;
+    }
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>${activeDeck.title}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#000;font-family:'Space Grotesk',system-ui,sans-serif;padding:0}
+        .slide-container{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:24px;padding:24px}
+        @media print{
+          body{background:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+          .slide-container{gap:0;padding:0;max-width:none}
+          .slide-container>div{border-radius:0!important;page-break-after:always;height:100vh;aspect-ratio:auto}
+          .no-print{display:none!important}
+        }
+      </style></head><body>
+      <div class="no-print" style="text-align:center;padding:16px;background:#111">
+        <button onclick="window.print()" style="background:hsl(190,100%,50%);color:#000;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Save as PDF</button>
+        <span style="color:#666;margin-left:12px;font-size:13px">Use "Save as PDF" as the destination in the print dialog</span>
+      </div>
+      <div class="slide-container">${slideHTML}</div></body></html>`);
+    printWindow.document.close();
+  }, [activeDeck, toast]);
+
   const exitPresentation = () => {
     setIsPresenting(false);
     if (document.fullscreenElement) document.exitFullscreen();
