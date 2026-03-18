@@ -106,7 +106,7 @@ const Navbar = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden mt-2 mx-2 glass rounded-2xl p-4 flex flex-col gap-1"
+            className="md:hidden mt-2 mx-2 glass rounded-2xl p-4 flex flex-col gap-1 pointer-events-auto"
           >
             {navLinks.map((l) => (
               <a
