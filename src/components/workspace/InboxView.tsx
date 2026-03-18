@@ -212,11 +212,11 @@ const InboxView = () => {
                     <p className="text-sm text-foreground/80 mb-3">{selectedItem.aiSuggestion}</p>
                     <div className="flex gap-2">
                       {selectedItem.aiAction && (
-                        <Button size="sm" className="text-xs">
+                        <Button size="sm" className="text-xs" onClick={() => handleAiAction(selectedItem)}>
                           <Bot className="w-3 h-3 mr-1" /> {selectedItem.aiAction}
                         </Button>
                       )}
-                      <Button size="sm" variant="outline" className="text-xs">Dismiss</Button>
+                      <Button size="sm" variant="outline" className="text-xs" onClick={() => dismissSuggestion(selectedItem.id)}>Dismiss</Button>
                     </div>
                   </motion.div>
                 )}
