@@ -242,6 +242,61 @@ const AIInsights = ({ compact = false }: { compact?: boolean }) => {
   // Full analytics view
   return (
     <div className="space-y-6">
+      {/* Charts */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Task Status Bar Chart */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-5">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-primary" /> Tasks by Status
+          </h3>
+          <ChartContainer config={taskChartConfig} className="h-[220px] w-full">
+            <BarChart data={taskData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+              <XAxis dataKey="status" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {taskData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        </motion.div>
+
+        {/* Workspace Overview Pie */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass rounded-xl p-5">
+          <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" /> Workspace Overview
+          </h3>
+          <ChartContainer config={overviewChartConfig} className="h-[220px] w-full">
+            <PieChart>
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Pie data={overviewData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                {overviewData.map((entry, index) => (
+                  <Cell key={`pie-${index}`} fill={entry.fill} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+        </motion.div>
+      </div>
+
+      {/* Weekly Activity Area Chart */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-xl p-5">
+        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-primary" /> Weekly Activity
+        </h3>
+        <ChartContainer config={weeklyChartConfig} className="h-[220px] w-full">
+          <AreaChart data={weeklyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Area type="monotone" dataKey="created" stackId="1" stroke="hsl(190, 100%, 50%)" fill="hsl(190, 100%, 50%)" fillOpacity={0.3} />
+            <Area type="monotone" dataKey="completed" stackId="2" stroke="hsl(150, 70%, 50%)" fill="hsl(150, 70%, 50%)" fillOpacity={0.3} />
+          </AreaChart>
+        </ChartContainer>
+      </motion.div>
       {/* Insight Cards */}
       <div className="grid gap-3 sm:grid-cols-3">
         {defaultInsights.map((insight, i) => {
