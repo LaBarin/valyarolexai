@@ -111,6 +111,7 @@ const ScheduleView = () => {
 Suggest 2-3 optimizations (like adding focus blocks, rearranging for energy levels, or adding breaks). 
 Return ONLY a JSON array of objects with "title", "event_type" (meeting/focus/task/break), "start_hour" (0-23), "duration_minutes", and "reason" fields. No markdown.`,
           }],
+          mode: "chat",
         }),
       });
 
