@@ -289,24 +289,43 @@ Return ONLY a JSON array of objects with "title", "event_type" (meeting/focus/ta
                 <div className="w-3 h-3 rounded-full border-2 flex-shrink-0" style={{ borderColor: eventColors[event.event_type] || eventColors.meeting }} />
                 {i < events.length - 1 && <div className="w-px flex-1 bg-border" />}
               </div>
-              <div className="glass rounded-lg p-3 flex-1 mb-2" style={{ borderLeftWidth: 3, borderLeftColor: eventColors[event.event_type] || eventColors.meeting }}>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium flex items-center gap-1.5">
-                      {event.title}
-                      {event.ai_suggested && <Sparkles className="w-3 h-3 text-primary" />}
-                      {event.is_focus_block && <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">Focus</span>}
-                    </p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <Clock className="w-3 h-3" />
-                      {formatTime(event.start_time)} — {formatTime(event.end_time)}
-                    </p>
-                    {event.description && <p className="text-xs text-muted-foreground mt-1 italic">{event.description}</p>}
+              <div className="glass rounded-lg p-3 flex-1 mb-2 cursor-pointer" style={{ borderLeftWidth: 3, borderLeftColor: eventColors[event.event_type] || eventColors.meeting }} onClick={() => editingId !== event.id && startEditing(event)}>
+                {editingId === event.id && editData ? (
+                  <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                    <Input value={editData.title} onChange={(e) => setEditData({ ...editData, title: e.target.value })} className="h-7 text-sm bg-background/50" />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <input type="time" value={editData.start} onChange={(e) => setEditData({ ...editData, start: e.target.value })} className="text-xs bg-muted/50 rounded px-2 py-1 border border-border text-foreground" />
+                      <span className="text-xs text-muted-foreground">—</span>
+                      <input type="time" value={editData.end} onChange={(e) => setEditData({ ...editData, end: e.target.value })} className="text-xs bg-muted/50 rounded px-2 py-1 border border-border text-foreground" />
+                      <select value={editData.event_type} onChange={(e) => setEditData({ ...editData, event_type: e.target.value })} className="text-xs bg-muted/50 rounded px-2 py-1 border border-border text-foreground">
+                        <option value="meeting">Meeting</option>
+                        <option value="focus">Focus</option>
+                        <option value="task">Task</option>
+                        <option value="break">Break</option>
+                      </select>
+                      <Button size="sm" className="h-6 text-xs px-2" onClick={saveEdit}>Save</Button>
+                      <Button size="sm" variant="ghost" className="h-6 text-xs px-2" onClick={() => { setEditingId(null); setEditData(null); }}>Cancel</Button>
+                    </div>
                   </div>
-                  <button onClick={() => deleteEvent(event.id)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium flex items-center gap-1.5">
+                        {event.title}
+                        {event.ai_suggested && <Sparkles className="w-3 h-3 text-primary" />}
+                        {event.is_focus_block && <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">Focus</span>}
+                      </p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <Clock className="w-3 h-3" />
+                        {formatTime(event.start_time)} — {formatTime(event.end_time)}
+                      </p>
+                      {event.description && <p className="text-xs text-muted-foreground mt-1 italic">{event.description}</p>}
+                    </div>
+                    <button onClick={(e) => { e.stopPropagation(); deleteEvent(event.id); }} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           ))
