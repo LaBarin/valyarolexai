@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Megaphone, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Target,
