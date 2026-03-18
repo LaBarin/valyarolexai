@@ -354,6 +354,8 @@ const VideoStudio = () => {
 
   useEffect(() => () => { stopVideoNarration(); }, [stopVideoNarration]);
 
+  useEffect(() => {
+    if (user) loadProjects();
   }, [user]);
 
   const loadProjects = async () => {
