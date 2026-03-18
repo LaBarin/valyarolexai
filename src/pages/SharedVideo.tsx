@@ -55,20 +55,18 @@ const SharedVideo = () => {
         setProject(video);
         // Generate images for scenes
         generateImages(video);
-        // Fetch signed URL for exported video if available
-        if (video.exported_video_url) {
-          try {
-            const resp = await fetch(SIGNED_URL_ENDPOINT, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ share_token: token }),
-            });
-            if (resp.ok) {
-              const { signed_url } = await resp.json();
-              if (signed_url) setSignedVideoUrl(signed_url);
-            }
-          } catch { /* fall back to slideshow */ }
-        }
+        // Fetch signed URL for exported video via edge function
+        try {
+          const resp = await fetch(SIGNED_URL_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ share_token: token }),
+          });
+          if (resp.ok) {
+            const { signed_url } = await resp.json();
+            if (signed_url) setSignedVideoUrl(signed_url);
+          }
+        } catch { /* fall back to slideshow */ }
       }
       setLoading(false);
     };
