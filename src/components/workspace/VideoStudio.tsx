@@ -1185,6 +1185,67 @@ const VideoStudio = () => {
           </TabsList>
 
           <TabsContent value="storyboard" className="space-y-4">
+            {/* Auto-render progress */}
+            {autoRenderStage !== "idle" && autoRenderStage !== "done" && (
+              <div className="glass rounded-2xl p-6 space-y-3">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <div>
+                    <h4 className="font-semibold text-sm">
+                      {autoRenderStage === "generating-images" ? "Generating scene visuals…" : "Rendering video…"}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {autoRenderStage === "generating-images"
+                        ? "AI is creating images for each scene"
+                        : "Stitching scenes into your final video"}
+                    </p>
+                  </div>
+                </div>
+                <Progress value={exportProgress ?? 0} className="h-2" />
+                <p className="text-[10px] text-muted-foreground text-right">{exportProgress ?? 0}%</p>
+              </div>
+            )}
+
+            {/* Rendered video player */}
+            {(renderedVideoUrl || autoRenderStage === "done") && (
+              <div className="glass rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <FileVideo className="w-4 h-4 text-primary" /> Final Video
+                  </h4>
+                  <Badge className="bg-green-500/20 text-green-400">Ready</Badge>
+                </div>
+                {renderedVideoUrl && (
+                  <div className={`rounded-xl overflow-hidden ${p.format === "9:16" ? "max-w-xs mx-auto" : p.format === "1:1" ? "max-w-md mx-auto" : ""}`}>
+                    <video
+                      src={renderedVideoUrl}
+                      controls
+                      className="w-full rounded-xl"
+                      style={{ maxHeight: "400px" }}
+                    />
+                  </div>
+                )}
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <Button onClick={() => {
+                    if (!renderedVideoUrl) return;
+                    const a = document.createElement("a");
+                    a.href = renderedVideoUrl;
+                    a.download = `${p.title}.webm`;
+                    a.click();
+                  }}>
+                    <Download className="w-4 h-4 mr-1.5" /> Download Video
+                  </Button>
+                  <Button variant="outline" onClick={() => shareVideo(p.id)}>
+                    <Link className="w-4 h-4 mr-1.5" /> {p.share_token ? "Copy Share Link" : "Share Video"}
+                  </Button>
+                  {p.status !== "completed" && (
+                    <Button variant="hero" onClick={() => updateStatus(p.id, "completed")}>
+                      <Check className="w-4 h-4 mr-1.5" /> Approve Video
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
             {/* Generate all images button */}
             {scenes.length > 0 && (
               <div className="flex justify-end">
