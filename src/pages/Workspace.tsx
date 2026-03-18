@@ -7,6 +7,8 @@ import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
   Plug, Presentation, Megaphone, MessageSquare, Menu, Video
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import logo from "@/assets/valyarolex-logo.png";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel,
   SidebarGroupContent, SidebarMenu, SidebarMenuItem,
