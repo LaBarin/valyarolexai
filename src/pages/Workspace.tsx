@@ -145,7 +145,7 @@ const WorkspaceContent = () => {
       <WorkspaceSidebar activeTab={activeTab} onNavigate={navigate} />
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-14 flex items-center gap-3 border-b border-border/30 px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
+        <header className="h-14 flex items-center gap-3 border-b border-border/30 px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-[5]">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground">
             <Menu className="w-5 h-5" />
           </SidebarTrigger>
