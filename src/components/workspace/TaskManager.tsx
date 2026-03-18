@@ -106,6 +106,7 @@ const TaskManager = () => {
             role: "user",
             content: `Based on a typical productivity workflow, suggest 3 actionable tasks. Return ONLY a JSON array of objects with "title" and "priority" (low/medium/high) fields. No markdown, no explanation.`,
           }],
+          mode: "chat",
         }),
       });
 
