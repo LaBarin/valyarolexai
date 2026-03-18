@@ -181,12 +181,23 @@ Return ONLY a JSON array of objects with "title", "event_type" (meeting/focus/ta
     <div className="space-y-4">
       {/* Date picker + controls */}
       <div className="flex items-center gap-3 flex-wrap">
-        <Input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="w-auto bg-background/50"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[200px] justify-start text-left font-normal gap-2", !selectedDate && "text-muted-foreground")}>
+              <CalendarIcon className="w-4 h-4" />
+              {selectedDate ? format(parseISO(selectedDate), "PPP") : "Pick a date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={selectedDate ? parseISO(selectedDate) : undefined}
+              onSelect={(date) => date && setSelectedDate(format(date, "yyyy-MM-dd"))}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
         <Button onClick={() => setShowAdd(!showAdd)} size="sm" variant="outline" className="gap-1.5">
           <Plus className="w-3.5 h-3.5" /> Add Event
         </Button>
