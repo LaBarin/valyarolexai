@@ -333,6 +333,8 @@ const VideoStudio = () => {
   const [isAiEditing, setIsAiEditing] = useState(false);
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [includeBranding, setIncludeBranding] = useState(true);
 
   // Narrator for video scenes
   const videoNarratorSlides = useMemo(() => {
