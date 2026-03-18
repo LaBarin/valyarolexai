@@ -149,6 +149,11 @@ const LandingPage = () => {
         <PricingSection />
       </Suspense>
 
+      {/* About */}
+      <Suspense fallback={<SectionFallback />}>
+        <AboutSection />
+      </Suspense>
+
       {/* CTA */}
       <Suspense fallback={<SectionFallback />}>
         <CTASection />
