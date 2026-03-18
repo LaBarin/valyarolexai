@@ -30,7 +30,7 @@ const eventColors: Record<string, string> = {
   break: "hsl(280 70% 60%)",
 };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+
 
 const ScheduleView = () => {
   const { user } = useAuth();
