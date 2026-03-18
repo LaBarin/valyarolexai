@@ -1162,16 +1162,19 @@ const VideoStudio = () => {
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
             </Button>
-            <Button size="sm" variant="outline" onClick={exportVideo} disabled={isExporting}>
-              {isExporting ? (
-                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {exportProgress !== null ? `${exportProgress}%` : "Exporting…"}</>
-              ) : (
-                <><FileVideo className="w-4 h-4 mr-1" /> Export Video</>
-              )}
-            </Button>
-            {p.status === "approved" && (
-              <Button size="sm" onClick={() => updateStatus(p.id, "production")}>
-                <Film className="w-4 h-4 mr-1" /> Send to Production
+            {!renderedVideoUrl && autoRenderStage === "idle" && (
+              <Button size="sm" variant="outline" onClick={() => autoRenderPipeline(p)} disabled={isExporting || autoRenderStage !== "idle"}>
+                <FileVideo className="w-4 h-4 mr-1" /> Render Video
+              </Button>
+            )}
+            {renderedVideoUrl && (
+              <Button size="sm" variant="outline" onClick={() => {
+                const a = document.createElement("a");
+                a.href = renderedVideoUrl;
+                a.download = `${p.title}.webm`;
+                a.click();
+              }}>
+                <Download className="w-4 h-4 mr-1" /> Download
               </Button>
             )}
           </div>
