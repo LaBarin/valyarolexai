@@ -2,11 +2,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Mail, Star, Clock, Trash2, Archive, Reply, Bot, Sparkles,
-  ChevronRight, Paperclip, AlertCircle
+  ChevronRight, Paperclip, AlertCircle, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 type InboxItem = {
   id: string;
@@ -85,6 +86,28 @@ const InboxView = () => {
   const archiveItem = (id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
     if (selected === id) setSelected(null);
+    toast.success("Item archived");
+  };
+
+  const handleAiAction = (item: InboxItem) => {
+    if (item.aiAction === "Schedule + Brief") {
+      toast.success("Meeting scheduled & briefing prepared", {
+        description: `A meeting invite has been drafted for ${item.from} and a briefing document is being generated.`,
+      });
+    } else if (item.aiAction === "Send Pricing") {
+      toast.success("Pricing deck sent", {
+        description: `Enterprise pricing deck auto-sent to ${item.fromEmail}.`,
+      });
+    } else {
+      toast.success("AI action completed");
+    }
+    // Clear the suggestion after acting
+    setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, aiSuggestion: undefined, aiAction: undefined } : i));
+  };
+
+  const dismissSuggestion = (id: string) => {
+    setItems((prev) => prev.map((i) => i.id === id ? { ...i, aiSuggestion: undefined, aiAction: undefined } : i));
+    toast("Suggestion dismissed");
   };
 
   return (
@@ -189,11 +212,11 @@ const InboxView = () => {
                     <p className="text-sm text-foreground/80 mb-3">{selectedItem.aiSuggestion}</p>
                     <div className="flex gap-2">
                       {selectedItem.aiAction && (
-                        <Button size="sm" className="text-xs">
+                        <Button size="sm" className="text-xs" onClick={() => handleAiAction(selectedItem)}>
                           <Bot className="w-3 h-3 mr-1" /> {selectedItem.aiAction}
                         </Button>
                       )}
-                      <Button size="sm" variant="outline" className="text-xs">Dismiss</Button>
+                      <Button size="sm" variant="outline" className="text-xs" onClick={() => dismissSuggestion(selectedItem.id)}>Dismiss</Button>
                     </div>
                   </motion.div>
                 )}
