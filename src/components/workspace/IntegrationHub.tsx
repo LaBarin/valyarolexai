@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, ExternalLink, Plug, Unplug, Search } from "lucide-react";
+import { Check, ExternalLink, Plug, Unplug, Search, Mail, ShieldCheck, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +38,8 @@ const IntegrationHub = () => {
   const [connected, setConnected] = useState<ConnectedIntegration[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [updatingEmail, setUpdatingEmail] = useState(false);
 
   useEffect(() => {
     if (user) fetchConnected();
@@ -80,72 +86,143 @@ const IntegrationHub = () => {
     i.description.toLowerCase().includes(search.toLowerCase())
   );
 
-  return (
-    <div className="space-y-4">
-      {/* Stats bar */}
-      <div className="flex items-center gap-4">
-        <div className="glass rounded-lg px-4 py-2 text-center">
-          <p className="text-lg font-bold text-primary">{connected.length}</p>
-          <p className="text-[10px] text-muted-foreground">Connected</p>
-        </div>
-        <div className="glass rounded-lg px-4 py-2 text-center">
-          <p className="text-lg font-bold">{INTEGRATIONS.length}</p>
-          <p className="text-[10px] text-muted-foreground">Available</p>
-        </div>
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search integrations..."
-            className="w-full bg-muted/50 border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-          />
-        </div>
-      </div>
+  const handleUpdateEmail = async () => {
+    if (!newEmail.trim()) return;
+    setUpdatingEmail(true);
+    const { error } = await supabase.auth.updateUser({ email: newEmail.trim() });
+    setUpdatingEmail(false);
+    if (error) {
+      toast({ title: "Error updating email", description: error.message, variant: "destructive" });
+    } else {
+      toast({
+        title: "Verification sent",
+        description: "A confirmation link has been sent to both your current and new email addresses.",
+      });
+      setNewEmail("");
+    }
+  };
 
-      {/* Integration grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto">
-        {filtered.map((integration, i) => {
-          const conn = isConnected(integration.name);
-          return (
-            <motion.div
-              key={integration.name}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className={`glass rounded-xl p-4 flex items-center gap-4 transition-all ${conn ? "border-primary/30" : ""}`}
-            >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0"
-                style={{ backgroundColor: `${integration.color}20`, color: integration.color }}
+  return (
+    <Tabs defaultValue="integrations" className="space-y-4">
+      <TabsList className="bg-muted/50 border border-border">
+        <TabsTrigger value="integrations" className="gap-1.5">
+          <Plug className="w-3.5 h-3.5" /> Integrations
+        </TabsTrigger>
+        <TabsTrigger value="email" className="gap-1.5">
+          <Mail className="w-3.5 h-3.5" /> Email Accounts
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="integrations" className="space-y-4">
+        {/* Stats bar */}
+        <div className="flex items-center gap-4">
+          <div className="glass rounded-lg px-4 py-2 text-center">
+            <p className="text-lg font-bold text-primary">{connected.length}</p>
+            <p className="text-[10px] text-muted-foreground">Connected</p>
+          </div>
+          <div className="glass rounded-lg px-4 py-2 text-center">
+            <p className="text-lg font-bold">{INTEGRATIONS.length}</p>
+            <p className="text-[10px] text-muted-foreground">Available</p>
+          </div>
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search integrations..."
+              className="w-full bg-muted/50 border border-border rounded-lg pl-10 pr-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+        </div>
+
+        {/* Integration grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto">
+          {filtered.map((integration, i) => {
+            const conn = isConnected(integration.name);
+            return (
+              <motion.div
+                key={integration.name}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+                className={`glass rounded-xl p-4 flex items-center gap-4 transition-all ${conn ? "border-primary/30" : ""}`}
               >
-                {integration.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold">{integration.name}</p>
-                  {conn && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium flex items-center gap-1">
-                      <Check className="w-2.5 h-2.5" /> Active
-                    </span>
-                  )}
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm flex-shrink-0"
+                  style={{ backgroundColor: `${integration.color}20`, color: integration.color }}
+                >
+                  {integration.icon}
                 </div>
-                <p className="text-xs text-muted-foreground truncate">{integration.description}</p>
-              </div>
-              <Button
-                size="sm"
-                variant={conn ? "outline" : "default"}
-                onClick={() => conn ? disconnectIntegration(integration.name) : connectIntegration(integration.name)}
-                className="gap-1.5 flex-shrink-0"
-              >
-                {conn ? <Unplug className="w-3 h-3" /> : <Plug className="w-3 h-3" />}
-                <span className="hidden sm:inline">{conn ? "Disconnect" : "Connect"}</span>
-              </Button>
-            </motion.div>
-          );
-        })}
-      </div>
-    </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold">{integration.name}</p>
+                    {conn && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium flex items-center gap-1">
+                        <Check className="w-2.5 h-2.5" /> Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{integration.description}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant={conn ? "outline" : "default"}
+                  onClick={() => conn ? disconnectIntegration(integration.name) : connectIntegration(integration.name)}
+                  className="gap-1.5 flex-shrink-0"
+                >
+                  {conn ? <Unplug className="w-3 h-3" /> : <Plug className="w-3 h-3" />}
+                  <span className="hidden sm:inline">{conn ? "Disconnect" : "Connect"}</span>
+                </Button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="email" className="space-y-6">
+        {/* Current linked email */}
+        <div className="glass rounded-xl p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground">Linked Email</h3>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Mail className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user?.email ?? "No email linked"}</p>
+              <p className="text-xs text-muted-foreground">Primary account email</p>
+            </div>
+            <Badge variant="secondary" className="gap-1 flex-shrink-0">
+              <ShieldCheck className="w-3 h-3" /> Linked
+            </Badge>
+          </div>
+        </div>
+
+        {/* Change email */}
+        <div className="glass rounded-xl p-6 space-y-4">
+          <h3 className="text-sm font-semibold text-foreground">Change Email</h3>
+          <p className="text-xs text-muted-foreground">
+            A verification link will be sent to both your current and new email addresses. You must confirm from both to complete the change.
+          </p>
+          <div className="flex items-end gap-3">
+            <div className="flex-1 space-y-1.5">
+              <Label htmlFor="new-email" className="text-xs">New Email Address</Label>
+              <Input
+                id="new-email"
+                type="email"
+                placeholder="new@example.com"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleUpdateEmail()}
+              />
+            </div>
+            <Button onClick={handleUpdateEmail} disabled={updatingEmail || !newEmail.trim()} className="gap-1.5">
+              <RefreshCw className={`w-3.5 h-3.5 ${updatingEmail ? "animate-spin" : ""}`} />
+              Update
+            </Button>
+          </div>
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 };
 
