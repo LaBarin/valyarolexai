@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Presentation, Plus, Sparkles, ChevronLeft, ChevronRight, Maximize2,
   Minimize2, Download, Trash2, GripVertical, Edit3, Loader2, FileText,
-  Play, Pause
+  Play, Pause, Link, Copy, ExternalLink
 } from "lucide-react";
 import { NarratorControls } from "./NarratorControls";
 import { Button } from "@/components/ui/button";
