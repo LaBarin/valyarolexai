@@ -41,6 +41,7 @@ type Deck = {
   title: string;
   description?: string;
   slides: Slide[];
+  share_token?: string | null;
 };
 
 const SLIDE_TYPE_COLORS: Record<string, string> = {
