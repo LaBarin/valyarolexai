@@ -118,8 +118,8 @@ serve(async (req) => {
       });
     }
 
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const aiResult = await response.json();
+    const imageUrl = aiResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: "No image was generated" }), {
