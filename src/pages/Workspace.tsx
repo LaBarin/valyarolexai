@@ -101,7 +101,7 @@ const WorkspaceSidebar = ({ activeTab, onNavigate }: { activeTab: TabId; onNavig
 };
 
 const WorkspaceContent = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabId>((searchParams.get("tab") as TabId) || "command");
 
