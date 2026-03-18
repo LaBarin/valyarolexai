@@ -240,6 +240,21 @@ IMPORTANT: The LAST scene must ALWAYS be a branded closing card. This final scen
       });
     }
 
+    if (mode === "schedule") {
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      if (toolCall?.function?.arguments) {
+        return new Response(JSON.stringify({ result: toolCall.function.arguments }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Fallback to content
+      const content = data.choices?.[0]?.message?.content || "[]";
+      return new Response(JSON.stringify({ result: content }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (mode === "workflow" || mode === "pitch_deck" || mode === "campaign" || mode === "video") {
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content || "{}";
