@@ -689,6 +689,9 @@ const PitchDeckBuilder = () => {
                 <Button size="sm" variant="outline" onClick={exportDeckAsPDF}>
                   <Download className="w-4 h-4 mr-1" /> Export PDF
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => shareDeck(activeDeck.id)}>
+                  <Link className="w-4 h-4 mr-1" /> {activeDeck.share_token ? "Copy Link" : "Share"}
+                </Button>
               </div>
             </div>
 
