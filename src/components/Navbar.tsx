@@ -51,16 +51,27 @@ const Navbar = () => {
           <span className="text-lg font-bold tracking-tight">Valyarolex.AI</span>
         </Link>
 
-        {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          {navLinks.map((l) => (
-            <a key={l.href} href={l.href} onClick={(e) => handleAnchorClick(e, l.href)} className="hover:text-foreground transition-colors">
-              {l.label}
-            </a>
-          ))}
-          <Link to="/demo" className="hover:text-foreground transition-colors">
-            Demo
-          </Link>
+          {user ? (
+            <>
+              <Link to="/workspace?tab=command" className="hover:text-foreground transition-colors">Command</Link>
+              <Link to="/workspace?tab=tasks" className="hover:text-foreground transition-colors">Tasks</Link>
+              <Link to="/workspace?tab=schedule" className="hover:text-foreground transition-colors">Calendar</Link>
+              <Link to="/workspace?tab=agents" className="hover:text-foreground transition-colors">AI Agents</Link>
+              <Link to="/workspace?tab=campaigns" className="hover:text-foreground transition-colors">Campaigns</Link>
+            </>
+          ) : (
+            <>
+              {navLinks.map((l) => (
+                <a key={l.href} href={l.href} onClick={(e) => handleAnchorClick(e, l.href)} className="hover:text-foreground transition-colors">
+                  {l.label}
+                </a>
+              ))}
+              <Link to="/demo" className="hover:text-foreground transition-colors">
+                Demo
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
