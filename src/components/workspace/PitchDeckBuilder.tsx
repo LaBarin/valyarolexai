@@ -386,7 +386,7 @@ const PitchDeckBuilder = () => {
       toast({ title: "Export Failed", description: "Please allow popups and try again.", variant: "destructive" });
       return;
     }
-    printWindow.document.write(`<!DOCTYPE html><html><head><title>${activeDeck.title}</title>
+    printWindow.document.write(`<!DOCTYPE html><html><head><title>${esc(activeDeck.title)}</title>
       <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
       <style>
         *{margin:0;padding:0;box-sizing:border-box}
