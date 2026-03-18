@@ -2,11 +2,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Mail, Star, Clock, Trash2, Archive, Reply, Bot, Sparkles,
-  ChevronRight, Paperclip, AlertCircle
+  ChevronRight, Paperclip, AlertCircle, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 type InboxItem = {
   id: string;
