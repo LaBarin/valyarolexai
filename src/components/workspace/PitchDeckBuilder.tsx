@@ -122,7 +122,8 @@ const PitchDeckBuilder = () => {
   const [isSavingPreview, setIsSavingPreview] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
-  const [isEditorExpanded, setIsEditorExpanded] = useState(false);
+  // View modes: "compact" | "normal" | "expanded"
+  const [viewMode, setViewMode] = useState<"compact" | "normal" | "expanded">("normal");
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const presentRef = useRef<HTMLDivElement>(null);
 
@@ -714,10 +715,17 @@ const PitchDeckBuilder = () => {
                 <h2 className="text-xl font-bold truncate">{activeDeck.title}</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant={isEditorExpanded ? "default" : "outline"} onClick={() => setIsEditorExpanded((v) => !v)}>
-                  {isEditorExpanded ? <Minimize2 className="w-4 h-4 mr-1" /> : <Maximize2 className="w-4 h-4 mr-1" />}
-                  {isEditorExpanded ? "Minimize" : "Expand"}
-                </Button>
+                <div className="flex items-center gap-1 glass rounded-lg p-0.5">
+                  <Button size="sm" variant={viewMode === "compact" ? "default" : "ghost"} className="h-7 px-2 text-xs" onClick={() => setViewMode("compact")}>
+                    <Minimize2 className="w-3.5 h-3.5 mr-1" /> Compact
+                  </Button>
+                  <Button size="sm" variant={viewMode === "normal" ? "default" : "ghost"} className="h-7 px-2 text-xs" onClick={() => setViewMode("normal")}>
+                    Normal
+                  </Button>
+                  <Button size="sm" variant={viewMode === "expanded" ? "default" : "ghost"} className="h-7 px-2 text-xs" onClick={() => setViewMode("expanded")}>
+                    <Maximize2 className="w-3.5 h-3.5 mr-1" /> Large
+                  </Button>
+                </div>
                 <Button size="sm" variant="outline" onClick={enterPresentation}>
                   <Presentation className="w-4 h-4 mr-1" /> Present
                 </Button>
@@ -742,7 +750,11 @@ const PitchDeckBuilder = () => {
                       transition={{ duration: 0.2 }}
                       className="flex min-h-[116px] items-center justify-center overflow-hidden sm:min-h-[132px]"
                     >
-                      <div className={`w-full ${isEditorExpanded ? "max-w-[500px] md:max-w-[600px] xl:max-w-[700px]" : "max-w-[340px] sm:max-w-[400px] md:max-w-[440px] xl:max-w-[480px]"}`}>
+                      <div className={`w-full transition-all duration-300 ${
+                        viewMode === "expanded" ? "max-w-[700px] lg:max-w-[900px] xl:max-w-[1000px]" :
+                        viewMode === "compact" ? "max-w-[240px] sm:max-w-[280px]" :
+                        "max-w-[340px] sm:max-w-[400px] md:max-w-[440px] xl:max-w-[480px]"
+                      }`}>
                         {activeDeck.slides[currentSlide] && renderSlide(activeDeck.slides[currentSlide], currentSlide)}
                       </div>
                     </motion.div>
