@@ -37,6 +37,7 @@ serve(async (req) => {
 
     const MAX_VISUAL_LEN = 2000;
     const MAX_OVERLAY_LEN = 200;
+    const MAX_DATA_URI_LEN = 10 * 1024 * 1024; // 10MB
     const ALLOWED_FORMATS = ["9:16", "1:1", "16:9"];
     const ALLOWED_PLATFORMS = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "twitter", "snapchat", "pinterest", "general"];
 
@@ -64,6 +65,23 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    // Validate image URLs: only allow data URIs to prevent SSRF
+    if (reference_image_url) {
+      if (typeof reference_image_url !== "string" || !reference_image_url.startsWith("data:image/") || reference_image_url.length > MAX_DATA_URI_LEN) {
+        return new Response(JSON.stringify({ error: "Invalid reference_image_url: only data:image/ URIs are accepted" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+    if (brand_logo_url) {
+      if (typeof brand_logo_url !== "string" || !brand_logo_url.startsWith("data:image/") || brand_logo_url.length > MAX_DATA_URI_LEN) {
+        return new Response(JSON.stringify({ error: "Invalid brand_logo_url: only data:image/ URIs are accepted" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
