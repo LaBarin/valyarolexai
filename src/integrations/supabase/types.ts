@@ -526,6 +526,14 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_deck_share_token: {
+        Args: { p_deck_id: string }
+        Returns: string
+      }
+      generate_video_share_token: {
+        Args: { p_video_id: string }
+        Returns: string
+      }
       get_shared_campaign: {
         Args: { p_share_token: string }
         Returns: {
