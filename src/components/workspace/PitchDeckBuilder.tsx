@@ -415,10 +415,7 @@ const PitchDeckBuilder = () => {
       toast({ title: "Link Copied!", description: url });
       return;
     }
-    const arr = new Uint8Array(16);
-    crypto.getRandomValues(arr);
-    const token = Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
-    const { error } = await supabase.from("pitch_decks").update({ share_token: token }).eq("id", deckId);
+    const { data: token, error } = await supabase.rpc("generate_deck_share_token", { p_deck_id: deckId });
     if (error) {
       toast({ title: "Share Failed", description: error.message, variant: "destructive" });
       return;
