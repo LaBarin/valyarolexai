@@ -335,10 +335,15 @@ const VideoStudio = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [includeBranding, setIncludeBranding] = useState(true);
+  // Client logo for third-party ads
+  const [clientLogo, setClientLogo] = useState<string | null>(null);
+  const [clientLogoName, setClientLogoName] = useState<string>("");
   // Auto-render pipeline state
   const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
   const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
+  // Active detail tab
+  const [activeDetailTab, setActiveDetailTab] = useState("storyboard");
 
   // Narrator for video scenes
   const videoNarratorSlides = useMemo(() => {
@@ -390,6 +395,22 @@ const VideoStudio = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleClientLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 5MB for logo images.", variant: "destructive" });
+      return;
+    }
+    setClientLogoName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => setClientLogo(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  // Determine which logo to use in overlays — client logo for third-party, default for Valyarolex
+  const overlayLogoSrc = clientLogo || logoImg;
+
   const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string) => {
     const key = `${projectId}-${scene.scene_number}`;
     if (generatingImages[key]) return;
@@ -406,7 +427,8 @@ const VideoStudio = () => {
       // Auto-include branding logo as base64
       if (includeBranding) {
         try {
-          const logoResp = await fetch(logoImg);
+          const logoSrc = clientLogo || logoImg;
+          const logoResp = await fetch(logoSrc);
           const logoBlob = await logoResp.blob();
           const logoBase64 = await new Promise<string>((resolve) => {
             const r = new FileReader();
@@ -629,7 +651,8 @@ const VideoStudio = () => {
         if (referenceImage) body.reference_image_url = referenceImage;
         if (includeBranding) {
           try {
-            const logoResp = await fetch(logoImg);
+            const logoSrc = clientLogo || logoImg;
+            const logoResp = await fetch(logoSrc);
             const logoBlob = await logoResp.blob();
             const logoBase64 = await new Promise<string>((resolve) => {
               const r = new FileReader();
@@ -688,6 +711,8 @@ const VideoStudio = () => {
       setAutoRenderStage("done");
       setExportProgress(null);
       setShowVideoPreview(true);
+      // Auto-switch to details tab to show publishing links
+      setActiveDetailTab("details");
       // Update project status locally
       setActiveProject(prev => prev ? { ...prev, status: "completed" } : null);
       setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed" } : p));
@@ -1045,7 +1070,7 @@ const VideoStudio = () => {
                         <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">
                           Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s
                         </Badge>
-                        <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70 drop-shadow-md" />
+                        <img src={overlayLogoSrc} alt="Brand Logo" className="h-3.5 w-auto opacity-70 drop-shadow-md" />
                       </div>
                       {/* Text overlay on image */}
                       {scene.text_overlay && currentImage && (
@@ -1143,7 +1168,7 @@ const VideoStudio = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <Button size="sm" variant="ghost" onClick={() => { setActiveProject(null); setIsPlaying(false); setActiveScene(0); setRenderedVideoUrl(null); setAutoRenderStage("idle"); setShowVideoPreview(false); loadProjects(); }}>
+            <Button size="sm" variant="ghost" onClick={() => { setActiveProject(null); setIsPlaying(false); setActiveScene(0); setRenderedVideoUrl(null); setAutoRenderStage("idle"); setShowVideoPreview(false); setActiveDetailTab("storyboard"); loadProjects(); }}>
               <ChevronLeft className="w-4 h-4 mr-1" /> Back
             </Button>
             <div>
@@ -1176,7 +1201,7 @@ const VideoStudio = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="storyboard" className="space-y-4">
+        <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab} className="space-y-4">
           <TabsList className="glass">
             <TabsTrigger value="storyboard">Storyboard</TabsTrigger>
             <TabsTrigger value="script">Script</TabsTrigger>
@@ -1308,7 +1333,7 @@ const VideoStudio = () => {
                         <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">
                           Scene {scenes[activeScene]?.scene_number || activeScene + 1} — {scenes[activeScene]?.duration_seconds}s
                         </Badge>
-                        <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70 drop-shadow-md" />
+                        <img src={overlayLogoSrc} alt="Brand Logo" className="h-4 w-auto opacity-70 drop-shadow-md" />
                       </div>
                       {/* Text overlay shown only if image is present */}
                       {sceneImg && scenes[activeScene]?.text_overlay && (
@@ -1561,11 +1586,11 @@ const VideoStudio = () => {
           className="min-h-[80px] bg-background/50"
         />
 
-        {/* Reference image upload + branding toggle */}
+        {/* Reference image + Client logo upload + branding toggle */}
         <div className="flex items-center gap-3 flex-wrap">
           <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors">
             <Upload className="w-3.5 h-3.5 text-primary" />
-            <span>{referenceImage ? "Change Reference Image" : "Upload Logo / Reference Image"}</span>
+            <span>{referenceImage ? "Change Reference Image" : "Upload Reference Image"}</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleReferenceUpload} />
           </label>
           {referenceImage && (
@@ -1573,6 +1598,23 @@ const VideoStudio = () => {
               <img src={referenceImage} alt="Reference" className="h-8 w-8 rounded object-cover border border-border/50" />
               <button onClick={() => setReferenceImage(null)} className="text-[10px] text-destructive hover:underline">Remove</button>
             </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors border border-dashed border-primary/20">
+            <ImageIcon className="w-3.5 h-3.5 text-accent" />
+            <span>{clientLogo ? "Change Client Logo" : "Upload Client Logo"}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleClientLogoUpload} />
+          </label>
+          {clientLogo && (
+            <div className="flex items-center gap-2">
+              <img src={clientLogo} alt="Client Logo" className="h-8 w-8 rounded object-contain border border-border/50 bg-background/50" />
+              <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{clientLogoName}</span>
+              <button onClick={() => { setClientLogo(null); setClientLogoName(""); }} className="text-[10px] text-destructive hover:underline">Remove</button>
+            </div>
+          )}
+          {!clientLogo && (
+            <span className="text-[10px] text-muted-foreground italic">Using default Valyarolex.AI logo</span>
           )}
           <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground ml-auto">
             <input
