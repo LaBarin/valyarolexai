@@ -438,7 +438,6 @@ const VideoStudio = () => {
           body.brand_logo_url = logoBase64;
         } catch { /* skip branding if logo fetch fails */ }
       }
-      }
       const resp = await fetch(SCENE_IMAGE_URL, {
         method: "POST",
         headers: {
