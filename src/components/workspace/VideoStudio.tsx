@@ -395,6 +395,22 @@ const VideoStudio = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleClientLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 5MB for logo images.", variant: "destructive" });
+      return;
+    }
+    setClientLogoName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => setClientLogo(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  // Determine which logo to use in overlays — client logo for third-party, default for Valyarolex
+  const overlayLogoSrc = clientLogo || logoImg;
+
   const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string) => {
     const key = `${projectId}-${scene.scene_number}`;
     if (generatingImages[key]) return;
