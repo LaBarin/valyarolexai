@@ -711,6 +711,8 @@ const VideoStudio = () => {
       setAutoRenderStage("done");
       setExportProgress(null);
       setShowVideoPreview(true);
+      // Auto-switch to details tab to show publishing links
+      setActiveDetailTab("details");
       // Update project status locally
       setActiveProject(prev => prev ? { ...prev, status: "completed" } : null);
       setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed" } : p));
