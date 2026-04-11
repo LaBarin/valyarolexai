@@ -70,7 +70,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const companyContext = `\n\nIMPORTANT CONTEXT: Valyarolex.AI is headquartered in Houston, Texas. Always use Houston, Texas as the company location — never San Francisco or any other city. The official website is www.valyarolexai.com — always use this URL in closing slides, contact info, and any web references. The contact email is XyzDiverseServices@Gmail.Com. Do NOT include or reference any social media links (LinkedIn, Twitter, etc.) — none exist yet.\n`;
+    const companyContext = `\n\nIMPORTANT CONTEXT: Valyarolex.AI is headquartered in Houston, Texas. Always use Houston, Texas as the company location — never San Francisco or any other city. The official website is www.valyarolexai.com — always use this URL in closing slides, contact info, and any web references. The contact email is XyzDiverseServices@Gmail.Com. Do NOT include or reference any social media links (LinkedIn, Twitter, etc.) — none exist yet.\n\nBRANDING RULE FOR ADS: When creating ads, videos, campaigns, or pitch decks for a THIRD-PARTY business (i.e. NOT Valyarolex.AI itself), the ad content must focus entirely on that business. Valyarolex.AI may only appear as a small, subtle "Powered by Valyarolex.AI" watermark or small logo in the top-right corner — it must NEVER overtake the ad or distract from the client's brand. Do NOT add Valyarolex closing cards, branded end screens, or prominent Valyarolex branding to third-party ads. The ONLY exception is when the ad is specifically for Valyarolex.AI itself — in that case, use full Valyarolex branding throughout.\n`;
 
     const systemPrompts: Record<string, string> = {
       chat: `You are Valyarolex.AI, an intelligent productivity assistant. You help users manage their workflows, schedule tasks, draft emails, and automate repetitive work. Be concise, professional, and proactive. Use markdown formatting for clarity.${companyContext}`,
@@ -158,12 +158,9 @@ Support ALL formats: shorts (5-15s for TikTok/Reels/Shorts), square (1:1 for fee
 
 Generate 3-8 scenes depending on duration. Include specific visual directions, text overlays, voiceover scripts, and transitions. Make it platform-native (e.g. TikTok = casual/trending, LinkedIn = professional, YouTube = polished).
 
-IMPORTANT: The LAST scene must ALWAYS be a branded closing card. This final scene should have:
-- visual: "Clean branded end card with Valyarolex.AI logo centered on a dark gradient background. Below the logo, display the website URL www.valyarolexai.com and email XyzDiverseServices@Gmail.Com in clean white text. No social media icons. Minimal, professional, and elegant."
-- text_overlay: "www.valyarolexai.com"
-- voiceover: A brief closing line like "Visit valyarolexai.com to get started" or similar
-- duration_seconds: 3-5 seconds
-- transition: "fade"
+IMPORTANT BRANDING RULES FOR THE LAST SCENE:
+- If the video is for Valyarolex.AI itself: The LAST scene must be a branded closing card with the Valyarolex.AI logo centered on a dark gradient background, the website URL www.valyarolexai.com, and email XyzDiverseServices@Gmail.Com. Full branding. Duration 3-5 seconds, fade transition.
+- If the video is for a THIRD-PARTY business: The LAST scene must be the CLIENT's closing card featuring THEIR brand, logo, and CTA. Add only a tiny "Powered by Valyarolex.AI" text in the top-right corner — small and unobtrusive. Do NOT add a separate Valyarolex end card or any prominent Valyarolex branding. The ad belongs to the client.
 
 Always respond with valid JSON only.${companyContext}`,
       schedule: `You are Valyarolex.AI's intelligent schedule optimizer. Given the user's existing schedule, suggest 2-3 optimizations such as adding focus blocks, breaks, or rearranging for energy levels. Return ONLY a valid JSON array of objects with these fields: "title" (string), "event_type" (one of: meeting, focus, task, break), "start_hour" (integer 0-23), "duration_minutes" (integer), "reason" (string explaining why). No markdown, no extra text, just the JSON array.`,
