@@ -1070,7 +1070,7 @@ const VideoStudio = () => {
                         <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">
                           Scene {scene.scene_number || previewScene + 1} — {scene.duration_seconds}s
                         </Badge>
-                        <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70 drop-shadow-md" />
+                        <img src={overlayLogoSrc} alt="Brand Logo" className="h-3.5 w-auto opacity-70 drop-shadow-md" />
                       </div>
                       {/* Text overlay on image */}
                       {scene.text_overlay && currentImage && (
@@ -1201,7 +1201,7 @@ const VideoStudio = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="storyboard" className="space-y-4">
+        <Tabs value={activeDetailTab} onValueChange={setActiveDetailTab} className="space-y-4">
           <TabsList className="glass">
             <TabsTrigger value="storyboard">Storyboard</TabsTrigger>
             <TabsTrigger value="script">Script</TabsTrigger>
@@ -1333,7 +1333,7 @@ const VideoStudio = () => {
                         <Badge className="bg-black/50 text-white border-white/20 text-[10px] backdrop-blur-sm">
                           Scene {scenes[activeScene]?.scene_number || activeScene + 1} — {scenes[activeScene]?.duration_seconds}s
                         </Badge>
-                        <img src={logoImg} alt="Valyarolex.AI" className="h-4 w-auto opacity-70 drop-shadow-md" />
+                        <img src={overlayLogoSrc} alt="Brand Logo" className="h-4 w-auto opacity-70 drop-shadow-md" />
                       </div>
                       {/* Text overlay shown only if image is present */}
                       {sceneImg && scenes[activeScene]?.text_overlay && (
