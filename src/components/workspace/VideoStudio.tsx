@@ -651,7 +651,8 @@ const VideoStudio = () => {
         if (referenceImage) body.reference_image_url = referenceImage;
         if (includeBranding) {
           try {
-            const logoResp = await fetch(logoImg);
+            const logoSrc = clientLogo || logoImg;
+            const logoResp = await fetch(logoSrc);
             const logoBlob = await logoResp.blob();
             const logoBase64 = await new Promise<string>((resolve) => {
               const r = new FileReader();
