@@ -1586,11 +1586,11 @@ const VideoStudio = () => {
           className="min-h-[80px] bg-background/50"
         />
 
-        {/* Reference image upload + branding toggle */}
+        {/* Reference image + Client logo upload + branding toggle */}
         <div className="flex items-center gap-3 flex-wrap">
           <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors">
             <Upload className="w-3.5 h-3.5 text-primary" />
-            <span>{referenceImage ? "Change Reference Image" : "Upload Logo / Reference Image"}</span>
+            <span>{referenceImage ? "Change Reference Image" : "Upload Reference Image"}</span>
             <input type="file" accept="image/*" className="hidden" onChange={handleReferenceUpload} />
           </label>
           {referenceImage && (
@@ -1598,6 +1598,23 @@ const VideoStudio = () => {
               <img src={referenceImage} alt="Reference" className="h-8 w-8 rounded object-cover border border-border/50" />
               <button onClick={() => setReferenceImage(null)} className="text-[10px] text-destructive hover:underline">Remove</button>
             </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors border border-dashed border-primary/20">
+            <ImageIcon className="w-3.5 h-3.5 text-accent" />
+            <span>{clientLogo ? "Change Client Logo" : "Upload Client Logo"}</span>
+            <input type="file" accept="image/*" className="hidden" onChange={handleClientLogoUpload} />
+          </label>
+          {clientLogo && (
+            <div className="flex items-center gap-2">
+              <img src={clientLogo} alt="Client Logo" className="h-8 w-8 rounded object-contain border border-border/50 bg-background/50" />
+              <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{clientLogoName}</span>
+              <button onClick={() => { setClientLogo(null); setClientLogoName(""); }} className="text-[10px] text-destructive hover:underline">Remove</button>
+            </div>
+          )}
+          {!clientLogo && (
+            <span className="text-[10px] text-muted-foreground italic">Using default Valyarolex.AI logo</span>
           )}
           <label className="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground ml-auto">
             <input
