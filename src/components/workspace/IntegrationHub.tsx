@@ -46,7 +46,7 @@ const IntegrationHub = () => {
   }, [user]);
 
   const fetchConnected = async () => {
-    const { data } = await supabase.from("connected_integrations").select("*");
+    const { data } = await supabase.from("connected_integrations").select("id, integration_name, status, connected_at");
     setConnected(data || []);
     setLoading(false);
   };
