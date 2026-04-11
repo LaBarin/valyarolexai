@@ -335,10 +335,15 @@ const VideoStudio = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [includeBranding, setIncludeBranding] = useState(true);
+  // Client logo for third-party ads
+  const [clientLogo, setClientLogo] = useState<string | null>(null);
+  const [clientLogoName, setClientLogoName] = useState<string>("");
   // Auto-render pipeline state
   const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
   const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
+  // Active detail tab
+  const [activeDetailTab, setActiveDetailTab] = useState("storyboard");
 
   // Narrator for video scenes
   const videoNarratorSlides = useMemo(() => {
