@@ -38,6 +38,28 @@ const KB_PRESETS = [
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
+function drawImageKenBurns(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  canvasW: number,
+  canvasH: number,
+  progress: number,      // 0-1 through the scene
+  sceneIndex: number,     // pick a deterministic preset
+) {
+  const preset = KB_PRESETS[sceneIndex % KB_PRESETS.length];
+  const t = clamp(progress, 0, 1);
+  const scale = preset.startScale + (preset.endScale - preset.startScale) * t;
+  const panX = (preset.startX + (preset.endX - preset.startX) * t) * canvasW;
+  const panY = (preset.startY + (preset.endY - preset.startY) * t) * canvasH;
+
+  ctx.save();
+  ctx.translate(canvasW / 2 + panX, canvasH / 2 + panY);
+  ctx.scale(scale, scale);
+  ctx.translate(-canvasW / 2, -canvasH / 2);
+  drawImageCover(ctx, img, canvasW, canvasH);
+  ctx.restore();
+}
+
 function wrapOverlayText(
   ctx: CanvasRenderingContext2D,
   text: string,
