@@ -299,7 +299,7 @@ function drawTextOverlay(
  * Renders scene images into a WebM video blob.
  */
 export async function renderVideo(options: RenderOptions): Promise<Blob> {
-  const { format, scenes, onProgress, animated = false } = options;
+  const { format, scenes, onProgress, preset = "none" } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
 
@@ -357,6 +357,9 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
       const fadeFrames = Math.round(FADE_DURATION_SECONDS * FPS);
       let frameIdx = 0;
 
+      const sceneAnim = resolveSceneAnimation(preset, sceneIdx, scene.animation);
+      const isAnimated = sceneAnim !== "none";
+
       const drawFrame = () => {
         if (frameIdx >= totalSceneFrames) {
           renderScene(sceneIdx + 1);
@@ -373,23 +376,24 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
         if (inFade && nextImg) {
           const fadeProgress = 1 - framesLeft / fadeFrames;
           ctx.globalAlpha = 1 - fadeProgress;
-          if (animated) {
-            drawImageKenBurns(ctx, img, width, height, 1, sceneIdx);
+          if (isAnimated) {
+            drawAnimatedImage(ctx, img, width, height, 1, sceneAnim, preset);
           } else {
             drawImageCover(ctx, img, width, height);
           }
           ctx.globalAlpha = fadeProgress;
-          if (animated) {
-            drawImageKenBurns(ctx, nextImg, width, height, 0, sceneIdx + 1);
+          const nextAnim = resolveSceneAnimation(preset, sceneIdx + 1, scenes[sceneIdx + 1]?.animation);
+          if (nextAnim !== "none") {
+            drawAnimatedImage(ctx, nextImg, width, height, 0, nextAnim, preset);
           } else {
             drawImageCover(ctx, nextImg, width, height);
           }
           ctx.globalAlpha = 1;
         } else {
           ctx.globalAlpha = 1;
-          if (animated) {
+          if (isAnimated) {
             const progress = frameIdx / Math.max(totalSceneFrames, 1);
-            drawImageKenBurns(ctx, img, width, height, progress, sceneIdx);
+            drawAnimatedImage(ctx, img, width, height, progress, sceneAnim, preset);
           } else {
             drawImageCover(ctx, img, width, height);
           }
@@ -397,7 +401,7 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
 
         // Text overlay (fade in during first second)
         if (scene.textOverlay) {
-          if (animated) {
+          if (isAnimated) {
             const progress = frameIdx / Math.max(totalSceneFrames, 1);
             drawTextOverlay(ctx, scene.textOverlay, width, height, progress);
           } else {
