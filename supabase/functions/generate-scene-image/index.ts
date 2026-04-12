@@ -91,7 +91,7 @@ serve(async (req) => {
     const aspectDesc = format === "9:16" ? "vertical mobile portrait" : format === "1:1" ? "square" : "widescreen landscape 16:9";
     const brandingNote = brand_logo_url ? " Include subtle brand logo watermark in corner." : "";
     const referenceNote = reference_image_url ? " Use the provided reference image as style/content inspiration." : "";
-    const prompt = `Create a cinematic, professional video ad frame/still image. ${aspectDesc} aspect ratio. Scene: ${visual}${text_overlay ? `. Text overlay: "${text_overlay}"` : ""}.${brandingNote}${referenceNote} Platform: ${platform || "general"}. Style: high-end commercial photography, dramatic lighting, modern and sleek. Do NOT include any watermarks.`;
+    const prompt = `Create a cinematic, professional video ad frame/still image. ${aspectDesc} aspect ratio. Scene: ${visual}.${brandingNote}${referenceNote} Platform: ${platform || "general"}. Style: high-end commercial photography, dramatic lighting, modern and sleek. Leave clean negative space for app-rendered captions and avoid baking any headline, caption, or large text into the image itself. Do NOT include any watermarks.`;
 
     // Build message content - support reference images
     const messageContent: any[] = [{ type: "text", text: prompt }];

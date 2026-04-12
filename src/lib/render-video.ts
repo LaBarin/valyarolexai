@@ -1,3 +1,5 @@
+import { normalizeVideoOverlayText } from "@/lib/video-script";
+
 /**
  * Client-side video renderer: stitches scene images into a .webm video
  * using Canvas API + MediaRecorder.
@@ -24,6 +26,53 @@ const FORMAT_DIMENSIONS: Record<string, { width: number; height: number }> = {
 
 const FPS = 30;
 const FADE_DURATION_SECONDS = 0.4;
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+function wrapOverlayText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+) {
+  const words = text.split(" ").filter(Boolean);
+  const lines: string[] = [];
+  let currentLine = "";
+  let index = 0;
+
+  while (index < words.length) {
+    const candidate = currentLine ? `${currentLine} ${words[index]}` : words[index];
+    if (ctx.measureText(candidate).width <= maxWidth) {
+      currentLine = candidate;
+      index += 1;
+      continue;
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+      currentLine = "";
+    } else {
+      lines.push(words[index]);
+      index += 1;
+    }
+
+    if (lines.length === maxLines - 1) break;
+  }
+
+  const remainingWords = words.slice(index);
+  const tailBase = currentLine || remainingWords.join(" ");
+  if (tailBase) {
+    let tail = tailBase;
+    const needsEllipsis = remainingWords.length > 0 && currentLine.length > 0;
+    if (needsEllipsis) tail = `${tail}…`;
+    while (ctx.measureText(tail).width > maxWidth && tail.length > 1) {
+      tail = `${tail.slice(0, -2).trimEnd()}…`;
+    }
+    lines.push(tail);
+  }
+
+  return lines.slice(0, maxLines);
+}
 
 /**
  * Fetches an image as a blob to avoid canvas tainting from cross-origin URLs.
@@ -71,35 +120,52 @@ function drawTextOverlay(
   canvasW: number,
   canvasH: number,
 ) {
-  const fontSize = Math.round(canvasW * 0.04);
+  const overlayText = normalizeVideoOverlayText(text);
+  if (!overlayText) return;
+
+  const fontSize = clamp(Math.round(canvasW * 0.04), 28, 70);
+  const lineHeight = Math.round(fontSize * 1.12);
+  const maxWidth = canvasW * 0.74;
+  const bottomPadding = Math.round(canvasH * 0.06);
+
   ctx.save();
+
+  const scrimHeight = Math.round(canvasH * 0.22);
+  const scrim = ctx.createLinearGradient(0, canvasH - scrimHeight, 0, canvasH);
+  scrim.addColorStop(0, "rgba(0, 0, 0, 0)");
+  scrim.addColorStop(1, "rgba(0, 0, 0, 0.72)");
+  ctx.fillStyle = scrim;
+  ctx.fillRect(0, canvasH - scrimHeight, canvasW, scrimHeight);
+
   ctx.font = `bold ${fontSize}px "Space Grotesk", sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "bottom";
   const x = canvasW / 2;
-  const y = canvasH - Math.round(canvasH * 0.08);
-  // Shadow
-  ctx.shadowColor = "rgba(0,0,0,0.7)";
-  ctx.shadowBlur = 8;
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = 20;
   ctx.shadowOffsetY = 2;
   ctx.fillStyle = "#ffffff";
-  // Wrap text
-  const maxWidth = canvasW * 0.85;
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let line = "";
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = test;
-    }
-  }
-  if (line) lines.push(line);
-  const lineHeight = fontSize * 1.3;
-  const startY = y - (lines.length - 1) * lineHeight;
+
+  const lines = wrapOverlayText(ctx, overlayText, maxWidth, 2);
+  const widestLine = Math.max(...lines.map((line) => ctx.measureText(line).width), 0);
+  const textBlockHeight = lines.length * lineHeight;
+  const cardPaddingX = Math.round(fontSize * 0.7);
+  const cardPaddingY = Math.round(fontSize * 0.5);
+  const cardWidth = widestLine + cardPaddingX * 2;
+  const cardHeight = textBlockHeight + cardPaddingY * 2;
+  const cardX = (canvasW - cardWidth) / 2;
+  const cardY = canvasH - bottomPadding - cardHeight;
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(8, 12, 18, 0.58)";
+  ctx.fillRect(cardX, cardY, cardWidth, cardHeight);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+  ctx.strokeRect(cardX, cardY, cardWidth, cardHeight);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "rgba(0,0,0,0.45)";
+  ctx.shadowBlur = 14;
+  const startY = cardY + cardPaddingY + lineHeight - Math.round(fontSize * 0.12);
   lines.forEach((l, i) => {
     ctx.fillText(l, x, startY + i * lineHeight);
   });
