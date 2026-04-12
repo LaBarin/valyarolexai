@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "@/assets/valyarolex-logo.png";
-import { renderVideo } from "@/lib/render-video";
+import { renderVideo, type SceneAnimation, type AnimationPreset, SCENE_ANIMATION_OPTIONS, ANIMATION_PRESETS, resolveSceneAnimation } from "@/lib/render-video";
 import { createShareToken, normalizeVideoOverlayText, normalizeVideoScenes } from "@/lib/video-script";
 import { NarratorControls } from "./NarratorControls";
 import { useNarrator } from "@/hooks/use-narrator";
@@ -339,8 +339,9 @@ const VideoStudio = () => {
   // Client logo for third-party ads
   const [clientLogo, setClientLogo] = useState<string | null>(null);
   const [clientLogoName, setClientLogoName] = useState<string>("");
-  // Animation toggle
-  const [animatedAds, setAnimatedAds] = useState(true);
+  // Animation preset & per-scene overrides
+  const [animationPreset, setAnimationPreset] = useState<AnimationPreset>("cinematic");
+  const [sceneAnimations, setSceneAnimations] = useState<Record<number, SceneAnimation | "auto">>({});
   // Auto-render pipeline state
   const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
   const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
@@ -701,9 +702,9 @@ const VideoStudio = () => {
     try {
       const blob = await renderVideo({
         format: project.format,
-        scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
+        scenes: sceneInputs.map((s, i) => { const a = sceneAnimations[i]; return { ...s, animation: a && a !== "auto" ? a as SceneAnimation : undefined }; }) as any[],
         onProgress: (p) => setExportProgress(50 + Math.round(p * 0.5)),
-        animated: animatedAds,
+        preset: animationPreset,
       });
 
       // Upload to storage
@@ -874,9 +875,9 @@ const VideoStudio = () => {
     try {
       const blob = await renderVideo({
         format: p.format,
-        scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
+        scenes: sceneInputs.map((s, i) => { const a = sceneAnimations[i]; return { ...s, animation: a && a !== "auto" ? a as SceneAnimation : undefined }; }) as any[],
         onProgress: setExportProgress,
-        animated: animatedAds,
+        preset: animationPreset,
       });
 
       // Upload to storage
@@ -1490,6 +1491,26 @@ const VideoStudio = () => {
                           {scene.text_overlay}
                         </div>
                       )}
+                      {/* Per-scene animation selector */}
+                      <div className="pt-1">
+                        <Select
+                          value={sceneAnimations[i] || ""}
+                          onValueChange={(v) => setSceneAnimations(prev => ({ ...prev, [i]: v as SceneAnimation | "auto" }))}
+                        >
+                          <SelectTrigger className="h-6 text-[10px] bg-background/50 w-full">
+                            <Film className="w-3 h-3 mr-1 text-primary flex-shrink-0" />
+                            <SelectValue placeholder={`Auto (${resolveSceneAnimation(animationPreset, i)})`} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">
+                              <span className="text-muted-foreground">Auto ({resolveSceneAnimation(animationPreset, i)})</span>
+                            </SelectItem>
+                            {SCENE_ANIMATION_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </motion.div>
                 );
@@ -1668,19 +1689,20 @@ const VideoStudio = () => {
           </label>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors border border-primary/20">
-            <Film className="w-3.5 h-3.5 text-primary" />
-            <span>Animated Ads</span>
-            <input
-              type="checkbox"
-              checked={animatedAds}
-              onChange={(e) => setAnimatedAds(e.target.checked)}
-              className="rounded border-border ml-1"
-            />
-          </label>
-          <span className="text-[10px] text-muted-foreground italic">
-            {animatedAds ? "Ken Burns zoom/pan + text slide-in enabled" : "Static scenes (no motion effects)"}
-          </span>
+          <div className="space-y-1">
+            <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Animation Style</label>
+            <Select value={animationPreset} onValueChange={(v) => setAnimationPreset(v as AnimationPreset)}>
+              <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {ANIMATION_PRESETS.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    <span className="font-medium">{p.label}</span>
+                    <span className="text-muted-foreground ml-1 text-[10px]">— {p.description}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-3 items-end">

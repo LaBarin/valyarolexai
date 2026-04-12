@@ -1,22 +1,77 @@
 import { normalizeVideoOverlayText } from "@/lib/video-script";
 
-/**
- * Client-side video renderer: stitches scene images into a .webm video
- * using Canvas API + MediaRecorder.
- */
+// ─── Public types ───────────────────────────────────────────────
 
-type SceneInput = {
+/** Per-scene animation effect */
+export type SceneAnimation =
+  | "none"
+  | "zoom-in"
+  | "zoom-out"
+  | "pan-left"
+  | "pan-right"
+  | "pan-up"
+  | "ken-burns"    // alternating zoom+pan
+  | "fade-pulse";  // gentle scale pulse
+
+/** Global animation style preset */
+export type AnimationPreset = "none" | "cinematic" | "energetic" | "minimal";
+
+export const SCENE_ANIMATION_OPTIONS: { value: SceneAnimation; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "zoom-in", label: "Zoom In" },
+  { value: "zoom-out", label: "Zoom Out" },
+  { value: "pan-left", label: "Pan Left" },
+  { value: "pan-right", label: "Pan Right" },
+  { value: "pan-up", label: "Pan Up" },
+  { value: "ken-burns", label: "Ken Burns" },
+  { value: "fade-pulse", label: "Fade Pulse" },
+];
+
+export const ANIMATION_PRESETS: { value: AnimationPreset; label: string; description: string }[] = [
+  { value: "none", label: "None", description: "Static scenes, no motion" },
+  { value: "cinematic", label: "Cinematic", description: "Slow zooms & drifts, dramatic pacing" },
+  { value: "energetic", label: "Energetic", description: "Fast pans & bold zooms, high-energy feel" },
+  { value: "minimal", label: "Minimal", description: "Subtle zooms, refined motion" },
+];
+
+/** Resolve the animation for a scene — explicit per-scene overrides the preset */
+export function resolveSceneAnimation(
+  preset: AnimationPreset,
+  sceneIndex: number,
+  perScene?: SceneAnimation,
+): SceneAnimation {
+  if (perScene && perScene !== "none") return perScene;
+  if (preset === "none") return "none";
+
+  const CINEMATIC: SceneAnimation[] = ["zoom-in", "ken-burns", "zoom-out", "pan-left"];
+  const ENERGETIC: SceneAnimation[] = ["pan-right", "zoom-in", "pan-left", "zoom-out", "pan-up"];
+  const MINIMAL: SceneAnimation[] = ["zoom-in", "zoom-out"];
+
+  const pool =
+    preset === "cinematic" ? CINEMATIC :
+    preset === "energetic" ? ENERGETIC :
+    MINIMAL;
+
+  return pool[sceneIndex % pool.length];
+}
+
+// ─── Scene input ────────────────────────────────────────────────
+
+export type SceneInput = {
   imageUrl: string;
   durationSeconds: number;
   textOverlay?: string;
+  animation?: SceneAnimation;
 };
 
 type RenderOptions = {
-  format: string; // "9:16" | "1:1" | "16:9"
+  format: string;
   scenes: SceneInput[];
   onProgress?: (percent: number) => void;
-  animated?: boolean;
+  preset?: AnimationPreset;
 };
+
+// ─── Constants ──────────────────────────────────────────────────
 
 const FORMAT_DIMENSIONS: Record<string, { width: number; height: number }> = {
   "9:16": { width: 1080, height: 1920 },
@@ -27,30 +82,54 @@ const FORMAT_DIMENSIONS: Record<string, { width: number; height: number }> = {
 
 const FPS = 30;
 const FADE_DURATION_SECONDS = 0.4;
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
-// Ken Burns animation presets — each scene picks one deterministically
-const KB_PRESETS = [
-  { startScale: 1.0, endScale: 1.15, startX: 0, startY: 0, endX: -0.04, endY: -0.03 },   // zoom in, drift top-left
-  { startScale: 1.12, endScale: 1.0, startX: -0.03, startY: -0.02, endX: 0, endY: 0 },    // zoom out from offset
-  { startScale: 1.0, endScale: 1.1, startX: 0.02, startY: 0, endX: -0.02, endY: -0.02 },  // pan left-up
-  { startScale: 1.08, endScale: 1.02, startX: 0, startY: -0.03, endX: 0.03, endY: 0 },    // zoom out, drift right
-];
+// ─── Animation drawing helpers ──────────────────────────────────
 
-const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+type KBParams = { startScale: number; endScale: number; startX: number; startY: number; endX: number; endY: number };
 
-function drawImageKenBurns(
+const ANIM_PARAMS: Record<SceneAnimation, (preset: AnimationPreset) => KBParams> = {
+  "none":       () => ({ startScale: 1, endScale: 1, startX: 0, startY: 0, endX: 0, endY: 0 }),
+  "zoom-in":    (p) => ({ startScale: 1, endScale: p === "energetic" ? 1.22 : p === "minimal" ? 1.06 : 1.14, startX: 0, startY: 0, endX: 0, endY: 0 }),
+  "zoom-out":   (p) => ({ startScale: p === "energetic" ? 1.22 : p === "minimal" ? 1.06 : 1.14, endScale: 1, startX: 0, startY: 0, endX: 0, endY: 0 }),
+  "pan-left":   (p) => ({ startScale: 1.05, endScale: 1.05, startX: 0.04, startY: 0, endX: p === "energetic" ? -0.06 : -0.04, endY: 0 }),
+  "pan-right":  (p) => ({ startScale: 1.05, endScale: 1.05, startX: -0.04, startY: 0, endX: p === "energetic" ? 0.06 : 0.04, endY: 0 }),
+  "pan-up":     (p) => ({ startScale: 1.05, endScale: 1.05, startX: 0, startY: 0.03, endX: 0, endY: p === "energetic" ? -0.05 : -0.03 }),
+  "ken-burns":  (p) => ({ startScale: 1, endScale: p === "energetic" ? 1.18 : 1.12, startX: 0, startY: 0, endX: -0.04, endY: -0.03 }),
+  "fade-pulse": () => ({ startScale: 1, endScale: 1, startX: 0, startY: 0, endX: 0, endY: 0 }),
+};
+
+function drawAnimatedImage(
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   canvasW: number,
   canvasH: number,
-  progress: number,      // 0-1 through the scene
-  sceneIndex: number,     // pick a deterministic preset
+  progress: number,
+  anim: SceneAnimation,
+  preset: AnimationPreset,
 ) {
-  const preset = KB_PRESETS[sceneIndex % KB_PRESETS.length];
+  if (anim === "none") {
+    drawImageCover(ctx, img, canvasW, canvasH);
+    return;
+  }
+
+  if (anim === "fade-pulse") {
+    // Gentle sine-based scale pulse
+    const s = 1 + 0.04 * Math.sin(progress * Math.PI);
+    ctx.save();
+    ctx.translate(canvasW / 2, canvasH / 2);
+    ctx.scale(s, s);
+    ctx.translate(-canvasW / 2, -canvasH / 2);
+    drawImageCover(ctx, img, canvasW, canvasH);
+    ctx.restore();
+    return;
+  }
+
+  const params = ANIM_PARAMS[anim](preset);
   const t = clamp(progress, 0, 1);
-  const scale = preset.startScale + (preset.endScale - preset.startScale) * t;
-  const panX = (preset.startX + (preset.endX - preset.startX) * t) * canvasW;
-  const panY = (preset.startY + (preset.endY - preset.startY) * t) * canvasH;
+  const scale = params.startScale + (params.endScale - params.startScale) * t;
+  const panX = (params.startX + (params.endX - params.startX) * t) * canvasW;
+  const panY = (params.startY + (params.endY - params.startY) * t) * canvasH;
 
   ctx.save();
   ctx.translate(canvasW / 2 + panX, canvasH / 2 + panY);
@@ -59,6 +138,8 @@ function drawImageKenBurns(
   drawImageCover(ctx, img, canvasW, canvasH);
   ctx.restore();
 }
+
+// ─── Text helpers ───────────────────────────────────────────────
 
 function wrapOverlayText(
   ctx: CanvasRenderingContext2D,
@@ -218,7 +299,7 @@ function drawTextOverlay(
  * Renders scene images into a WebM video blob.
  */
 export async function renderVideo(options: RenderOptions): Promise<Blob> {
-  const { format, scenes, onProgress, animated = false } = options;
+  const { format, scenes, onProgress, preset = "none" } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
 
@@ -276,6 +357,9 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
       const fadeFrames = Math.round(FADE_DURATION_SECONDS * FPS);
       let frameIdx = 0;
 
+      const sceneAnim = resolveSceneAnimation(preset, sceneIdx, scene.animation);
+      const isAnimated = sceneAnim !== "none";
+
       const drawFrame = () => {
         if (frameIdx >= totalSceneFrames) {
           renderScene(sceneIdx + 1);
@@ -292,23 +376,24 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
         if (inFade && nextImg) {
           const fadeProgress = 1 - framesLeft / fadeFrames;
           ctx.globalAlpha = 1 - fadeProgress;
-          if (animated) {
-            drawImageKenBurns(ctx, img, width, height, 1, sceneIdx);
+          if (isAnimated) {
+            drawAnimatedImage(ctx, img, width, height, 1, sceneAnim, preset);
           } else {
             drawImageCover(ctx, img, width, height);
           }
           ctx.globalAlpha = fadeProgress;
-          if (animated) {
-            drawImageKenBurns(ctx, nextImg, width, height, 0, sceneIdx + 1);
+          const nextAnim = resolveSceneAnimation(preset, sceneIdx + 1, scenes[sceneIdx + 1]?.animation);
+          if (nextAnim !== "none") {
+            drawAnimatedImage(ctx, nextImg, width, height, 0, nextAnim, preset);
           } else {
             drawImageCover(ctx, nextImg, width, height);
           }
           ctx.globalAlpha = 1;
         } else {
           ctx.globalAlpha = 1;
-          if (animated) {
+          if (isAnimated) {
             const progress = frameIdx / Math.max(totalSceneFrames, 1);
-            drawImageKenBurns(ctx, img, width, height, progress, sceneIdx);
+            drawAnimatedImage(ctx, img, width, height, progress, sceneAnim, preset);
           } else {
             drawImageCover(ctx, img, width, height);
           }
@@ -316,7 +401,7 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
 
         // Text overlay (fade in during first second)
         if (scene.textOverlay) {
-          if (animated) {
+          if (isAnimated) {
             const progress = frameIdx / Math.max(totalSceneFrames, 1);
             drawTextOverlay(ctx, scene.textOverlay, width, height, progress);
           } else {
