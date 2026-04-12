@@ -21,7 +21,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "@/assets/valyarolex-logo.png";
-import { renderVideo } from "@/lib/render-video";
 import { renderVideo, type SceneAnimation, type AnimationPreset, SCENE_ANIMATION_OPTIONS, ANIMATION_PRESETS, resolveSceneAnimation } from "@/lib/render-video";
 import { createShareToken, normalizeVideoOverlayText, normalizeVideoScenes } from "@/lib/video-script";
 import { NarratorControls } from "./NarratorControls";
