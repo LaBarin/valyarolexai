@@ -15,6 +15,7 @@ type RenderOptions = {
   format: string; // "9:16" | "1:1" | "16:9"
   scenes: SceneInput[];
   onProgress?: (percent: number) => void;
+  animated?: boolean;
 };
 
 const FORMAT_DIMENSIONS: Record<string, { width: number; height: number }> = {
@@ -26,6 +27,14 @@ const FORMAT_DIMENSIONS: Record<string, { width: number; height: number }> = {
 
 const FPS = 30;
 const FADE_DURATION_SECONDS = 0.4;
+
+// Ken Burns animation presets — each scene picks one deterministically
+const KB_PRESETS = [
+  { startScale: 1.0, endScale: 1.15, startX: 0, startY: 0, endX: -0.04, endY: -0.03 },   // zoom in, drift top-left
+  { startScale: 1.12, endScale: 1.0, startX: -0.03, startY: -0.02, endX: 0, endY: 0 },    // zoom out from offset
+  { startScale: 1.0, endScale: 1.1, startX: 0.02, startY: 0, endX: -0.02, endY: -0.02 },  // pan left-up
+  { startScale: 1.08, endScale: 1.02, startX: 0, startY: -0.03, endX: 0.03, endY: 0 },    // zoom out, drift right
+];
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -119,6 +128,7 @@ function drawTextOverlay(
   text: string,
   canvasW: number,
   canvasH: number,
+  animProgress?: number, // 0-1 for animated text entrance; undefined = static
 ) {
   const overlayText = normalizeVideoOverlayText(text);
   if (!overlayText) return;
@@ -129,6 +139,16 @@ function drawTextOverlay(
   const bottomPadding = Math.round(canvasH * 0.06);
 
   ctx.save();
+
+  // Animated entrance: slide up + fade in during first 25% of the scene
+  let textAlpha = 1;
+  let textOffsetY = 0;
+  if (animProgress !== undefined) {
+    const t = clamp(animProgress / 0.25, 0, 1); // ease in over first 25%
+    const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
+    textAlpha = ease;
+    textOffsetY = (1 - ease) * 30;
+  }
 
   const scrimHeight = Math.round(canvasH * 0.22);
   const scrim = ctx.createLinearGradient(0, canvasH - scrimHeight, 0, canvasH);
@@ -162,10 +182,10 @@ function drawTextOverlay(
   ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
   ctx.strokeRect(cardX, cardY, cardWidth, cardHeight);
 
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = `rgba(255, 255, 255, ${textAlpha})`;
   ctx.shadowColor = "rgba(0,0,0,0.45)";
   ctx.shadowBlur = 14;
-  const startY = cardY + cardPaddingY + lineHeight - Math.round(fontSize * 0.12);
+  const startY = cardY + cardPaddingY + lineHeight - Math.round(fontSize * 0.12) + textOffsetY;
   lines.forEach((l, i) => {
     ctx.fillText(l, x, startY + i * lineHeight);
   });
@@ -176,7 +196,7 @@ function drawTextOverlay(
  * Renders scene images into a WebM video blob.
  */
 export async function renderVideo(options: RenderOptions): Promise<Blob> {
-  const { format, scenes, onProgress } = options;
+  const { format, scenes, onProgress, animated = false } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
 
@@ -249,24 +269,40 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
 
         if (inFade && nextImg) {
           const fadeProgress = 1 - framesLeft / fadeFrames;
-          // Draw current image
           ctx.globalAlpha = 1 - fadeProgress;
-          drawImageCover(ctx, img, width, height);
-          // Draw next image
+          if (animated) {
+            drawImageKenBurns(ctx, img, width, height, 1, sceneIdx);
+          } else {
+            drawImageCover(ctx, img, width, height);
+          }
           ctx.globalAlpha = fadeProgress;
-          drawImageCover(ctx, nextImg, width, height);
+          if (animated) {
+            drawImageKenBurns(ctx, nextImg, width, height, 0, sceneIdx + 1);
+          } else {
+            drawImageCover(ctx, nextImg, width, height);
+          }
           ctx.globalAlpha = 1;
         } else {
           ctx.globalAlpha = 1;
-          drawImageCover(ctx, img, width, height);
+          if (animated) {
+            const progress = frameIdx / Math.max(totalSceneFrames, 1);
+            drawImageKenBurns(ctx, img, width, height, progress, sceneIdx);
+          } else {
+            drawImageCover(ctx, img, width, height);
+          }
         }
 
         // Text overlay (fade in during first second)
         if (scene.textOverlay) {
-          const textFadeIn = Math.min(1, frameIdx / (FPS * 0.5));
-          ctx.globalAlpha = textFadeIn;
-          drawTextOverlay(ctx, scene.textOverlay, width, height);
-          ctx.globalAlpha = 1;
+          if (animated) {
+            const progress = frameIdx / Math.max(totalSceneFrames, 1);
+            drawTextOverlay(ctx, scene.textOverlay, width, height, progress);
+          } else {
+            const textFadeIn = Math.min(1, frameIdx / (FPS * 0.5));
+            ctx.globalAlpha = textFadeIn;
+            drawTextOverlay(ctx, scene.textOverlay, width, height);
+            ctx.globalAlpha = 1;
+          }
         }
 
         frameIdx++;
