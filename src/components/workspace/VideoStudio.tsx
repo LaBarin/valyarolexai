@@ -1491,6 +1491,26 @@ const VideoStudio = () => {
                           {scene.text_overlay}
                         </div>
                       )}
+                      {/* Per-scene animation selector */}
+                      <div className="pt-1">
+                        <Select
+                          value={sceneAnimations[i] || ""}
+                          onValueChange={(v) => setSceneAnimations(prev => ({ ...prev, [i]: v as SceneAnimation }))}
+                        >
+                          <SelectTrigger className="h-6 text-[10px] bg-background/50 w-full">
+                            <Film className="w-3 h-3 mr-1 text-primary flex-shrink-0" />
+                            <SelectValue placeholder={`Auto (${resolveSceneAnimation(animationPreset, i)})`} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="auto">
+                              <span className="text-muted-foreground">Auto ({resolveSceneAnimation(animationPreset, i)})</span>
+                            </SelectItem>
+                            {SCENE_ANIMATION_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </motion.div>
                 );
