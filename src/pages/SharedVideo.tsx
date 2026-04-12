@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import logoImg from "@/assets/valyarolex-logo.png";
+import { normalizeVideoOverlayText } from "@/lib/video-script";
 
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
 
@@ -158,6 +159,7 @@ const SharedVideo = () => {
   const script: VideoData | null = project.script;
   const scenes: Scene[] = script?.scenes || project.storyboard || [];
   const scene = scenes[activeScene];
+  const overlayText = normalizeVideoOverlayText(scene?.text_overlay);
   const FormatIcon = project.format === "9:16" ? Smartphone : project.format === "1:1" ? Square : Monitor;
 
   return (
@@ -252,9 +254,11 @@ const SharedVideo = () => {
                     <img src={logoImg} alt="Valyarolex.AI" className="h-3.5 w-auto opacity-70 drop-shadow-md" />
                   </div>
 
-                  {scene.text_overlay && (
-                    <div className="absolute bottom-12 left-0 right-0 px-4 z-10">
-                      <p className="text-lg font-bold text-white drop-shadow-lg text-center">{scene.text_overlay}</p>
+                  {overlayText && (
+                    <div className="absolute bottom-5 left-1/2 z-10 w-[82%] -translate-x-1/2">
+                      <div className="rounded-xl border border-white/15 bg-black/55 px-4 py-3 backdrop-blur-sm">
+                        <p className="text-base font-semibold leading-tight tracking-tight text-white text-center break-words">{overlayText}</p>
+                      </div>
                     </div>
                   )}
                 </motion.div>
@@ -294,7 +298,7 @@ const SharedVideo = () => {
           <div className="glass rounded-xl p-5 space-y-2">
             <p className="text-sm"><span className="font-medium text-foreground">Visual:</span> <span className="text-muted-foreground">{scene.visual}</span></p>
             {scene.voiceover && <p className="text-sm"><span className="font-medium text-foreground">Voiceover:</span> <span className="text-muted-foreground">"{scene.voiceover}"</span></p>}
-            {scene.text_overlay && <p className="text-sm text-primary"><span className="font-medium">Text:</span> {scene.text_overlay}</p>}
+            {overlayText && <p className="text-sm text-primary"><span className="font-medium">Text:</span> {overlayText}</p>}
           </div>
         )}
 

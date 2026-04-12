@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import logoImg from "@/assets/valyarolex-logo.png";
 import { renderVideo } from "@/lib/render-video";
+import { createShareToken, normalizeVideoOverlayText, normalizeVideoScenes } from "@/lib/video-script";
 import { NarratorControls } from "./NarratorControls";
 import { useNarrator } from "@/hooks/use-narrator";
 
@@ -134,7 +135,7 @@ const normalizeVideoScript = (value: unknown): VideoData | null => {
     hook: script.hook,
     cta: script.cta,
     music_mood: script.music_mood,
-    scenes: Array.isArray(script.scenes) ? (script.scenes as Scene[]) : [],
+    scenes: normalizeVideoScenes(Array.isArray(script.scenes) ? (script.scenes as Scene[]) : []),
     ad_copy: script.ad_copy,
     publishing_links:
       rawLinks && typeof rawLinks === "object" && !Array.isArray(rawLinks)
@@ -144,7 +145,7 @@ const normalizeVideoScript = (value: unknown): VideoData | null => {
 };
 
 const getStoryboardScenes = (value: unknown): Scene[] => {
-  return Array.isArray(value) ? (value as Scene[]) : [];
+  return normalizeVideoScenes(Array.isArray(value) ? (value as Scene[]) : []);
 };
 
 const getSceneDuration = (scenes: Scene[]): number => {
@@ -157,7 +158,7 @@ const mergeVideoScript = (
   overrides: Partial<VideoData> = {},
 ): VideoData => {
   const fallbackScenes = currentScript?.scenes?.length ? currentScript.scenes : project.storyboard || [];
-  const nextScenes = overrides.scenes ?? fallbackScenes;
+  const nextScenes = normalizeVideoScenes(overrides.scenes ?? fallbackScenes);
 
   return {
     title: currentScript?.title ?? project.title,
@@ -583,7 +584,10 @@ const VideoStudio = () => {
       } catch {
         throw new Error("Failed to parse AI response");
       }
-      setPreviewData(parsed);
+      setPreviewData({
+        ...parsed,
+        scenes: normalizeVideoScenes(parsed.scenes),
+      });
     } catch (e: any) {
       toast({ title: "Generation Failed", description: e.message, variant: "destructive" });
     } finally {
@@ -794,13 +798,37 @@ const VideoStudio = () => {
       toast({ title: "Link Copied!", description: url });
       return;
     }
-    const { data: token, error } = await supabase.rpc("generate_video_share_token", { p_video_id: id });
-    if (error) {
-      toast({ title: "Share Failed", description: error.message, variant: "destructive" });
-      return;
+    let token: string | null = null;
+    const { data: rpcToken, error } = await supabase.rpc("generate_video_share_token", { p_video_id: id });
+
+    if (error || !rpcToken) {
+      const fallbackToken = createShareToken();
+      const { data: fallbackProject, error: fallbackError } = await supabase
+        .from("video_projects")
+        .update({ share_token: fallbackToken } as any)
+        .eq("id", id)
+        .select("*")
+        .single();
+
+      if (fallbackError || !fallbackProject) {
+        toast({
+          title: "Share Failed",
+          description: error?.message || fallbackError?.message || "Unable to create a share link.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const persistedProject = mapVideoProject(fallbackProject);
+      token = persistedProject.share_token ?? fallbackToken;
+      setProjects(prev => prev.map(p => p.id === id ? persistedProject : p));
+      if (activeProject?.id === id) setActiveProject(persistedProject);
+    } else {
+      token = rpcToken;
+      setProjects(prev => prev.map(p => p.id === id ? { ...p, share_token: token } : p));
+      if (activeProject?.id === id) setActiveProject(prev => prev ? { ...prev, share_token: token } : null);
     }
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, share_token: token } : p));
-    if (activeProject?.id === id) setActiveProject(prev => prev ? { ...prev, share_token: token } : null);
+
     const url = `${window.location.origin}/video/${token}`;
     await navigator.clipboard.writeText(url);
     toast({ title: "Share Link Created!", description: "Link copied to clipboard." });
@@ -1013,6 +1041,7 @@ const VideoStudio = () => {
     if (!previewData) return null;
     const scenes = previewData.scenes || [];
     const scene = scenes[previewScene];
+    const previewOverlayText = normalizeVideoOverlayText(scene?.text_overlay);
     const currentImage = previewImages[previewScene];
     const isGeneratingCurrent = generatingPreviewImages[previewScene];
     const totalGenerated = Object.keys(previewImages).length;
@@ -1073,9 +1102,13 @@ const VideoStudio = () => {
                         <img src={overlayLogoSrc} alt="Brand Logo" className="h-3.5 w-auto opacity-70 drop-shadow-md" />
                       </div>
                       {/* Text overlay on image */}
-                      {scene.text_overlay && currentImage && (
-                        <div className="absolute bottom-14 left-0 right-0 px-4 z-10">
-                          <p className="text-lg font-bold text-white drop-shadow-lg text-center">{scene.text_overlay}</p>
+                      {previewOverlayText && currentImage && (
+                        <div className="absolute bottom-5 left-1/2 z-10 w-[82%] -translate-x-1/2">
+                          <div className="rounded-xl border border-white/15 bg-black/55 px-4 py-3 backdrop-blur-sm">
+                            <p className="text-base font-semibold leading-tight tracking-tight text-white text-center break-words">
+                              {previewOverlayText}
+                            </p>
+                          </div>
                         </div>
                       )}
                       {/* Info overlay when no image */}
@@ -1108,7 +1141,7 @@ const VideoStudio = () => {
                 <div className="glass rounded-lg p-3 space-y-1">
                   <p className="text-xs text-foreground/90"><span className="font-medium">Visual:</span> {scene.visual}</p>
                   {scene.voiceover && <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">VO:</span> "{scene.voiceover}"</p>}
-                  {scene.text_overlay && <p className="text-xs text-primary"><span className="font-medium">Text:</span> {scene.text_overlay}</p>}
+                  {previewOverlayText && <p className="text-xs text-primary"><span className="font-medium">Text:</span> {previewOverlayText}</p>}
                 </div>
               )}
 
@@ -1291,6 +1324,7 @@ const VideoStudio = () => {
             {scenes.length > 0 && (() => {
               const imageKey = `${p.id}-${scenes[activeScene]?.scene_number || activeScene + 1}`;
               const sceneImg = sceneImages[imageKey];
+              const sceneOverlayText = normalizeVideoOverlayText(scenes[activeScene]?.text_overlay);
               return (
                 <div className={`relative glass rounded-2xl overflow-hidden ${p.format === "9:16" ? "max-w-xs mx-auto aspect-[9/16]" : p.format === "1:1" ? "max-w-md mx-auto aspect-square" : "aspect-video"}`}>
                   <AnimatePresence mode="wait">
@@ -1336,16 +1370,19 @@ const VideoStudio = () => {
                         <img src={overlayLogoSrc} alt="Brand Logo" className="h-4 w-auto opacity-70 drop-shadow-md" />
                       </div>
                       {/* Text overlay shown only if image is present */}
-                      {sceneImg && scenes[activeScene]?.text_overlay && (
-                        <div className="absolute bottom-14 left-0 right-0 px-4 z-10">
-                          <motion.p
+                      {sceneImg && sceneOverlayText && (
+                        <div className="absolute bottom-5 left-1/2 z-10 w-[82%] -translate-x-1/2">
+                          <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.3 }}
-                            className="text-lg font-bold text-white drop-shadow-lg text-center"
                           >
-                            {scenes[activeScene].text_overlay}
-                          </motion.p>
+                            <div className="rounded-xl border border-white/15 bg-black/55 px-4 py-3 backdrop-blur-sm">
+                              <p className="text-base font-semibold leading-tight tracking-tight text-white text-center break-words">
+                                {sceneOverlayText}
+                              </p>
+                            </div>
+                          </motion.div>
                         </div>
                       )}
                     </motion.div>
