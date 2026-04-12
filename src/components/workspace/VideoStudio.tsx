@@ -339,6 +339,8 @@ const VideoStudio = () => {
   // Client logo for third-party ads
   const [clientLogo, setClientLogo] = useState<string | null>(null);
   const [clientLogoName, setClientLogoName] = useState<string>("");
+  // Animation toggle
+  const [animatedAds, setAnimatedAds] = useState(true);
   // Auto-render pipeline state
   const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
   const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
@@ -701,6 +703,7 @@ const VideoStudio = () => {
         format: project.format,
         scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
         onProgress: (p) => setExportProgress(50 + Math.round(p * 0.5)),
+        animated: animatedAds,
       });
 
       // Upload to storage
@@ -873,6 +876,7 @@ const VideoStudio = () => {
         format: p.format,
         scenes: sceneInputs as { imageUrl: string; durationSeconds: number; textOverlay?: string }[],
         onProgress: setExportProgress,
+        animated: animatedAds,
       });
 
       // Upload to storage
@@ -1662,6 +1666,21 @@ const VideoStudio = () => {
             />
             Auto-include brand logo
           </label>
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <label className="flex items-center gap-2 cursor-pointer glass rounded-lg px-3 py-2 text-xs hover:border-primary/30 transition-colors border border-primary/20">
+            <Film className="w-3.5 h-3.5 text-primary" />
+            <span>Animated Ads</span>
+            <input
+              type="checkbox"
+              checked={animatedAds}
+              onChange={(e) => setAnimatedAds(e.target.checked)}
+              className="rounded border-border ml-1"
+            />
+          </label>
+          <span className="text-[10px] text-muted-foreground italic">
+            {animatedAds ? "Ken Burns zoom/pan + text slide-in enabled" : "Static scenes (no motion effects)"}
+          </span>
         </div>
 
         <div className="flex flex-wrap gap-3 items-end">
