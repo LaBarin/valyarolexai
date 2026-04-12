@@ -702,7 +702,7 @@ const VideoStudio = () => {
     try {
       const blob = await renderVideo({
         format: project.format,
-        scenes: sceneInputs.map((s, i) => ({ ...s, animation: sceneAnimations[i] })) as any[],
+        scenes: sceneInputs.map((s, i) => ({ ...s, animation: sceneAnimations[i] && sceneAnimations[i] !== "auto" ? sceneAnimations[i] : undefined })) as any[],
         onProgress: (p) => setExportProgress(50 + Math.round(p * 0.5)),
         preset: animationPreset,
       });
@@ -875,7 +875,7 @@ const VideoStudio = () => {
     try {
       const blob = await renderVideo({
         format: p.format,
-        scenes: sceneInputs.map((s, i) => ({ ...s, animation: sceneAnimations[i] })) as any[],
+        scenes: sceneInputs.map((s, i) => ({ ...s, animation: sceneAnimations[i] && sceneAnimations[i] !== "auto" ? sceneAnimations[i] : undefined })) as any[],
         onProgress: setExportProgress,
         preset: animationPreset,
       });
