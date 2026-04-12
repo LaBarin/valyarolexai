@@ -1495,7 +1495,7 @@ const VideoStudio = () => {
                       <div className="pt-1">
                         <Select
                           value={sceneAnimations[i] || ""}
-                          onValueChange={(v) => setSceneAnimations(prev => ({ ...prev, [i]: v as SceneAnimation }))}
+                          onValueChange={(v) => setSceneAnimations(prev => ({ ...prev, [i]: v as SceneAnimation | "auto" }))}
                         >
                           <SelectTrigger className="h-6 text-[10px] bg-background/50 w-full">
                             <Film className="w-3 h-3 mr-1 text-primary flex-shrink-0" />
