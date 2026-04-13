@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const plans = [
   {
@@ -17,6 +18,7 @@ const plans = [
       "Community support",
     ],
     cta: "Get Started Free",
+    action: "signup" as const,
     highlight: false,
   },
   {
@@ -38,6 +40,7 @@ const plans = [
       "Priority support",
     ],
     cta: "Start 14-Day Free Trial",
+    action: "signup" as const,
     highlight: true,
     savings: "Replaces $150+/mo in tools",
   },
@@ -58,6 +61,7 @@ const plans = [
       "Audit logs & compliance",
     ],
     cta: "Contact Sales",
+    action: "contact" as const,
     highlight: false,
   },
 ];
@@ -125,13 +129,31 @@ const PricingSection = () => {
                   </li>
                 ))}
               </ul>
-              <Button
-                variant={plan.highlight ? "hero" : "hero-outline"}
-                className="w-full"
-              >
-                {plan.cta}
-                {plan.highlight && <ArrowRight className="ml-2 w-4 h-4" />}
-              </Button>
+              {plan.action === "contact" ? (
+                <div className="space-y-2">
+                  <a href="tel:+18888393469" className="block">
+                    <Button variant="hero-outline" className="w-full gap-2">
+                      <Phone className="w-4 h-4" />
+                      +1 (888) 839-3469
+                    </Button>
+                  </a>
+                  <a href="mailto:XyzDiverseServices@Gmail.Com" className="block">
+                    <Button variant="hero-outline" className="w-full text-sm">
+                      Email Sales
+                    </Button>
+                  </a>
+                </div>
+              ) : (
+                <Link to="/signup">
+                  <Button
+                    variant={plan.highlight ? "hero" : "hero-outline"}
+                    className="w-full"
+                  >
+                    {plan.cta}
+                    {plan.highlight && <ArrowRight className="ml-2 w-4 h-4" />}
+                  </Button>
+                </Link>
+              )}
             </motion.div>
           ))}
         </div>
