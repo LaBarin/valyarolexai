@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin, Mail, Linkedin, Target, Users, Lightbulb, Globe } from "lucide-react";
+import { MapPin, Mail, Linkedin, Target, Users, Lightbulb, Globe, Phone } from "lucide-react";
 import logo from "@/assets/valyarolex-logo.png";
 
 const AboutSection = () => {
@@ -26,7 +26,6 @@ const AboutSection = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-center mb-16">
-          {/* Left — Mission cards */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -70,7 +69,6 @@ const AboutSection = () => {
             ))}
           </motion.div>
 
-          {/* Right — Founder & Company */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -102,7 +100,16 @@ const AboutSection = () => {
             <div className="glass rounded-xl p-5 space-y-3">
               <div className="flex items-center gap-3">
                 <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                <span className="text-sm">Houston, TX</span>
+                <span className="text-sm">12436 F.M. 1960 Rd W., Ste. 1669, Houston, TX 77065</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-4 h-4 text-primary flex-shrink-0" />
+                <a
+                  href="tel:+18888393469"
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  +1 (888) 839-3469
+                </a>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary flex-shrink-0" />

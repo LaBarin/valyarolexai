@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
-    <section id="pricing" className="relative py-32 px-6">
+    <section className="relative py-32 px-6">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
@@ -23,13 +24,17 @@ const CTASection = () => {
             Join thousands of professionals who replaced six hours of weekly busywork with one intelligent workspace.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="text-base px-8">
-              Get Early Access
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-            <Button variant="hero-outline" size="lg" className="text-base px-8">
-              Watch Demo
-            </Button>
+            <Link to="/signup">
+              <Button variant="hero" size="lg" className="text-base px-8 w-full sm:w-auto">
+                Get Early Access
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
+            <Link to="/demo">
+              <Button variant="hero-outline" size="lg" className="text-base px-8 w-full sm:w-auto">
+                Watch Demo
+              </Button>
+            </Link>
           </div>
         </motion.div>
       </div>

@@ -28,7 +28,7 @@ const steps = [
     title: "Welcome to Valyarolex.AI",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Welcome to the Valyarolex.AI interactive product tour. Valyarolex.AI is a next-generation AI productivity platform that unifies your email, calendar, task management, team collaboration, and AI-powered automation into one intelligent workspace. Over the next slides, we'll walk you through every major feature — including our live AI Assistant and Workflow Builder — showing you exactly how Valyarolex.AI eliminates workflow fragmentation and saves you hours every week. Let's get started.",
+      "Welcome to the Valyarolex.AI interactive product tour. We'll walk you through every major feature — AI Assistant, Workflow Builder, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Task Manager, and more. Let's get started.",
     image: null,
     badge: "Getting Started",
   },
@@ -37,9 +37,9 @@ const steps = [
     title: "AI Assistant",
     subtitle: "Your always-on productivity co-pilot.",
     description:
-      "The Valyarolex.AI Assistant is a real-time, streaming AI chat interface built directly into your dashboard and workspace. Powered by advanced language models, it can draft emails, summarize meeting notes, create task lists, brainstorm ideas, answer questions about your workflow, and execute commands — all through natural conversation. The assistant renders responses with rich markdown formatting, supports quick-prompt shortcuts for common actions, and streams responses token-by-token for instant feedback. It's available on your dashboard for quick queries and in the full workspace for deep work sessions.",
+      "The Valyarolex.AI Assistant is a real-time, streaming AI chat interface built directly into your workspace. It can draft emails, summarize meeting notes, create task lists, brainstorm ideas, and execute commands — all through natural conversation.",
     image: null,
-    badge: "Feature 1 of 8",
+    badge: "Feature 1 of 13",
     highlights: [
       "Streaming AI responses with real-time token rendering",
       "Rich markdown output with code blocks and formatting",
@@ -52,9 +52,9 @@ const steps = [
     title: "AI Workflow Builder",
     subtitle: "Describe it. Build it. Automate it.",
     description:
-      "The AI Workflow Builder transforms plain English descriptions into visual, executable automation sequences. Simply type what you want automated — like 'When a client emails, draft a reply, schedule a follow-up, and notify the team' — and the AI generates a structured workflow with a trigger event and sequential steps. Each step is visualized with branded icons and animated execution, showing you exactly how your automation will flow. The builder supports email, calendar, document, messaging, and custom automation step types, all generated from a single natural language prompt.",
+      "Transform plain English descriptions into visual, executable automation sequences. Type what you want automated and the AI generates a structured workflow with triggers and sequential steps.",
     image: null,
-    badge: "Feature 2 of 8",
+    badge: "Feature 2 of 13",
     highlights: [
       "Natural language to structured workflow generation",
       "Visual step-by-step execution animation",
@@ -67,9 +67,9 @@ const steps = [
     title: "Unified Workspace",
     subtitle: "Chat + Build, side by side.",
     description:
-      "The Workspace page is your dedicated productivity command center, accessible to authenticated users from the navbar or dashboard. It presents the AI Assistant and Workflow Builder in a side-by-side layout, allowing you to have a conversation with your AI co-pilot while simultaneously building automated workflows. This dual-pane design enables a seamless loop: ask the assistant for advice, then immediately translate that advice into an automated workflow — all without switching pages or losing context.",
+      "The Workspace is your dedicated productivity command center with AI Assistant and Workflow Builder in a side-by-side layout — chat with your AI co-pilot while simultaneously building automated workflows.",
     image: null,
-    badge: "Feature 3 of 8",
+    badge: "Feature 3 of 13",
     highlights: [
       "Side-by-side AI chat and workflow builder",
       "Authenticated access with protected routes",
@@ -78,13 +78,89 @@ const steps = [
     ],
   },
   {
+    id: "video-studio",
+    title: "Video Studio",
+    subtitle: "AI-powered video ad creation.",
+    description:
+      "Create professional video ads with AI-generated scripts, scene-by-scene storyboards, and customizable animation presets. Choose from Cinematic, Energetic, or Minimal animation styles, or override effects per-scene for total creative control.",
+    image: null,
+    badge: "Feature 4 of 13",
+    highlights: [
+      "AI-generated video scripts from a single prompt",
+      "Scene-by-scene storyboard with image generation",
+      "Animation presets: Cinematic, Energetic, Minimal",
+      "Per-scene animation overrides (Zoom In, Pan Left, Fade, etc.)",
+      "Export to .webm with full motion rendering",
+    ],
+  },
+  {
+    id: "pitch-deck",
+    title: "Pitch Deck Builder",
+    subtitle: "AI-crafted presentations in minutes.",
+    description:
+      "Build stunning pitch decks with AI-generated slides. Simply describe your company and the AI creates a full deck with cover, problem, solution, market, traction, team, and ask slides — all with professional themes and shareable links.",
+    image: null,
+    badge: "Feature 5 of 13",
+    highlights: [
+      "AI-generated slide content from a description",
+      "Multiple professional themes and layouts",
+      "Shareable public links for investor distribution",
+      "Edit, reorder, and customize any slide",
+    ],
+  },
+  {
+    id: "campaign-manager",
+    title: "Campaign Manager",
+    subtitle: "Plan, execute, and track marketing campaigns.",
+    description:
+      "The Campaign Manager lets you plan multi-channel marketing campaigns with AI-generated content plans, audience targeting, scheduling, and performance goals — all from a single dashboard. Share campaigns with stakeholders via secure links.",
+    image: null,
+    badge: "Feature 6 of 13",
+    highlights: [
+      "AI-generated campaign strategy and content plans",
+      "Multi-channel support (email, social, ads, PR)",
+      "Audience targeting and scheduling automation",
+      "Shareable campaign links for team collaboration",
+    ],
+  },
+  {
+    id: "ai-agents",
+    title: "AI Agents",
+    subtitle: "Autonomous AI workers for your team.",
+    description:
+      "Deploy specialized AI agents that handle recurring tasks autonomously — from monitoring your inbox and drafting responses, to researching competitors, generating reports, and managing follow-ups. Each agent has configurable goals and guardrails.",
+    image: null,
+    badge: "Feature 7 of 13",
+    highlights: [
+      "Pre-built agent templates for common workflows",
+      "Configurable goals, triggers, and guardrails",
+      "Autonomous email drafting and follow-up management",
+      "Research, reporting, and data analysis agents",
+    ],
+  },
+  {
+    id: "task-manager",
+    title: "Task Manager",
+    subtitle: "Intelligent task tracking with AI prioritization.",
+    description:
+      "Manage all your tasks in one place with AI-powered prioritization, due date tracking, tags, and status workflows. Convert emails to tasks instantly, get AI suggestions for task ordering, and never miss a deadline.",
+    image: null,
+    badge: "Feature 8 of 13",
+    highlights: [
+      "AI-powered task prioritization and scheduling",
+      "Tags, due dates, and customizable status workflows",
+      "Convert emails and messages to tasks in one click",
+      "Integration with calendar for deadline management",
+    ],
+  },
+  {
     id: "inbox",
     title: "Unified Inbox",
     subtitle: "All messages. One intelligent stream.",
     description:
-      "The Unified Inbox is your central communication hub. Valyarolex.AI aggregates emails from Gmail and Outlook, instant messages from Slack and Microsoft Teams, and notifications from project management tools — all into a single, AI-prioritized feed. The AI engine automatically drafts responses for routine messages, highlights urgent items using smart categorization, and generates full thread summaries with a single click. You can convert any email or message into an actionable task instantly.",
+      "The Unified Inbox aggregates emails from Gmail and Outlook, messages from Slack and Teams, and notifications from project tools — all into a single, AI-prioritized feed with smart categorization and auto-drafted replies.",
     image: demoInbox,
-    badge: "Feature 4 of 8",
+    badge: "Feature 9 of 13",
     highlights: [
       "AI-drafted replies for routine emails",
       "Smart priority categorization with urgency scoring",
@@ -97,9 +173,9 @@ const steps = [
     title: "Smart Scheduling",
     subtitle: "AI that understands your rhythm.",
     description:
-      "The Smart Scheduling engine is powered by AI that understands your energy cycles and work patterns. It scans all participants' calendars across time zones and proposes optimal meeting times based on availability, workload balance, and energy levels. Focus blocks are automatically protected during your peak productivity hours, and the AI dynamically reorganizes your entire day when unexpected changes occur.",
+      "The Smart Scheduling engine scans participants' calendars across time zones and proposes optimal meeting times based on availability, workload balance, and energy levels. Focus blocks are automatically protected.",
     image: demoCalendar,
-    badge: "Feature 5 of 8",
+    badge: "Feature 10 of 13",
     highlights: [
       "Cross-timezone availability scanning for all participants",
       "Energy-based focus block protection during peak hours",
@@ -112,9 +188,9 @@ const steps = [
     title: "Visual Automation Engine",
     subtitle: "Natural language triggers. Zero code.",
     description:
-      'Beyond the AI Workflow Builder, the Visual Automation Engine provides a full drag-and-drop interface for creating complex, multi-step automations that chain actions across email, calendar, CRM, document tools, and team messaging platforms. The landing page showcases a live interactive demo of this engine, allowing visitors to experience the power of automation before signing up.',
+      "The Visual Automation Engine provides a full drag-and-drop interface for creating complex, multi-step automations that chain actions across email, calendar, CRM, document tools, and messaging platforms.",
     image: demoAutomation,
-    badge: "Feature 6 of 8",
+    badge: "Feature 11 of 13",
     highlights: [
       "Visual drag-and-drop flow builder",
       "Natural language workflow creation with AI",
@@ -127,9 +203,9 @@ const steps = [
     title: "Natural Language Control",
     subtitle: "Just tell Valyarolex.AI what you need.",
     description:
-      'Natural Language Control puts the full power of Valyarolex.AI at your fingertips through voice or text commands. Type or speak commands like "Move all non-urgent meetings to next week," "Prepare tomorrow\'s schedule with two-hour focus blocks," or "Summarize all unread Slack messages." The AI understands context, handles batch operations with a single sentence, and executes instantly.',
+      "Type or speak commands like \"Move all non-urgent meetings to next week\" or \"Summarize all unread Slack messages.\" The AI understands context, handles batch operations, and executes instantly.",
     image: demoCommands,
-    badge: "Feature 7 of 8",
+    badge: "Feature 12 of 13",
     highlights: [
       "Voice and text command support with natural language",
       "Instant schedule reorganization with smart reasoning",
@@ -142,11 +218,11 @@ const steps = [
     title: "Deep Integrations",
     subtitle: "Connects to everything you use.",
     description:
-      "Valyarolex.AI integrates deeply with over twelve enterprise tools including Gmail, Outlook, Slack, Microsoft Teams, Zoom, Google Meet, Salesforce, HubSpot, Notion, Asana, Jira, and more. All connections use secure OAuth authentication and sync bidirectionally in real-time. Setup requires zero configuration — just connect your accounts and Valyarolex.AI handles the rest.",
+      "Valyarolex.AI integrates with over 50 enterprise tools including Gmail, Outlook, Slack, Teams, Zoom, Salesforce, HubSpot, Notion, Asana, Jira, and more — all with secure OAuth and real-time bidirectional sync.",
     image: demoIntegrations,
-    badge: "Feature 8 of 8",
+    badge: "Feature 13 of 13",
     highlights: [
-      "12+ enterprise tool integrations out of the box",
+      "50+ enterprise tool integrations out of the box",
       "Real-time bidirectional sync across all platforms",
       "Secure OAuth connections with encrypted data",
       "Zero-configuration setup — connect and go",
@@ -157,7 +233,7 @@ const steps = [
     title: "Ready to Transform?",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "That concludes our tour of Valyarolex.AI. To recap: a live AI Assistant for instant productivity, an AI Workflow Builder that turns plain English into automations, a unified Workspace for chat + build side by side, smart scheduling, unified inbox, deep integrations, and natural language control — all powered by an AI engine that continuously learns your work style. Sign up today for early access.",
+      "That concludes our tour. Valyarolex.AI gives you an AI Assistant, Workflow Builder, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Task Manager, smart scheduling, unified inbox, deep integrations, and natural language control — all in one workspace. Sign up today.",
     image: null,
     badge: "Get Started",
   },
