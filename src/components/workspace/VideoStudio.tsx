@@ -2413,15 +2413,6 @@ const VideoStudio = () => {
               </SelectContent>
             </Select>
           </div>
-          <a
-            href="https://pixabay.com/music/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] text-primary hover:underline self-end pb-2"
-            title="Browse free royalty-free music on Pixabay, then upload your picks in the Music tab"
-          >
-            Browse Pixabay music ↗
-          </a>
         </div>
 
         <div className="flex flex-wrap gap-3 items-end">
