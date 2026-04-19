@@ -145,7 +145,13 @@ const WorkspaceContent = () => {
   useEffect(() => {
     const tab = searchParams.get("tab") as TabId;
     if (tab && navItems.some((i) => i.id === tab)) setActiveTab(tab);
-  }, [searchParams]);
+    if (searchParams.get("checkout") === "success") {
+      toast.success("Payment confirmed — your account is being updated.");
+      const next = new URLSearchParams(searchParams);
+      next.delete("checkout");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const navigate = (id: TabId | string) => {
     const validId = id as TabId;
