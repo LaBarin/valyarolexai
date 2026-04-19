@@ -4,7 +4,7 @@ import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
   Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download,
-  FileVideo, Upload
+  FileVideo, Upload, CheckCircle2, AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -61,6 +61,13 @@ type VideoData = {
     hashtags?: string[];
   };
   publishing_links?: Record<string, string>;
+  last_render_meta?: {
+    voiceover_id?: string | null;
+    music_track_id?: string | null;
+    music_volume?: number | null;
+    scenes_hash?: string;
+    rendered_at?: string;
+  };
 };
 
 type VideoProject = {
@@ -151,7 +158,46 @@ const normalizeVideoScript = (value: unknown): VideoData | null => {
       rawLinks && typeof rawLinks === "object" && !Array.isArray(rawLinks)
         ? Object.fromEntries(Object.entries(rawLinks).map(([key, link]) => [key, String(link ?? "")]))
         : {},
+    last_render_meta: (script as any).last_render_meta ?? undefined,
   };
+};
+
+// Compute a stable hash of scene content (visual + overlay + duration) used for render-sync detection
+const computeScenesHash = (scenes: Scene[]): string => {
+  const payload = scenes.map((s) => ({
+    n: s.scene_number,
+    v: s.visual ?? "",
+    t: s.text_overlay ?? "",
+    d: s.duration_seconds ?? 0,
+  }));
+  const json = JSON.stringify(payload);
+  // Lightweight 32-bit FNV-1a hash — good enough for change detection
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < json.length; i++) {
+    hash ^= json.charCodeAt(i);
+    hash = (hash * 0x01000193) >>> 0;
+  }
+  return hash.toString(16);
+};
+
+const buildRenderMeta = (project: VideoProject) => ({
+  voiceover_id: project.voiceover_id ?? null,
+  music_track_id: project.music_track_id ?? null,
+  music_volume: project.music_volume ?? null,
+  scenes_hash: computeScenesHash(project.storyboard || project.script?.scenes || []),
+  rendered_at: new Date().toISOString(),
+});
+
+const isRenderInSync = (project: VideoProject): boolean => {
+  const meta = project.script?.last_render_meta;
+  if (!meta) return false;
+  const currentHash = computeScenesHash(project.storyboard || project.script?.scenes || []);
+  return (
+    meta.voiceover_id === (project.voiceover_id ?? null) &&
+    meta.music_track_id === (project.music_track_id ?? null) &&
+    (meta.music_volume ?? null) === (project.music_volume ?? null) &&
+    meta.scenes_hash === currentHash
+  );
 };
 
 const getStoryboardScenes = (value: unknown): Scene[] => {
@@ -184,6 +230,7 @@ const mergeVideoScript = (
     scenes: nextScenes,
     ad_copy: currentScript?.ad_copy,
     publishing_links: currentScript?.publishing_links ?? {},
+    last_render_meta: currentScript?.last_render_meta,
     ...overrides,
   };
 };
