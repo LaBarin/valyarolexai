@@ -40,6 +40,10 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
   const [moodFilter, setMoodFilter] = useState<string>("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [genPrompt, setGenPrompt] = useState("");
+  const [genDuration, setGenDuration] = useState(30);
+  const [genMood, setGenMood] = useState("cinematic");
+  const [generating, setGenerating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlCacheRef = useRef<Map<string, string>>(new Map());
 
