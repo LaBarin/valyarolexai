@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Music, Play, Pause, Upload, Loader2, Check, Search } from "lucide-react";
+import { Music, Play, Pause, Upload, Loader2, Check, Search, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
@@ -38,6 +40,10 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
   const [moodFilter, setMoodFilter] = useState<string>("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [genPrompt, setGenPrompt] = useState("");
+  const [genDuration, setGenDuration] = useState(30);
+  const [genMood, setGenMood] = useState("cinematic");
+  const [generating, setGenerating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlCacheRef = useRef<Map<string, string>>(new Map());
 
@@ -138,6 +144,42 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
     }
   };
 
+  const handleGenerate = async () => {
+    if (!user) {
+      toast.error("Please sign in first");
+      return;
+    }
+    const prompt = genPrompt.trim();
+    if (prompt.length < 4) {
+      toast.error("Describe the music you want (at least a few words)");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-music", {
+        body: {
+          prompt,
+          duration_seconds: genDuration,
+          mood: genMood,
+          name: prompt.slice(0, 80),
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Track generated and added to your library");
+      if (data?.track && data?.url) {
+        urlCacheRef.current.set(data.track.storage_path, data.url);
+      }
+      setGenPrompt("");
+      await loadTracks();
+      if (data?.track && onSelect) onSelect(data.track as AudioTrack);
+    } catch (err: any) {
+      toast.error(err?.message || "Music generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const filtered = tracks.filter((t) => {
     if (moodFilter !== "all" && t.mood !== moodFilter) return false;
     if (search && !`${t.name} ${t.artist}`.toLowerCase().includes(search.toLowerCase())) return false;
@@ -158,15 +200,6 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
           <p className="text-xs text-muted-foreground">Royalty-free background tracks</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <a
-            href="https://pixabay.com/music/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] text-primary hover:underline whitespace-nowrap"
-            title="Browse free, royalty-free music on Pixabay then upload your picks here"
-          >
-            Browse Pixabay ↗
-          </a>
           <input
             type="file"
             id="track-upload"
@@ -232,9 +265,12 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
 
       <ScrollArea className="flex-1 pr-2">
         <Tabs defaultValue="curated">
-          <TabsList className="grid grid-cols-2 h-8 mb-2">
+          <TabsList className="grid grid-cols-3 h-8 mb-2">
             <TabsTrigger value="curated" className="text-xs">Library ({curated.length})</TabsTrigger>
-            <TabsTrigger value="mine" className="text-xs">My uploads ({userTracks.length})</TabsTrigger>
+            <TabsTrigger value="mine" className="text-xs">Mine ({userTracks.length})</TabsTrigger>
+            <TabsTrigger value="generate" className="text-xs gap-1">
+              <Sparkles className="w-3 h-3" /> AI
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="curated">
             <TrackList
@@ -254,8 +290,93 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
               selectedId={selectedTrackId}
               onPlay={togglePlay}
               onSelect={onSelect}
-              emptyText="Upload your own MP3/WAV tracks to use them here."
+              emptyText="Upload your own MP3/WAV tracks or generate one with AI."
             />
+          </TabsContent>
+          <TabsContent value="generate" className="space-y-3">
+            <div className="rounded-lg border border-border/40 bg-muted/20 p-3 space-y-3">
+              <div>
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Describe the music
+                </label>
+                <Textarea
+                  value={genPrompt}
+                  onChange={(e) => setGenPrompt(e.target.value)}
+                  placeholder="e.g. Uplifting cinematic corporate track with soft piano, warm strings and a subtle four-on-the-floor beat"
+                  rows={3}
+                  className="mt-1 text-xs resize-none"
+                  maxLength={500}
+                  disabled={generating}
+                />
+                <div className="text-[10px] text-muted-foreground text-right mt-0.5">
+                  {genPrompt.length}/500
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Duration
+                  </label>
+                  <Select
+                    value={String(genDuration)}
+                    onValueChange={(v) => setGenDuration(Number(v))}
+                    disabled={generating}
+                  >
+                    <SelectTrigger className="h-8 text-xs mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 seconds</SelectItem>
+                      <SelectItem value="30">30 seconds</SelectItem>
+                      <SelectItem value="45">45 seconds</SelectItem>
+                      <SelectItem value="60">1 minute</SelectItem>
+                      <SelectItem value="90">1.5 minutes</SelectItem>
+                      <SelectItem value="120">2 minutes</SelectItem>
+                      <SelectItem value="180">3 minutes</SelectItem>
+                      <SelectItem value="240">4 minutes</SelectItem>
+                      <SelectItem value="300">5 minutes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Mood tag
+                  </label>
+                  <Select value={genMood} onValueChange={setGenMood} disabled={generating}>
+                    <SelectTrigger className="h-8 text-xs mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MOODS.filter((m) => m !== "all").map((m) => (
+                        <SelectItem key={m} value={m} className="capitalize">
+                          {m}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="w-full"
+                onClick={handleGenerate}
+                disabled={generating || genPrompt.trim().length < 4}
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Composing your track…
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-3.5 h-3.5 mr-1.5" /> Generate music (4 credits)
+                  </>
+                )}
+              </Button>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Powered by ElevenLabs Music. The track is saved to <strong>Mine</strong> and
+                auto-selected for the current project.
+              </p>
+            </div>
           </TabsContent>
         </Tabs>
       </ScrollArea>
