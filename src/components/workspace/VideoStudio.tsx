@@ -4,8 +4,10 @@ import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
   Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download,
-  FileVideo, Upload, CheckCircle2, AlertCircle
+  FileVideo, Upload, CheckCircle2, AlertCircle, VolumeX
 } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -425,6 +427,18 @@ const VideoStudio = () => {
   const [preGenVoiceId, setPreGenVoiceId] = useState<string>("JBFqnCBsd6RMkjVDRZzb");
   const [preGenTrackId, setPreGenTrackId] = useState<string | null>(null);
   const [availableTracks, setAvailableTracks] = useState<AudioTrack[]>([]);
+
+  // ── Preview audio playback ────────────────────────────────────────────────
+  // Resolves signed URLs for the active project's voiceover + music tracks
+  // and plays them in sync with the storyboard scene timer.
+  const voiceoverAudioRef = useRef<HTMLAudioElement | null>(null);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [previewVoiceoverUrl, setPreviewVoiceoverUrl] = useState<string | null>(null);
+  const [previewMusicUrl, setPreviewMusicUrl] = useState<string | null>(null);
+  const [voiceoverMuted, setVoiceoverMuted] = useState(false);
+  const [musicMuted, setMusicMuted] = useState(false);
+  const [voiceoverVolume, setVoiceoverVolume] = useState(1);
+  // music volume is persisted on the project; we shadow it locally for slider responsiveness
 
   useEffect(() => {
     let active = true;
@@ -1169,20 +1183,123 @@ const VideoStudio = () => {
     }
   };
 
-  // Storyboard playback simulation
+  // Resolve signed URLs for the active project's voiceover + music whenever
+  // the attachments change. Stop any in-flight playback first so we don't
+  // leak audio elements between projects.
   useEffect(() => {
-    if (!isPlaying || !activeProject?.storyboard?.length) return;
+    let cancelled = false;
+    // Tear down current audio
+    if (voiceoverAudioRef.current) {
+      voiceoverAudioRef.current.pause();
+      voiceoverAudioRef.current.src = "";
+      voiceoverAudioRef.current = null;
+    }
+    if (musicAudioRef.current) {
+      musicAudioRef.current.pause();
+      musicAudioRef.current.src = "";
+      musicAudioRef.current = null;
+    }
+    setPreviewVoiceoverUrl(null);
+    setPreviewMusicUrl(null);
+
+    if (!activeProject) return;
+    if (!activeProject.voiceover_id && !activeProject.music_track_id) return;
+
+    (async () => {
+      const { voiceoverUrl, musicUrl } = await resolveProjectAudio(activeProject);
+      if (cancelled) return;
+      setPreviewVoiceoverUrl(voiceoverUrl);
+      setPreviewMusicUrl(musicUrl);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeProject?.id, activeProject?.voiceover_id, activeProject?.music_track_id]);
+
+  // Construct/teardown <audio> elements when URLs become available
+  useEffect(() => {
+    if (previewVoiceoverUrl) {
+      const a = new Audio(previewVoiceoverUrl);
+      a.preload = "auto";
+      a.volume = voiceoverMuted ? 0 : voiceoverVolume;
+      voiceoverAudioRef.current = a;
+    }
+    return () => {
+      if (voiceoverAudioRef.current) {
+        voiceoverAudioRef.current.pause();
+        voiceoverAudioRef.current = null;
+      }
+    };
+  }, [previewVoiceoverUrl]);
+
+  useEffect(() => {
+    if (previewMusicUrl) {
+      const a = new Audio(previewMusicUrl);
+      a.preload = "auto";
+      a.loop = true;
+      const projVol = activeProject?.music_volume ?? 0.25;
+      a.volume = musicMuted ? 0 : projVol;
+      musicAudioRef.current = a;
+    }
+    return () => {
+      if (musicAudioRef.current) {
+        musicAudioRef.current.pause();
+        musicAudioRef.current = null;
+      }
+    };
+  }, [previewMusicUrl]);
+
+  // Keep volume/mute states in sync with live <audio> elements
+  useEffect(() => {
+    if (voiceoverAudioRef.current) {
+      voiceoverAudioRef.current.volume = voiceoverMuted ? 0 : voiceoverVolume;
+    }
+  }, [voiceoverVolume, voiceoverMuted]);
+
+  useEffect(() => {
+    if (musicAudioRef.current) {
+      const projVol = activeProject?.music_volume ?? 0.25;
+      musicAudioRef.current.volume = musicMuted ? 0 : projVol;
+    }
+  }, [musicMuted, activeProject?.music_volume]);
+
+  // Storyboard playback simulation — also drives audio playback
+  useEffect(() => {
+    if (!isPlaying || !activeProject?.storyboard?.length) {
+      // Pause any audio when not playing
+      voiceoverAudioRef.current?.pause();
+      musicAudioRef.current?.pause();
+      return;
+    }
     const scene = activeProject.storyboard[activeScene];
+
+    // Start audio on the FIRST scene of a play session, and resume on subsequent scenes.
+    // We treat scene 0 as a "start from beginning" cue.
+    const vo = voiceoverAudioRef.current;
+    const mu = musicAudioRef.current;
+    if (activeScene === 0) {
+      if (vo) { try { vo.currentTime = 0; } catch {} vo.play().catch(() => {}); }
+      if (mu) { try { mu.currentTime = 0; } catch {} mu.play().catch(() => {}); }
+    } else {
+      // Mid-storyboard: ensure audio is still playing (e.g. user pressed pause/play)
+      if (vo && vo.paused) vo.play().catch(() => {});
+      if (mu && mu.paused) mu.play().catch(() => {});
+    }
+
     const timer = setTimeout(() => {
       if (activeScene < activeProject.storyboard.length - 1) {
         setActiveScene(activeScene + 1);
       } else {
         setIsPlaying(false);
         setActiveScene(0);
+        voiceoverAudioRef.current?.pause();
+        musicAudioRef.current?.pause();
       }
     }, (scene?.duration_seconds || 3) * 1000);
     return () => clearTimeout(timer);
   }, [isPlaying, activeScene, activeProject]);
+
 
   // Scene edit dialog — rendered inline (not as a sub-component) to avoid remounting on state change
   const sceneEditDialogJsx = editingScene !== null && activeProject ? (() => {
@@ -1696,6 +1813,70 @@ const VideoStudio = () => {
                 </Button>
                 <span className="text-xs text-muted-foreground min-w-[36px] text-center">{activeScene + 1}/{scenes.length}</span>
                 <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-24 h-1.5" />
+
+                {/* Voice-over audio control */}
+                {previewVoiceoverUrl && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Voice-over volume">
+                        {voiceoverMuted || voiceoverVolume === 0 ? (
+                          <VolumeX className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <Mic className="w-4 h-4 text-primary" />
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium flex items-center gap-1.5"><Mic className="w-3 h-3" /> Voice-over</span>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={() => setVoiceoverMuted((m) => !m)}>
+                          {voiceoverMuted ? "Unmute" : "Mute"}
+                        </Button>
+                      </div>
+                      <Slider value={[voiceoverMuted ? 0 : voiceoverVolume * 100]} min={0} max={100} step={1}
+                        onValueChange={(v) => { setVoiceoverMuted(false); setVoiceoverVolume(v[0] / 100); }} />
+                    </PopoverContent>
+                  </Popover>
+                )}
+
+                {/* Music audio control (volume persists to project) */}
+                {previewMusicUrl && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Music volume">
+                        {musicMuted || (activeProject?.music_volume ?? 0.25) === 0 ? (
+                          <VolumeX className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <Music className="w-4 h-4 text-accent" />
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium flex items-center gap-1.5"><Music className="w-3 h-3" /> Music</span>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={() => setMusicMuted((m) => !m)}>
+                          {musicMuted ? "Unmute" : "Mute"}
+                        </Button>
+                      </div>
+                      <Slider
+                        value={[musicMuted ? 0 : Math.round((activeProject?.music_volume ?? 0.25) * 100)]}
+                        min={0} max={100} step={1}
+                        onValueChange={async (v) => {
+                          setMusicMuted(false);
+                          const newVol = v[0] / 100;
+                          if (!activeProject) return;
+                          // Optimistic local update for snappy slider
+                          setActiveProject({ ...activeProject, music_volume: newVol });
+                          await supabase
+                            .from("video_projects")
+                            .update({ music_volume: newVol })
+                            .eq("id", activeProject.id);
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
+
                 <NarratorControls
                   slides={videoNarratorSlides}
                   currentSlide={activeScene}
