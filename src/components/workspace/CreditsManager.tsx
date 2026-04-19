@@ -194,7 +194,7 @@ const CreditsManager = () => {
                   className="w-full"
                   variant={pack.popular ? "default" : "outline"}
                 >
-                  {purchasingId === pack.id ? "Adding..." : `Get ${total.toLocaleString()} credits`}
+                  {purchasingId === pack.id ? "Opening checkout..." : `Buy ${total.toLocaleString()} credits`}
                 </Button>
               </Card>
             );
