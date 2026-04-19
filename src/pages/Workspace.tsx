@@ -107,7 +107,7 @@ const WorkspaceSidebar = ({ activeTab, onNavigate }: { activeTab: TabId; onNavig
 };
 
 const ManageSubscriptionButton = () => {
-  const { isActive, tier } = useSubscription();
+  const { isActive, isOwner, tier } = useSubscription();
   const [opening, setOpening] = useState(false);
 
   const handleOpen = async () => {
@@ -123,6 +123,14 @@ const ManageSubscriptionButton = () => {
       setOpening(false);
     }
   };
+
+  if (isOwner) {
+    return (
+      <span className="hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-primary/15 text-primary font-medium">
+        Owner · Unlimited
+      </span>
+    );
+  }
 
   if (!isActive) return null;
 
