@@ -741,6 +741,14 @@ const VideoStudio = () => {
       const scene = scenes[i];
       const key = `${project.id}-${scene.scene_number || i + 1}`;
       setExportProgress(Math.round((i / scenes.length) * 50));
+
+      // Reuse an already-generated image if we have one cached
+      const cached = sceneImages[key];
+      if (cached) {
+        imageMap[key] = cached;
+        continue;
+      }
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const body: Record<string, any> = {
