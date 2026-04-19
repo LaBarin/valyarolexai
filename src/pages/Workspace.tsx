@@ -269,7 +269,7 @@ const WorkspaceContent = () => {
                   <IntegrationHub />
                 </div>
               )}
-              {(activeTab === "videos" || activeTab === "creative") && (
+              {(activeTab === "videos" || (activeTab as string) === "creative") && (
                 <div className="max-w-5xl">
                   <PaywallGate feature="Creative Studio" onUpgrade={() => window.location.href = "/landing#pricing"}>
                     <VideoStudio />
