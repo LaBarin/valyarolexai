@@ -55,6 +55,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({ url: portalSession.urls.general.overview }), responseHeaders);
   } catch (e) {
     console.error('customer-portal error:', e);
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, ...responseHeaders });
+    return new Response(
+      JSON.stringify({ error: 'Unable to open the billing portal. Please try again or contact support.' }),
+      { status: 500, ...responseHeaders },
+    );
   }
 });
