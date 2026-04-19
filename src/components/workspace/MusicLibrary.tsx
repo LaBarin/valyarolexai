@@ -153,11 +153,20 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
         <div className="p-2 rounded-lg bg-primary/10">
           <Music className="w-4 h-4 text-primary" />
         </div>
-        <div>
+        <div className="min-w-0">
           <h3 className="text-sm font-semibold">Music Library</h3>
           <p className="text-xs text-muted-foreground">Royalty-free background tracks</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <a
+            href="https://pixabay.com/music/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-primary hover:underline whitespace-nowrap"
+            title="Browse free, royalty-free music on Pixabay then upload your picks here"
+          >
+            Browse Pixabay ↗
+          </a>
           <input
             type="file"
             id="track-upload"
