@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { chargeOrSubscribe, envFromRequest } from "../_shared/entitlement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -39,7 +40,8 @@ serve(async (req) => {
     }
 
     // --- Input Validation ---
-    const { messages, mode } = await req.json();
+    const body = await req.json();
+    const { messages, mode } = body;
 
     if (!ALLOWED_MODES.includes(mode)) {
       return new Response(JSON.stringify({ error: "Invalid mode" }), {
@@ -62,6 +64,26 @@ serve(async (req) => {
     if (sanitized.length === 0) {
       return new Response(JSON.stringify({ error: "No valid messages" }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- Entitlement: subscribers free, others spend credits ---
+    // Cost: chat=1, structured generations (deck/campaign/video/workflow/schedule)=3
+    const cost = mode === "chat" ? 1 : 3;
+    const env = envFromRequest(body);
+    const charge = await chargeOrSubscribe({
+      userId: user.id,
+      amount: cost,
+      description: `ai:${mode}`,
+      env,
+    });
+    if (!charge.ok) {
+      return new Response(JSON.stringify({
+        error: "Insufficient credits. Upgrade to a paid plan or buy a credit pack.",
+        code: "insufficient_credits",
+      }), {
+        status: 402,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
