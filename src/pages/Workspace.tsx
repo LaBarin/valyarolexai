@@ -106,7 +106,36 @@ const WorkspaceSidebar = ({ activeTab, onNavigate }: { activeTab: TabId; onNavig
   );
 };
 
-const WorkspaceContent = () => {
+const ManageSubscriptionButton = () => {
+  const { isActive, tier } = useSubscription();
+  const [opening, setOpening] = useState(false);
+
+  const handleOpen = async () => {
+    setOpening(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error || !data?.url) {
+        toast.error("Could not open subscription portal");
+      } else {
+        window.open(data.url, "_blank");
+      }
+    } finally {
+      setOpening(false);
+    }
+  };
+
+  if (!isActive) return null;
+
+  return (
+    <button
+      onClick={handleOpen}
+      disabled={opening}
+      className="hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors capitalize"
+    >
+      {opening ? "Opening..." : `${tier} plan • Manage`}
+    </button>
+  );
+};
   const { user, loading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabId>((searchParams.get("tab") as TabId) || "command");
