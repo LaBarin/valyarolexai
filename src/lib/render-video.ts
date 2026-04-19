@@ -69,6 +69,14 @@ type RenderOptions = {
   scenes: SceneInput[];
   onProgress?: (percent: number) => void;
   preset?: AnimationPreset;
+  /** Optional voiceover audio URL to mix into the exported video */
+  voiceoverUrl?: string | null;
+  /** Optional background music audio URL to mix into the exported video */
+  musicUrl?: string | null;
+  /** Background music volume 0-1 (default 0.25) */
+  musicVolume?: number;
+  /** Voiceover volume 0-1 (default 1.0) */
+  voiceoverVolume?: number;
 };
 
 // ─── Constants ──────────────────────────────────────────────────
