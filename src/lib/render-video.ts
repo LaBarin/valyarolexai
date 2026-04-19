@@ -79,6 +79,16 @@ type RenderOptions = {
   voiceoverVolume?: number;
   /** Optional persistent brand info shown as a small footer on every frame */
   brandFooter?: { website?: string; phone?: string } | null;
+  /** Optional closing card drawn on the LAST scene only — client logo + reference logo + contact info */
+  closingCard?: {
+    clientLogoUrl?: string | null;
+    referenceLogoUrl?: string | null;
+    companyName?: string;
+    website?: string;
+    phone?: string;
+    address?: string;
+    poweredByLabel?: string; // e.g. "Powered by"
+  } | null;
 };
 
 // ─── Constants ──────────────────────────────────────────────────
