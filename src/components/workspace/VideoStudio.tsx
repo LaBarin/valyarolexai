@@ -1844,7 +1844,10 @@ const VideoStudio = () => {
                   const updated = mapVideoProject(data);
                   setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
                   setActiveProject(updated);
-                  if (track) toast({ title: "Music attached", description: `${track.name} • ${Math.round((p.music_volume ?? 0.25) * 100)}%` });
+                  if (track) {
+                    toast({ title: "Music attached", description: `${track.name} — re-rendering video…` });
+                    autoRenderPipeline(updated);
+                  }
                 }}
               />
             </div>
