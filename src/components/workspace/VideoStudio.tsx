@@ -635,7 +635,9 @@ const VideoStudio = () => {
   const saveSceneEdit = async () => {
     if (editingScene === null || !activeProject) return;
     const updatedScenes = [...(activeProject.storyboard || [])];
-    updatedScenes[editingScene] = { ...updatedScenes[editingScene], ...editForm } as Scene;
+    // Strip the saved image_url so the scene re-generates on next render (content changed)
+    const { image_url: _strippedImg, ...prevScene } = updatedScenes[editingScene] as any;
+    updatedScenes[editingScene] = { ...prevScene, ...editForm } as Scene;
 
     const updatedScript = mergeVideoScript(activeProject, activeProject.script, {
       scenes: updatedScenes,
