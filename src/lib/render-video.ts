@@ -538,6 +538,11 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
           }
         }
 
+        // Persistent brand footer overlay (always visible)
+        if (brandFooter && (brandFooter.website || brandFooter.phone)) {
+          drawBrandFooter(ctx, brandFooter, width, height);
+        }
+
         frameIdx++;
         framesDone++;
         onProgress?.(
