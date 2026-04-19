@@ -201,7 +201,7 @@ const CreditsManager = () => {
           })}
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Note: Payment processing is in test mode. To enable live payments, connect a payment provider.
+          Secure checkout powered by Paddle. Credits are added to your account automatically once payment is confirmed.
         </p>
       </div>
 
