@@ -405,6 +405,10 @@ const VideoStudio = () => {
   const [isAiEditing, setIsAiEditing] = useState(false);
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  // Server-side Remotion Lambda export state
+  const [isMp4Exporting, setIsMp4Exporting] = useState(false);
+  const [mp4Progress, setMp4Progress] = useState<number | null>(null);
+  const [mp4Status, setMp4Status] = useState<string>("");
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [includeBranding, setIncludeBranding] = useState(true);
   // Client logo for third-party ads
