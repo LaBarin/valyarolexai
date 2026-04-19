@@ -164,6 +164,7 @@ const WorkspaceContent = () => {
           <div className="flex-1">
             <h1 className="text-sm font-semibold text-muted-foreground">{titles[activeTab]}</h1>
           </div>
+          <ManageSubscriptionButton />
           <button
             onClick={() => signOut()}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -201,11 +202,17 @@ const WorkspaceContent = () => {
               )}
               {activeTab === "agents" && (
                 <div className="max-w-3xl">
-                  <AgentManager />
+                  <PaywallGate feature="AI Agents" onUpgrade={() => window.location.href = "/landing#pricing"}>
+                    <AgentManager />
+                  </PaywallGate>
                 </div>
               )}
               {activeTab === "analytics" && <AIInsights />}
-              {activeTab === "pitchdeck" && <PitchDeckBuilder />}
+              {activeTab === "pitchdeck" && (
+                <PaywallGate feature="Pitch Deck Builder" onUpgrade={() => window.location.href = "/landing#pricing"}>
+                  <PitchDeckBuilder />
+                </PaywallGate>
+              )}
               {activeTab === "campaigns" && (
                 <div className="max-w-4xl">
                   <CampaignManager />
@@ -218,7 +225,9 @@ const WorkspaceContent = () => {
               )}
               {activeTab === "videos" && (
                 <div className="max-w-4xl">
-                  <VideoStudio />
+                  <PaywallGate feature="Video Studio" onUpgrade={() => window.location.href = "/landing#pricing"}>
+                    <VideoStudio />
+                  </PaywallGate>
                 </div>
               )}
               {activeTab === "credits" && (
