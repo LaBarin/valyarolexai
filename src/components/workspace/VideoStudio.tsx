@@ -807,7 +807,8 @@ const VideoStudio = () => {
       if (!session) throw new Error("Not authenticated");
       const filePath = `${session.user.id}/${project.id}.webm`;
       await supabase.storage.from("video-exports").upload(filePath, blob, { upsert: true, contentType: "video/webm" });
-      await supabase.from("video_projects").update({ exported_video_url: filePath, status: "completed" } as any).eq("id", project.id);
+      const thumbnailUrl = sceneInputs[0]?.imageUrl ?? null;
+      await supabase.from("video_projects").update({ exported_video_url: filePath, status: "completed", thumbnail_url: thumbnailUrl } as any).eq("id", project.id);
 
       const videoObjectUrl = URL.createObjectURL(blob);
       setRenderedVideoUrl(videoObjectUrl);
@@ -993,9 +994,10 @@ const VideoStudio = () => {
 
       // Store the file path (not public URL since bucket is private)
       // Save path to project so we can generate signed URLs when needed
+      const thumbnailUrl = sceneInputs[0]?.imageUrl ?? null;
       await supabase
         .from("video_projects")
-        .update({ exported_video_url: filePath } as any)
+        .update({ exported_video_url: filePath, thumbnail_url: thumbnailUrl } as any)
         .eq("id", p.id);
 
       // Also trigger download
