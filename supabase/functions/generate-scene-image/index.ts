@@ -42,7 +42,8 @@ serve(async (req) => {
     const ALLOWED_FORMATS = ["9:16", "1:1", "16:9"];
     const ALLOWED_PLATFORMS = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "twitter", "snapchat", "pinterest", "general"];
 
-    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url } = await req.json();
+    const body = await req.json();
+    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url } = body;
     if (!visual || typeof visual !== "string" || visual.length > MAX_VISUAL_LEN) {
       return new Response(JSON.stringify({ error: "Invalid or too-long visual description" }), {
         status: 400,
@@ -83,6 +84,24 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    }
+
+    const userId = (data.claims as any).sub as string;
+
+    // Entitlement: 5 credits per image unless subscribed
+    const SCENE_IMAGE_COST = 5;
+    const env = envFromRequest(body);
+    const charge = await chargeOrSubscribe({
+      userId,
+      amount: SCENE_IMAGE_COST,
+      description: "ai:scene-image",
+      env,
+    });
+    if (!charge.ok) {
+      return new Response(JSON.stringify({
+        error: "Insufficient credits. Upgrade to a paid plan or buy a credit pack.",
+        code: "insufficient_credits",
+      }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
