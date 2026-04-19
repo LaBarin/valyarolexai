@@ -852,10 +852,11 @@ const VideoStudio = () => {
       const key = `${project.id}-${scene.scene_number || i + 1}`;
       setExportProgress(Math.round((i / scenes.length) * 50));
 
-      // Reuse an already-generated image if we have one cached
-      const cached = sceneImages[key];
+      // Reuse an already-generated image if we have one cached (memory or persisted in storyboard)
+      const cached = sceneImages[key] || scene.image_url;
       if (cached) {
         imageMap[key] = cached;
+        if (!sceneImages[key]) setSceneImages(prev => ({ ...prev, [key]: cached }));
         continue;
       }
 
