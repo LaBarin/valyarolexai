@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audio_tracks: {
+        Row: {
+          artist: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_curated: boolean
+          license: string | null
+          mood: string
+          name: string
+          storage_path: string
+          user_id: string | null
+        }
+        Insert: {
+          artist?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_curated?: boolean
+          license?: string | null
+          mood?: string
+          name: string
+          storage_path: string
+          user_id?: string | null
+        }
+        Update: {
+          artist?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_curated?: boolean
+          license?: string | null
+          mood?: string
+          name?: string
+          storage_path?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       connected_integrations: {
         Row: {
           config: Json | null
@@ -552,6 +591,7 @@ export type Database = {
       }
       video_projects: {
         Row: {
+          ad_preset: string | null
           ai_generated: boolean
           campaign_id: string | null
           created_at: string
@@ -560,16 +600,21 @@ export type Database = {
           exported_video_url: string | null
           format: string
           id: string
+          music_track_id: string | null
+          music_volume: number | null
           platform: string
           script: Json | null
           share_token: string | null
           status: string
           storyboard: Json | null
+          template_style: string | null
           title: string
           updated_at: string
           user_id: string
+          voiceover_id: string | null
         }
         Insert: {
+          ad_preset?: string | null
           ai_generated?: boolean
           campaign_id?: string | null
           created_at?: string
@@ -578,16 +623,21 @@ export type Database = {
           exported_video_url?: string | null
           format?: string
           id?: string
+          music_track_id?: string | null
+          music_volume?: number | null
           platform?: string
           script?: Json | null
           share_token?: string | null
           status?: string
           storyboard?: Json | null
+          template_style?: string | null
           title?: string
           updated_at?: string
           user_id: string
+          voiceover_id?: string | null
         }
         Update: {
+          ad_preset?: string | null
           ai_generated?: boolean
           campaign_id?: string | null
           created_at?: string
@@ -596,14 +646,18 @@ export type Database = {
           exported_video_url?: string | null
           format?: string
           id?: string
+          music_track_id?: string | null
+          music_volume?: number | null
           platform?: string
           script?: Json | null
           share_token?: string | null
           status?: string
           storyboard?: Json | null
+          template_style?: string | null
           title?: string
           updated_at?: string
           user_id?: string
+          voiceover_id?: string | null
         }
         Relationships: [
           {
@@ -611,6 +665,64 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_projects_music_track_id_fkey"
+            columns: ["music_track_id"]
+            isOneToOne: false
+            referencedRelation: "audio_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_projects_voiceover_id_fkey"
+            columns: ["voiceover_id"]
+            isOneToOne: false
+            referencedRelation: "voiceovers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voiceovers: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          script: string | null
+          source: string
+          storage_path: string
+          user_id: string
+          video_id: string | null
+          voice_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          script?: string | null
+          source?: string
+          storage_path: string
+          user_id: string
+          video_id?: string | null
+          voice_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          script?: string | null
+          source?: string
+          storage_path?: string
+          user_id?: string
+          video_id?: string | null
+          voice_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voiceovers_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "video_projects"
             referencedColumns: ["id"]
           },
         ]
