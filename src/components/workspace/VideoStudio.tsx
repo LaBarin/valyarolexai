@@ -602,7 +602,7 @@ const VideoStudio = () => {
         throw new Error(err.error || "Image generation failed");
       }
       const { image_url } = await resp.json();
-      setSceneImages(prev => ({ ...prev, [key]: image_url }));
+      if (image_url) await persistSceneImage(projectId, scene.scene_number, image_url);
     } catch (e: any) {
       toast({ title: "Image Generation Failed", description: e.message, variant: "destructive" });
     } finally {
@@ -890,7 +890,7 @@ const VideoStudio = () => {
           const { image_url } = await resp.json();
           if (image_url) {
             imageMap[key] = image_url;
-            setSceneImages(prev => ({ ...prev, [key]: image_url }));
+            await persistSceneImage(project.id, scene.scene_number || i + 1, image_url);
           }
         }
       } catch { /* continue with remaining scenes */ }
