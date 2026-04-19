@@ -670,6 +670,26 @@ const VideoStudio = () => {
     }
   };
 
+  /** Extract a website + phone for the persistent footer overlay. */
+  const extractBrandFooter = (project: VideoProject): { website?: string; phone?: string } | null => {
+    const haystack = `${project.title || ""} ${project.description || ""}`;
+    // Auto-attach Xyz Diverse Services contact info to its branded videos
+    const isXyz = /xyz\s*diverse|xyzdiverseservices/i.test(haystack);
+    if (isXyz) {
+      return { website: "XyzDiverseServices.com", phone: "1-888-839-3469" };
+    }
+    // Generic extraction from description (URL + phone-like pattern)
+    const urlMatch = haystack.match(/\b((?:https?:\/\/)?[a-z0-9-]+\.[a-z]{2,}(?:\/[^\s]*)?)/i);
+    const phoneMatch = haystack.match(/\b(?:1[\s-]?)?(?:\(?\d{3}\)?[\s-]?)\d{3}[\s-]?\d{4}\b/);
+    if (urlMatch || phoneMatch) {
+      return {
+        website: urlMatch?.[1]?.replace(/^https?:\/\//, ""),
+        phone: phoneMatch?.[0],
+      };
+    }
+    return null;
+  };
+
   /** Resolve signed audio URLs for a project's voiceover and music tracks. */
   const resolveProjectAudio = async (project: VideoProject): Promise<{ voiceoverUrl: string | null; musicUrl: string | null }> => {
     let voiceoverUrl: string | null = null;
@@ -777,6 +797,7 @@ const VideoStudio = () => {
         voiceoverUrl,
         musicUrl,
         musicVolume: project.music_volume ?? 0.25,
+        brandFooter: extractBrandFooter(project),
       });
 
       // Upload to storage
@@ -954,6 +975,7 @@ const VideoStudio = () => {
         voiceoverUrl,
         musicUrl,
         musicVolume: p.music_volume ?? 0.25,
+        brandFooter: extractBrandFooter(p),
       });
 
       // Upload to storage

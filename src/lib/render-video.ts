@@ -77,6 +77,8 @@ type RenderOptions = {
   musicVolume?: number;
   /** Voiceover volume 0-1 (default 1.0) */
   voiceoverVolume?: number;
+  /** Optional persistent brand info shown as a small footer on every frame */
+  brandFooter?: { website?: string; phone?: string } | null;
 };
 
 // ─── Constants ──────────────────────────────────────────────────
@@ -303,9 +305,43 @@ function drawTextOverlay(
   ctx.restore();
 }
 
-/**
- * Loads an audio URL into an AudioBuffer for mixing.
- */
+function drawBrandFooter(
+  ctx: CanvasRenderingContext2D,
+  brand: { website?: string; phone?: string },
+  canvasW: number,
+  canvasH: number,
+) {
+  const parts: string[] = [];
+  if (brand.website) parts.push(brand.website);
+  if (brand.phone) parts.push(brand.phone);
+  if (parts.length === 0) return;
+  const text = parts.join("   •   ");
+
+  const fontSize = clamp(Math.round(canvasW * 0.018), 16, 32);
+  const padX = Math.round(fontSize * 0.9);
+  const padY = Math.round(fontSize * 0.5);
+
+  ctx.save();
+  ctx.font = `600 ${fontSize}px "Space Grotesk", sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const textW = ctx.measureText(text).width;
+  const cardW = textW + padX * 2;
+  const cardH = fontSize + padY * 2;
+  const cardX = (canvasW - cardW) / 2;
+  const cardY = Math.round(canvasH * 0.025);
+
+  ctx.fillStyle = "rgba(8, 12, 18, 0.62)";
+  ctx.fillRect(cardX, cardY, cardW, cardH);
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+  ctx.strokeRect(cardX, cardY, cardW, cardH);
+
+  ctx.shadowColor = "rgba(0,0,0,0.5)";
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(text, canvasW / 2, cardY + cardH / 2);
+  ctx.restore();
+}
 async function loadAudioBuffer(
   audioCtx: AudioContext,
   url: string,
@@ -323,6 +359,7 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
     format, scenes, onProgress, preset = "none",
     voiceoverUrl, musicUrl,
     musicVolume = 0.25, voiceoverVolume = 1.0,
+    brandFooter,
   } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
@@ -499,6 +536,11 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
             drawTextOverlay(ctx, scene.textOverlay, width, height);
             ctx.globalAlpha = 1;
           }
+        }
+
+        // Persistent brand footer overlay (always visible)
+        if (brandFooter && (brandFooter.website || brandFooter.phone)) {
+          drawBrandFooter(ctx, brandFooter, width, height);
         }
 
         frameIdx++;
