@@ -304,10 +304,26 @@ function drawTextOverlay(
 }
 
 /**
- * Renders scene images into a WebM video blob.
+ * Loads an audio URL into an AudioBuffer for mixing.
+ */
+async function loadAudioBuffer(
+  audioCtx: AudioContext,
+  url: string,
+): Promise<AudioBuffer> {
+  const resp = await fetch(url);
+  const arrayBuffer = await resp.arrayBuffer();
+  return await audioCtx.decodeAudioData(arrayBuffer);
+}
+
+/**
+ * Renders scene images into a WebM video blob, optionally mixing voiceover and music.
  */
 export async function renderVideo(options: RenderOptions): Promise<Blob> {
-  const { format, scenes, onProgress, preset = "none" } = options;
+  const {
+    format, scenes, onProgress, preset = "none",
+    voiceoverUrl, musicUrl,
+    musicVolume = 0.25, voiceoverVolume = 1.0,
+  } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
 
@@ -318,19 +334,56 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
     images.push(await loadImageAsBlob(scenes[i].imageUrl));
   }
 
+  // Total video duration (seconds)
+  const totalDurationSec = scenes.reduce((sum, s) => sum + s.durationSeconds, 0);
+
   // Create canvas
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
+  // Set up audio mixing if any audio sources provided
+  let audioCtx: AudioContext | null = null;
+  let audioDestination: MediaStreamAudioDestinationNode | null = null;
+  let voiceoverBuffer: AudioBuffer | null = null;
+  let musicBuffer: AudioBuffer | null = null;
+
+  if (voiceoverUrl || musicUrl) {
+    try {
+      audioCtx = new AudioContext();
+      audioDestination = audioCtx.createMediaStreamDestination();
+      if (voiceoverUrl) {
+        try { voiceoverBuffer = await loadAudioBuffer(audioCtx, voiceoverUrl); } catch (e) { console.warn("Voiceover load failed", e); }
+      }
+      if (musicUrl) {
+        try { musicBuffer = await loadAudioBuffer(audioCtx, musicUrl); } catch (e) { console.warn("Music load failed", e); }
+      }
+    } catch (e) {
+      console.warn("AudioContext setup failed; rendering without audio", e);
+      audioCtx = null;
+      audioDestination = null;
+    }
+  }
+
+  // Build combined stream: canvas video + (optional) audio
+  const videoStream = canvas.captureStream(FPS);
+  let combinedStream: MediaStream = videoStream;
+  if (audioDestination && (voiceoverBuffer || musicBuffer)) {
+    combinedStream = new MediaStream([
+      ...videoStream.getVideoTracks(),
+      ...audioDestination.stream.getAudioTracks(),
+    ]);
+  }
+
   // Determine codec
-  const mimeType = MediaRecorder.isTypeSupported("video/webm; codecs=vp9")
+  const mimeType = MediaRecorder.isTypeSupported("video/webm; codecs=vp9,opus")
+    ? "video/webm; codecs=vp9,opus"
+    : MediaRecorder.isTypeSupported("video/webm; codecs=vp9")
     ? "video/webm; codecs=vp9"
     : "video/webm";
 
-  const stream = canvas.captureStream(FPS);
-  const recorder = new MediaRecorder(stream, {
+  const recorder = new MediaRecorder(combinedStream, {
     mimeType,
     videoBitsPerSecond: 4_000_000,
   });
@@ -342,10 +395,38 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
 
   return new Promise((resolve, reject) => {
     recorder.onstop = () => {
+      try { audioCtx?.close(); } catch { /* noop */ }
       resolve(new Blob(chunks, { type: "video/webm" }));
     };
     recorder.onerror = (e) => reject(e);
     recorder.start();
+
+    // Schedule audio playback to start in sync with recording
+    if (audioCtx && audioDestination) {
+      const startAt = audioCtx.currentTime + 0.05;
+      if (voiceoverBuffer) {
+        const src = audioCtx.createBufferSource();
+        src.buffer = voiceoverBuffer;
+        const gain = audioCtx.createGain();
+        gain.gain.value = voiceoverVolume;
+        src.connect(gain).connect(audioDestination);
+        src.start(startAt);
+      }
+      if (musicBuffer) {
+        const src = audioCtx.createBufferSource();
+        src.buffer = musicBuffer;
+        src.loop = true;
+        const gain = audioCtx.createGain();
+        gain.gain.value = musicVolume;
+        // Fade out music near the end
+        const fadeStart = Math.max(0, totalDurationSec - 0.6);
+        gain.gain.setValueAtTime(musicVolume, startAt + fadeStart);
+        gain.gain.linearRampToValueAtTime(0, startAt + totalDurationSec);
+        src.connect(gain).connect(audioDestination);
+        src.start(startAt);
+        src.stop(startAt + totalDurationSec + 0.1);
+      }
+    }
 
     const totalFrames = scenes.reduce(
       (sum, s) => sum + Math.round(s.durationSeconds * FPS),
