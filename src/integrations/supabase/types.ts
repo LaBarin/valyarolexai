@@ -528,6 +528,7 @@ export type Database = {
           balance: number
           created_at: string
           id: string
+          last_monthly_grant_at: string | null
           updated_at: string
           user_id: string
         }
@@ -535,6 +536,7 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          last_monthly_grant_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -542,6 +544,7 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          last_monthly_grant_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -682,6 +685,15 @@ export type Database = {
           updated_at: string
         }[]
       }
+      grant_credits: {
+        Args: {
+          p_amount: number
+          p_description: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -702,6 +714,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      spend_credits: {
+        Args: { p_amount: number; p_description: string; p_user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
