@@ -43,7 +43,8 @@ serve(async (req) => {
     const ALLOWED_PLATFORMS = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "twitter", "snapchat", "pinterest", "general"];
 
     const body = await req.json();
-    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url } = body;
+    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url, scene_role } = body;
+    const sceneRole: "main" | "closing" = scene_role === "closing" ? "closing" : "main";
     if (!visual || typeof visual !== "string" || visual.length > MAX_VISUAL_LEN) {
       return new Response(JSON.stringify({ error: "Invalid or too-long visual description" }), {
         status: 400,
