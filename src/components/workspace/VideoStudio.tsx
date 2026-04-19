@@ -593,7 +593,7 @@ const VideoStudio = () => {
   // Determine which logo to use in overlays — client logo for third-party, default for Valyarolex
   const overlayLogoSrc = clientLogo || logoImg;
 
-  const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string) => {
+  const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string, sceneRole?: "main" | "closing") => {
     const key = `${projectId}-${scene.scene_number}`;
     if (generatingImages[key]) return;
     setGeneratingImages(prev => ({ ...prev, [key]: true }));
@@ -604,8 +604,10 @@ const VideoStudio = () => {
         text_overlay: scene.text_overlay,
         format,
         platform,
+        scene_role: sceneRole || "main",
       };
-      if (referenceImage) body.reference_image_url = referenceImage;
+      // Reference image only injected for "main" scenes — the closing card is a clean branded background
+      if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
       // Auto-include branding logo as base64
       if (includeBranding) {
         try {
