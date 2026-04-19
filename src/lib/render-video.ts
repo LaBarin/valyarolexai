@@ -79,6 +79,16 @@ type RenderOptions = {
   voiceoverVolume?: number;
   /** Optional persistent brand info shown as a small footer on every frame */
   brandFooter?: { website?: string; phone?: string } | null;
+  /** Optional closing card drawn on the LAST scene only — client logo + reference logo + contact info */
+  closingCard?: {
+    clientLogoUrl?: string | null;
+    referenceLogoUrl?: string | null;
+    companyName?: string;
+    website?: string;
+    phone?: string;
+    address?: string;
+    poweredByLabel?: string; // e.g. "Powered by"
+  } | null;
 };
 
 // ─── Constants ──────────────────────────────────────────────────
@@ -342,6 +352,121 @@ function drawBrandFooter(
   ctx.fillText(text, canvasW / 2, cardY + cardH / 2);
   ctx.restore();
 }
+
+/**
+ * Draws a centered branded closing card: client logo + small "Powered by" reference logo
+ * + company contact info. Drawn on top of the (subtle) AI background of the last scene.
+ */
+function drawClosingCard(
+  ctx: CanvasRenderingContext2D,
+  card: {
+    clientLogo?: HTMLImageElement | null;
+    referenceLogo?: HTMLImageElement | null;
+    companyName?: string;
+    website?: string;
+    phone?: string;
+    address?: string;
+    poweredByLabel?: string;
+  },
+  canvasW: number,
+  canvasH: number,
+  alpha: number = 1,
+) {
+  ctx.save();
+  ctx.globalAlpha = clamp(alpha, 0, 1);
+
+  // Soft dark scrim so logos and text always read
+  const scrim = ctx.createLinearGradient(0, 0, 0, canvasH);
+  scrim.addColorStop(0, "rgba(8, 12, 18, 0.55)");
+  scrim.addColorStop(0.5, "rgba(8, 12, 18, 0.7)");
+  scrim.addColorStop(1, "rgba(8, 12, 18, 0.85)");
+  ctx.fillStyle = scrim;
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  const centerX = canvasW / 2;
+
+  // ── Client logo (large, hero) ─────────────────────────────
+  const clientLogoMaxW = canvasW * 0.55;
+  const clientLogoMaxH = canvasH * 0.32;
+  let clientLogoBottom = canvasH * 0.42;
+  if (card.clientLogo) {
+    const ratio = card.clientLogo.width / card.clientLogo.height;
+    let lw = clientLogoMaxW;
+    let lh = lw / ratio;
+    if (lh > clientLogoMaxH) { lh = clientLogoMaxH; lw = lh * ratio; }
+    const lx = centerX - lw / 2;
+    const ly = canvasH * 0.12;
+    ctx.drawImage(card.clientLogo, lx, ly, lw, lh);
+    clientLogoBottom = ly + lh;
+  } else if (card.companyName) {
+    const fs = clamp(Math.round(canvasW * 0.06), 36, 110);
+    ctx.font = `700 ${fs}px "Space Grotesk", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 14;
+    const ly = canvasH * 0.18;
+    ctx.fillText(card.companyName, centerX, ly);
+    clientLogoBottom = ly + fs;
+    ctx.shadowBlur = 0;
+  }
+
+  // ── "Powered by" + small reference logo ──────────────────
+  let poweredByBottom = clientLogoBottom + canvasH * 0.04;
+  if (card.referenceLogo || card.poweredByLabel) {
+    const label = card.poweredByLabel || "Powered by";
+    const labelFs = clamp(Math.round(canvasW * 0.018), 14, 28);
+    ctx.font = `500 ${labelFs}px "Space Grotesk", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+
+    const refLogoH = card.referenceLogo ? clamp(Math.round(canvasH * 0.06), 36, 90) : 0;
+    const refLogoW = card.referenceLogo
+      ? refLogoH * (card.referenceLogo.width / card.referenceLogo.height)
+      : 0;
+    const labelW = ctx.measureText(label).width;
+    const gap = labelFs * 0.6;
+    const totalW = labelW + (refLogoW > 0 ? gap + refLogoW : 0);
+    const startX = centerX - totalW / 2;
+    const rowY = clientLogoBottom + canvasH * 0.05 + refLogoH / 2;
+
+    ctx.fillText(label, startX + labelW / 2, rowY);
+    if (card.referenceLogo) {
+      ctx.drawImage(
+        card.referenceLogo,
+        startX + labelW + gap,
+        rowY - refLogoH / 2,
+        refLogoW,
+        refLogoH,
+      );
+    }
+    poweredByBottom = rowY + refLogoH / 2;
+  }
+
+  // ── Contact info block ────────────────────────────────────
+  const lines: string[] = [];
+  if (card.website) lines.push(card.website);
+  if (card.phone) lines.push(card.phone);
+  if (card.address) lines.push(card.address);
+
+  if (lines.length > 0) {
+    const fs = clamp(Math.round(canvasW * 0.022), 18, 38);
+    const lineH = Math.round(fs * 1.4);
+    ctx.font = `500 ${fs}px "Space Grotesk", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 10;
+    const startY = poweredByBottom + canvasH * 0.06;
+    lines.forEach((l, i) => ctx.fillText(l, centerX, startY + i * lineH));
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.restore();
+}
 async function loadAudioBuffer(
   audioCtx: AudioContext,
   url: string,
@@ -359,7 +484,7 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
     format, scenes, onProgress, preset = "none",
     voiceoverUrl, musicUrl,
     musicVolume = 0.25, voiceoverVolume = 1.0,
-    brandFooter,
+    brandFooter, closingCard,
   } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
@@ -370,6 +495,21 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
     onProgress?.(Math.round((i / (scenes.length * 2)) * 100));
     images.push(await loadImageAsBlob(scenes[i].imageUrl));
   }
+
+  // Pre-load closing-card logos (best-effort; missing logos just degrade gracefully)
+  let closingClientLogo: HTMLImageElement | null = null;
+  let closingReferenceLogo: HTMLImageElement | null = null;
+  if (closingCard?.clientLogoUrl) {
+    try { closingClientLogo = await loadImageAsBlob(closingCard.clientLogoUrl); } catch (e) { console.warn("Closing client logo failed to load", e); }
+  }
+  if (closingCard?.referenceLogoUrl) {
+    try { closingReferenceLogo = await loadImageAsBlob(closingCard.referenceLogoUrl); } catch (e) { console.warn("Closing reference logo failed to load", e); }
+  }
+  const hasClosingCard = !!closingCard && (
+    !!closingClientLogo || !!closingReferenceLogo ||
+    !!closingCard.companyName || !!closingCard.website ||
+    !!closingCard.phone || !!closingCard.address
+  );
 
   // Total video duration (seconds)
   const totalDurationSec = scenes.reduce((sum, s) => sum + s.durationSeconds, 0);
@@ -538,9 +678,25 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
           }
         }
 
-        // Persistent brand footer overlay (always visible)
-        if (brandFooter && (brandFooter.website || brandFooter.phone)) {
+        // Persistent brand footer overlay (always visible) — skipped on closing scene to avoid clutter
+        const isLastScene = sceneIdx === scenes.length - 1;
+        const drawClosing = hasClosingCard && isLastScene;
+        if (brandFooter && (brandFooter.website || brandFooter.phone) && !drawClosing) {
           drawBrandFooter(ctx, brandFooter, width, height);
+        }
+
+        // Closing branded card on the last scene — fades in over first 0.5s
+        if (drawClosing && closingCard) {
+          const fadeIn = Math.min(1, frameIdx / (FPS * 0.5));
+          drawClosingCard(ctx, {
+            clientLogo: closingClientLogo,
+            referenceLogo: closingReferenceLogo,
+            companyName: closingCard.companyName,
+            website: closingCard.website,
+            phone: closingCard.phone,
+            address: closingCard.address,
+            poweredByLabel: closingCard.poweredByLabel,
+          }, width, height, fadeIn);
         }
 
         frameIdx++;

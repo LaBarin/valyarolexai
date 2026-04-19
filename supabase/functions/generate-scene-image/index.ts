@@ -43,7 +43,8 @@ serve(async (req) => {
     const ALLOWED_PLATFORMS = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "twitter", "snapchat", "pinterest", "general"];
 
     const body = await req.json();
-    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url } = body;
+    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url, scene_role } = body;
+    const sceneRole: "main" | "closing" = scene_role === "closing" ? "closing" : "main";
     if (!visual || typeof visual !== "string" || visual.length > MAX_VISUAL_LEN) {
       return new Response(JSON.stringify({ error: "Invalid or too-long visual description" }), {
         status: 400,
@@ -109,16 +110,26 @@ serve(async (req) => {
 
     // Build image prompt from scene data
     const aspectDesc = format === "9:16" ? "vertical mobile portrait" : format === "1:1" ? "square" : "widescreen landscape 16:9";
-    const brandingNote = brand_logo_url ? " Include subtle brand logo watermark in corner." : "";
-    const referenceNote = reference_image_url ? " Use the provided reference image as style/content inspiration." : "";
-    const prompt = `Create a cinematic, professional video ad frame/still image. ${aspectDesc} aspect ratio. Scene: ${visual}.${brandingNote}${referenceNote} Platform: ${platform || "general"}. Style: high-end commercial photography, dramatic lighting, modern and sleek. Leave clean negative space for app-rendered captions and avoid baking any headline, caption, or large text into the image itself. Do NOT include any watermarks.`;
+    const brandingNote = brand_logo_url && sceneRole !== "closing" ? " Include subtle brand logo watermark in corner." : "";
+
+    let prompt: string;
+    if (sceneRole === "closing") {
+      // Closing/branded card: minimal, premium, leaves room for logos & contact text rendered by app
+      prompt = `Create a clean, premium ${aspectDesc} closing card background for a video ad. Scene: ${visual}. Style: minimal, elegant gradient, subtle texture, professional brand-card aesthetic with large clean negative space in the center and bottom for app-rendered logos and contact text. Do NOT include any text, logos, watermarks, faces, or busy details. Soft focus, sophisticated color palette.`;
+    } else if (reference_image_url) {
+      // Reference image becomes the MAIN SUBJECT across all scenes
+      prompt = `Create a cinematic, professional ${aspectDesc} video ad frame. The provided reference image is the MAIN SUBJECT of this video — preserve its identity, key features, colors, and likeness consistently. Place this same subject into the following scene: ${visual}.${brandingNote} Platform: ${platform || "general"}. Style: high-end commercial photography, dramatic cinematic lighting, sharp focus on the subject, modern and sleek composition. Leave clean negative space for app-rendered captions. Do NOT bake any headline, caption, large text, or watermarks into the image. Keep the subject visually consistent with the reference at all times.`;
+    } else {
+      prompt = `Create a cinematic, professional video ad frame/still image. ${aspectDesc} aspect ratio. Scene: ${visual}.${brandingNote} Platform: ${platform || "general"}. Style: high-end commercial photography, dramatic lighting, modern and sleek. Leave clean negative space for app-rendered captions and avoid baking any headline, caption, or large text into the image itself. Do NOT include any watermarks.`;
+    }
 
     // Build message content - support reference images
     const messageContent: any[] = [{ type: "text", text: prompt }];
-    if (reference_image_url) {
+    // Skip reference image on closing scene (we want a clean branded card, not the subject)
+    if (reference_image_url && sceneRole !== "closing") {
       messageContent.push({ type: "image_url", image_url: { url: reference_image_url } });
     }
-    if (brand_logo_url) {
+    if (brand_logo_url && sceneRole !== "closing") {
       messageContent.push({ type: "image_url", image_url: { url: brand_logo_url } });
     }
 
