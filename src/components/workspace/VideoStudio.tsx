@@ -1325,11 +1325,18 @@ const VideoStudio = () => {
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
             </Button>
-            {!renderedVideoUrl && autoRenderStage === "idle" && (
-              <Button size="sm" variant="outline" onClick={() => autoRenderPipeline(p)} disabled={isExporting || autoRenderStage !== "idle"}>
-                <FileVideo className="w-4 h-4 mr-1" /> Render Video
-              </Button>
-            )}
+            <Button
+              size="sm"
+              variant="hero"
+              onClick={() => autoRenderPipeline(p)}
+              disabled={isExporting || (autoRenderStage !== "idle" && autoRenderStage !== "done")}
+            >
+              {autoRenderStage !== "idle" && autoRenderStage !== "done" ? (
+                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Rendering…</>
+              ) : (
+                <><FileVideo className="w-4 h-4 mr-1" /> {renderedVideoUrl ? "Re-render with Audio" : "Render Video"}</>
+              )}
+            </Button>
             {renderedVideoUrl && (
               <Button size="sm" variant="outline" onClick={() => {
                 const a = document.createElement("a");
