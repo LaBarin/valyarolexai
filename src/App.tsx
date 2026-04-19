@@ -14,6 +14,7 @@ import SharedCampaign from "./pages/SharedCampaign";
 import SharedVideo from "./pages/SharedVideo";
 import SharedPitchDeck from "./pages/SharedPitchDeck";
 import NotFound from "./pages/NotFound";
+import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PaymentTestModeBanner />
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />

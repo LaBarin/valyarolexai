@@ -29,6 +29,10 @@ import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
 import VideoStudio from "@/components/workspace/VideoStudio";
 import CreditsManager from "@/components/workspace/CreditsManager";
+import { PaywallGate } from "@/components/PaywallGate";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const navItems = [
   { id: "command", label: "Command Center", icon: LayoutDashboard, group: "core" },
@@ -102,6 +106,37 @@ const WorkspaceSidebar = ({ activeTab, onNavigate }: { activeTab: TabId; onNavig
   );
 };
 
+const ManageSubscriptionButton = () => {
+  const { isActive, tier } = useSubscription();
+  const [opening, setOpening] = useState(false);
+
+  const handleOpen = async () => {
+    setOpening(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error || !data?.url) {
+        toast.error("Could not open subscription portal");
+      } else {
+        window.open(data.url, "_blank");
+      }
+    } finally {
+      setOpening(false);
+    }
+  };
+
+  if (!isActive) return null;
+
+  return (
+    <button
+      onClick={handleOpen}
+      disabled={opening}
+      className="hidden md:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors capitalize"
+    >
+      {opening ? "Opening..." : `${tier} plan • Manage`}
+    </button>
+  );
+};
+
 const WorkspaceContent = () => {
   const { user, loading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -160,6 +195,7 @@ const WorkspaceContent = () => {
           <div className="flex-1">
             <h1 className="text-sm font-semibold text-muted-foreground">{titles[activeTab]}</h1>
           </div>
+          <ManageSubscriptionButton />
           <button
             onClick={() => signOut()}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -197,11 +233,17 @@ const WorkspaceContent = () => {
               )}
               {activeTab === "agents" && (
                 <div className="max-w-3xl">
-                  <AgentManager />
+                  <PaywallGate feature="AI Agents" onUpgrade={() => window.location.href = "/landing#pricing"}>
+                    <AgentManager />
+                  </PaywallGate>
                 </div>
               )}
               {activeTab === "analytics" && <AIInsights />}
-              {activeTab === "pitchdeck" && <PitchDeckBuilder />}
+              {activeTab === "pitchdeck" && (
+                <PaywallGate feature="Pitch Deck Builder" onUpgrade={() => window.location.href = "/landing#pricing"}>
+                  <PitchDeckBuilder />
+                </PaywallGate>
+              )}
               {activeTab === "campaigns" && (
                 <div className="max-w-4xl">
                   <CampaignManager />
@@ -214,7 +256,9 @@ const WorkspaceContent = () => {
               )}
               {activeTab === "videos" && (
                 <div className="max-w-4xl">
-                  <VideoStudio />
+                  <PaywallGate feature="Video Studio" onUpgrade={() => window.location.href = "/landing#pricing"}>
+                    <VideoStudio />
+                  </PaywallGate>
                 </div>
               )}
               {activeTab === "credits" && (

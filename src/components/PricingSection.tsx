@@ -1,7 +1,11 @@
 import { motion } from "framer-motion";
-import { Check, ArrowRight, Phone } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 
 const plans = [
   {
@@ -18,7 +22,8 @@ const plans = [
       "Community support",
     ],
     cta: "Get Started Free",
-    action: "signup" as const,
+    priceId: null,
+    productId: null,
     highlight: false,
   },
   {
@@ -40,7 +45,8 @@ const plans = [
       "Priority support",
     ],
     cta: "Start 14-Day Free Trial",
-    action: "signup" as const,
+    priceId: "pro_monthly",
+    productId: "pro_plan",
     highlight: true,
     savings: "Replaces $150+/mo in tools",
   },
@@ -60,13 +66,41 @@ const plans = [
       "99.9% uptime SLA",
       "Audit logs & compliance",
     ],
-    cta: "Contact Sales",
-    action: "contact" as const,
+    cta: "Subscribe to Business",
+    priceId: "business_monthly",
+    productId: "business_plan",
     highlight: false,
   },
 ];
 
 const PricingSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { openCheckout, loading } = usePaddleCheckout();
+  const { tier } = useSubscription();
+
+  const handleSubscribe = async (priceId: string, productId: string) => {
+    if (!user) {
+      navigate(`/signup?plan=${productId}`);
+      return;
+    }
+    if (tier !== "free" && tier === productId.replace("_plan", "")) {
+      toast.info("You're already on this plan");
+      return;
+    }
+    try {
+      await openCheckout({
+        priceId,
+        customerEmail: user.email,
+        customData: { userId: user.id },
+        successUrl: `${window.location.origin}/workspace?checkout=success`,
+      });
+    } catch (e) {
+      toast.error("Failed to open checkout");
+      console.error(e);
+    }
+  };
+
   return (
     <section id="pricing" className="relative py-32 px-6">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent" />
@@ -98,9 +132,7 @@ const PricingSection = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               className={`rounded-2xl p-8 flex flex-col ${
-                plan.highlight
-                  ? "glass border-primary/40 shadow-glow relative"
-                  : "glass"
+                plan.highlight ? "glass border-primary/40 shadow-glow relative" : "glass"
               }`}
             >
               {plan.highlight && (
@@ -116,9 +148,7 @@ const PricingSection = () => {
               <h3 className="text-lg font-semibold mb-2">{plan.name}</h3>
               <div className="flex items-baseline gap-1 mb-3">
                 <span className="text-4xl font-bold">{plan.price}</span>
-                {plan.period && (
-                  <span className="text-muted-foreground text-sm">{plan.period}</span>
-                )}
+                {plan.period && <span className="text-muted-foreground text-sm">{plan.period}</span>}
               </div>
               <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
               <ul className="space-y-3 mb-8 flex-1">
@@ -129,34 +159,31 @@ const PricingSection = () => {
                   </li>
                 ))}
               </ul>
-              {plan.action === "contact" ? (
-                <div className="space-y-2">
-                  <a href="tel:+18888393469" className="block">
-                    <Button variant="hero-outline" className="w-full gap-2">
-                      <Phone className="w-4 h-4" />
-                      +1 (888) 839-3469
-                    </Button>
-                  </a>
-                  <a href="mailto:XyzDiverseServices@Gmail.Com" className="block">
-                    <Button variant="hero-outline" className="w-full text-sm">
-                      Email Sales
-                    </Button>
-                  </a>
-                </div>
+              {plan.priceId && plan.productId ? (
+                <Button
+                  onClick={() => handleSubscribe(plan.priceId!, plan.productId!)}
+                  disabled={loading}
+                  variant={plan.highlight ? "hero" : "hero-outline"}
+                  className="w-full"
+                >
+                  {loading ? "Loading..." : plan.cta}
+                  {plan.highlight && <ArrowRight className="ml-2 w-4 h-4" />}
+                </Button>
               ) : (
                 <Link to="/signup">
-                  <Button
-                    variant={plan.highlight ? "hero" : "hero-outline"}
-                    className="w-full"
-                  >
+                  <Button variant="hero-outline" className="w-full">
                     {plan.cta}
-                    {plan.highlight && <ArrowRight className="ml-2 w-4 h-4" />}
                   </Button>
                 </Link>
               )}
             </motion.div>
           ))}
         </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-8">
+          Need custom enterprise pricing? Call <a href="tel:+18888393469" className="underline">+1 (888) 839-3469</a> or email{" "}
+          <a href="mailto:XyzDiverseServices@Gmail.Com" className="underline">XyzDiverseServices@Gmail.Com</a>
+        </p>
       </div>
     </section>
   );

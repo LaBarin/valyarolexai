@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 type Pack = {
   id: string;
+  priceId: string;
   name: string;
   credits: number;
   price: number;
@@ -20,9 +22,9 @@ type Pack = {
 };
 
 const PACKS: Pack[] = [
-  { id: "starter", name: "Starter", credits: 100, price: 9, icon: Sparkles, description: "Perfect for trying things out" },
-  { id: "pro", name: "Pro Pack", credits: 500, price: 20, bonus: 50, popular: true, icon: Zap, description: "Best value for regular users" },
-  { id: "power", name: "Power Pack", credits: 1500, price: 99, bonus: 250, icon: Crown, description: "Ideal for heavy automation workflows" },
+  { id: "starter", priceId: "credits_starter_onetime", name: "Starter", credits: 100, price: 9, icon: Sparkles, description: "Perfect for trying things out" },
+  { id: "pro", priceId: "credits_pro_onetime", name: "Pro Pack", credits: 500, price: 20, bonus: 50, popular: true, icon: Zap, description: "Best value for regular users" },
+  { id: "power", priceId: "credits_power_onetime", name: "Power Pack", credits: 1500, price: 99, bonus: 250, icon: Crown, description: "Ideal for heavy automation workflows" },
 ];
 
 type Tx = {
@@ -35,6 +37,7 @@ type Tx = {
 
 const CreditsManager = () => {
   const { user } = useAuth();
+  const { openCheckout } = usePaddleCheckout();
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
@@ -70,36 +73,44 @@ const CreditsManager = () => {
 
   useEffect(() => {
     loadData();
+
+    if (!user) return;
+    const channel = supabase
+      .channel(`credits-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_credits", filter: `user_id=eq.${user.id}` },
+        () => loadData()
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "credit_transactions", filter: `user_id=eq.${user.id}` },
+        () => loadData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handlePurchase = async (pack: Pack) => {
     if (!user) return;
     setPurchasingId(pack.id);
-
-    const totalCredits = pack.credits + (pack.bonus || 0);
-    const newBalance = balance + totalCredits;
-
-    const { error: updateErr } = await supabase
-      .from("user_credits")
-      .upsert({ user_id: user.id, balance: newBalance }, { onConflict: "user_id" });
-
-    if (updateErr) {
-      toast.error("Failed to add credits");
+    try {
+      await openCheckout({
+        priceId: pack.priceId,
+        customerEmail: user.email,
+        customData: { userId: user.id },
+        successUrl: `${window.location.origin}/workspace?tab=credits&checkout=success`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to open checkout");
+    } finally {
       setPurchasingId(null);
-      return;
     }
-
-    await supabase.from("credit_transactions").insert({
-      user_id: user.id,
-      amount: totalCredits,
-      type: "purchase",
-      description: `${pack.name} — ${pack.credits}${pack.bonus ? ` + ${pack.bonus} bonus` : ""} credits`,
-    });
-
-    toast.success(`Added ${totalCredits} credits to your account!`);
-    setPurchasingId(null);
-    loadData();
   };
 
   return (
@@ -183,14 +194,14 @@ const CreditsManager = () => {
                   className="w-full"
                   variant={pack.popular ? "default" : "outline"}
                 >
-                  {purchasingId === pack.id ? "Adding..." : `Get ${total.toLocaleString()} credits`}
+                  {purchasingId === pack.id ? "Opening checkout..." : `Buy ${total.toLocaleString()} credits`}
                 </Button>
               </Card>
             );
           })}
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Note: Payment processing is in test mode. To enable live payments, connect a payment provider.
+          Secure checkout powered by Paddle. Credits are added to your account automatically once payment is confirmed.
         </p>
       </div>
 
