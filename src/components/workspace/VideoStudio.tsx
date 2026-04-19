@@ -1061,10 +1061,14 @@ const VideoStudio = () => {
       // Store the file path (not public URL since bucket is private)
       // Save path to project so we can generate signed URLs when needed
       const thumbnailUrl = sceneInputs[0]?.imageUrl ?? null;
+      const renderMeta = buildRenderMeta(p);
+      const updatedScript = mergeVideoScript(p, p.script, { last_render_meta: renderMeta });
       await supabase
         .from("video_projects")
-        .update({ exported_video_url: filePath, thumbnail_url: thumbnailUrl } as any)
+        .update({ exported_video_url: filePath, thumbnail_url: thumbnailUrl, script: updatedScript as any } as any)
         .eq("id", p.id);
+      setActiveProject(prev => prev ? { ...prev, script: updatedScript } : null);
+      setProjects(prev => prev.map(proj => proj.id === p.id ? { ...proj, script: updatedScript } : proj));
 
       // Also trigger download
       const a = document.createElement("a");
