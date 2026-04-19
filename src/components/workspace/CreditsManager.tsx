@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 type Pack = {
   id: string;
+  priceId: string;
   name: string;
   credits: number;
   price: number;
@@ -20,9 +22,9 @@ type Pack = {
 };
 
 const PACKS: Pack[] = [
-  { id: "starter", name: "Starter", credits: 100, price: 9, icon: Sparkles, description: "Perfect for trying things out" },
-  { id: "pro", name: "Pro Pack", credits: 500, price: 20, bonus: 50, popular: true, icon: Zap, description: "Best value for regular users" },
-  { id: "power", name: "Power Pack", credits: 1500, price: 99, bonus: 250, icon: Crown, description: "Ideal for heavy automation workflows" },
+  { id: "starter", priceId: "credits_starter_onetime", name: "Starter", credits: 100, price: 9, icon: Sparkles, description: "Perfect for trying things out" },
+  { id: "pro", priceId: "credits_pro_onetime", name: "Pro Pack", credits: 500, price: 20, bonus: 50, popular: true, icon: Zap, description: "Best value for regular users" },
+  { id: "power", priceId: "credits_power_onetime", name: "Power Pack", credits: 1500, price: 99, bonus: 250, icon: Crown, description: "Ideal for heavy automation workflows" },
 ];
 
 type Tx = {
