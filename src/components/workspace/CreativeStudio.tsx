@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Music, Mic, Layers, Sparkles, Info } from "lucide-react";
+import { Music, Mic, Layers, Sparkles, Info, Download, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -8,8 +8,36 @@ import { Badge } from "@/components/ui/badge";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio } from "./VoiceoverStudio";
 import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
+import { useAuth } from "@/contexts/AuthContext";
+import { isOwnerEmail } from "@/lib/owner";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function CreativeStudio() {
+  const { user } = useAuth();
+  const isOwner = isOwnerEmail(user?.email);
+  const [seeding, setSeeding] = useState(false);
+  const [seedKey, setSeedKey] = useState(0); // bump to force MusicLibrary refresh
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    const t = toast.loading("Downloading royalty-free tracks…");
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-curated-music", { body: {} });
+      if (error) throw error;
+      const s = data?.summary;
+      toast.success(
+        `Seeded ${s?.uploaded ?? 0} new tracks (${s?.skipped ?? 0} already present, ${s?.failed ?? 0} failed)`,
+        { id: t },
+      );
+      setSeedKey((k) => k + 1);
+    } catch (e: any) {
+      toast.error(e?.message || "Seeding failed", { id: t });
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const [selectedTrack, setSelectedTrack] = useState<AudioTrack | null>(null);
   const [musicVolume, setMusicVolume] = useState(0.25);
   const [selectedVO, setSelectedVO] = useState<string | null>(null);
@@ -30,6 +58,12 @@ export default function CreativeStudio() {
             Voice-overs, background music, and ad-style templates for your videos and commercials.
           </p>
         </div>
+        {isOwner && (
+          <Button size="sm" variant="outline" onClick={handleSeed} disabled={seeding}>
+            {seeding ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1.5" />}
+            Seed music library
+          </Button>
+        )}
       </div>
 
       {/* Selection summary */}
@@ -94,6 +128,7 @@ export default function CreativeStudio() {
         <TabsContent value="music" className="mt-4">
           <Card className="p-4 h-[600px]">
             <MusicLibrary
+              key={seedKey}
               selectedTrackId={selectedTrack?.id}
               onSelect={setSelectedTrack}
               volume={musicVolume}
@@ -103,14 +138,16 @@ export default function CreativeStudio() {
         </TabsContent>
       </Tabs>
 
-      <Card className="p-3 bg-muted/20 border-dashed">
-        <div className="flex items-start gap-2">
-          <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-muted-foreground">
-            <strong className="text-foreground">Heads up:</strong> The curated music library has 18 royalty-free tracks defined in your library, but the actual audio files (e.g. <code className="px-1 py-0.5 rounded bg-muted">curated/sunset-drive.mp3</code>) need to be uploaded to the <code className="px-1 py-0.5 rounded bg-muted">audio-assets</code> storage bucket under the <code className="px-1 py-0.5 rounded bg-muted">curated/</code> folder before they'll preview. Your own uploads work immediately.
+      {isOwner && (
+        <Card className="p-3 bg-muted/20 border-dashed">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-muted-foreground">
+              <strong className="text-foreground">Owner tip:</strong> Click <em>Seed music library</em> once to download all 18 royalty-free curated tracks into storage. Tracks are sourced from Pixabay's free CDN (Pixabay Content License — free for commercial use, no attribution required). Re-running is safe; existing files are skipped.
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }
