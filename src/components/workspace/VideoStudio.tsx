@@ -41,6 +41,7 @@ type Scene = {
   voiceover?: string;
   transition: string;
   notes?: string;
+  image_url?: string;
 };
 
 type VideoData = {
