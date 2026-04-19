@@ -646,6 +646,8 @@ const VideoStudio = () => {
         storyboard: previewData.scenes as any,
         ai_generated: true,
         status: "approved",
+        template_style: preGenStyle,
+        music_track_id: preGenTrackId,
       }).select("*").single();
       if (error || !data) throw error || new Error("Failed to save");
       const newProject = mapVideoProject(data);
