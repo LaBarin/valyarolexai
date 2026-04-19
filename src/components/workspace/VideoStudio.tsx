@@ -200,6 +200,11 @@ const mapVideoProject = (row: any): VideoProject => ({
   ai_generated: row.ai_generated,
   created_at: row.created_at,
   share_token: row.share_token ?? null,
+  template_style: row.template_style ?? null,
+  ad_preset: row.ad_preset ?? null,
+  voiceover_id: row.voiceover_id ?? null,
+  music_track_id: row.music_track_id ?? null,
+  music_volume: row.music_volume ?? null,
 });
 
 const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; script: VideoData | null; onUpdate: (project: VideoProject) => void }>(
