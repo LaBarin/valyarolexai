@@ -21,13 +21,13 @@ export default function CreativeStudio() {
 
   const handleSeed = async () => {
     setSeeding(true);
-    const t = toast.loading("Downloading royalty-free tracks…");
+    const t = toast.loading("Generating ElevenLabs music library… this can take a few minutes");
     try {
-      const { data, error } = await supabase.functions.invoke("seed-curated-music", { body: {} });
+      const { data, error } = await supabase.functions.invoke("seed-elevenlabs-music", { body: {} });
       if (error) throw error;
       const s = data?.summary;
       toast.success(
-        `Seeded ${s?.uploaded ?? 0} new tracks (${s?.skipped ?? 0} already present, ${s?.failed ?? 0} failed)`,
+        `Seeded ${s?.uploaded ?? 0} ElevenLabs tracks (${s?.failed ?? 0} failed)`,
         { id: t },
       );
       setSeedKey((k) => k + 1);
