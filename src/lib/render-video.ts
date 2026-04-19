@@ -678,9 +678,25 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
           }
         }
 
-        // Persistent brand footer overlay (always visible)
-        if (brandFooter && (brandFooter.website || brandFooter.phone)) {
+        // Persistent brand footer overlay (always visible) — skipped on closing scene to avoid clutter
+        const isLastScene = sceneIdx === scenes.length - 1;
+        const drawClosing = hasClosingCard && isLastScene;
+        if (brandFooter && (brandFooter.website || brandFooter.phone) && !drawClosing) {
           drawBrandFooter(ctx, brandFooter, width, height);
+        }
+
+        // Closing branded card on the last scene — fades in over first 0.5s
+        if (drawClosing && closingCard) {
+          const fadeIn = Math.min(1, frameIdx / (FPS * 0.5));
+          drawClosingCard(ctx, {
+            clientLogo: closingClientLogo,
+            referenceLogo: closingReferenceLogo,
+            companyName: closingCard.companyName,
+            website: closingCard.website,
+            phone: closingCard.phone,
+            address: closingCard.address,
+            poweredByLabel: closingCard.poweredByLabel,
+          }, width, height, fadeIn);
         }
 
         frameIdx++;
