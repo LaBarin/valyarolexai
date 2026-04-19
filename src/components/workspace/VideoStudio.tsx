@@ -25,6 +25,10 @@ import { renderVideo, type SceneAnimation, type AnimationPreset, SCENE_ANIMATION
 import { createShareToken, normalizeVideoOverlayText, normalizeVideoScenes } from "@/lib/video-script";
 import { NarratorControls } from "./NarratorControls";
 import { useNarrator } from "@/hooks/use-narrator";
+import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
+import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
+import { VoiceoverStudio } from "./VoiceoverStudio";
+import { Palette, Volume2 } from "lucide-react";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
@@ -72,6 +76,11 @@ type VideoProject = {
   ai_generated: boolean;
   created_at: string;
   share_token?: string | null;
+  template_style?: string | null;
+  ad_preset?: string | null;
+  voiceover_id?: string | null;
+  music_track_id?: string | null;
+  music_volume?: number | null;
 };
 
 const FORMAT_ICONS: Record<string, typeof Monitor> = {
@@ -191,6 +200,11 @@ const mapVideoProject = (row: any): VideoProject => ({
   ai_generated: row.ai_generated,
   created_at: row.created_at,
   share_token: row.share_token ?? null,
+  template_style: row.template_style ?? null,
+  ad_preset: row.ad_preset ?? null,
+  voiceover_id: row.voiceover_id ?? null,
+  music_track_id: row.music_track_id ?? null,
+  music_volume: row.music_volume ?? null,
 });
 
 const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; script: VideoData | null; onUpdate: (project: VideoProject) => void }>(
@@ -1243,6 +1257,9 @@ const VideoStudio = () => {
           <TabsList className="glass">
             <TabsTrigger value="storyboard">Storyboard</TabsTrigger>
             <TabsTrigger value="script">Script</TabsTrigger>
+            <TabsTrigger value="style"><Palette className="w-3.5 h-3.5 mr-1.5" />Style</TabsTrigger>
+            <TabsTrigger value="voice"><Mic className="w-3.5 h-3.5 mr-1.5" />Voice</TabsTrigger>
+            <TabsTrigger value="music"><Music className="w-3.5 h-3.5 mr-1.5" />Music</TabsTrigger>
             <TabsTrigger value="details">Ad Details</TabsTrigger>
           </TabsList>
 
@@ -1608,6 +1625,110 @@ const VideoStudio = () => {
               setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updatedProject : proj)));
               if (activeProject?.id === p.id) setActiveProject(updatedProject);
             }} />
+          </TabsContent>
+
+          <TabsContent value="style" className="space-y-4">
+            <div className="glass rounded-2xl p-5">
+              <AdTemplateGallery
+                selectedTemplate={p.template_style ?? undefined}
+                selectedPreset={p.ad_preset ?? undefined}
+                onTemplateSelect={async (tpl: AdTemplate) => {
+                  const { data, error } = await supabase
+                    .from("video_projects")
+                    .update({ template_style: tpl.id })
+                    .eq("id", p.id)
+                    .select("*")
+                    .single();
+                  if (error || !data) {
+                    toast({ title: "Save failed", description: error?.message, variant: "destructive" });
+                    return;
+                  }
+                  const updated = mapVideoProject(data);
+                  setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
+                  setActiveProject(updated);
+                  toast({ title: "Style applied", description: `${tpl.name} attached to this project.` });
+                }}
+                onPresetSelect={async (preset: AdPreset) => {
+                  const { data, error } = await supabase
+                    .from("video_projects")
+                    .update({ ad_preset: preset.id, format: preset.format })
+                    .eq("id", p.id)
+                    .select("*")
+                    .single();
+                  if (error || !data) {
+                    toast({ title: "Save failed", description: error?.message, variant: "destructive" });
+                    return;
+                  }
+                  const updated = mapVideoProject(data);
+                  setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
+                  setActiveProject(updated);
+                  toast({ title: "Preset applied", description: `${preset.name} • ${preset.duration}s • ${preset.format}` });
+                }}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="voice" className="space-y-4">
+            <div className="glass rounded-2xl p-5 h-[600px]">
+              <VoiceoverStudio
+                videoId={p.id}
+                selectedId={p.voiceover_id}
+                onSelect={async (vo) => {
+                  const { data, error } = await supabase
+                    .from("video_projects")
+                    .update({ voiceover_id: vo.id })
+                    .eq("id", p.id)
+                    .select("*")
+                    .single();
+                  if (error || !data) {
+                    toast({ title: "Save failed", description: error?.message, variant: "destructive" });
+                    return;
+                  }
+                  const updated = mapVideoProject(data);
+                  setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
+                  setActiveProject(updated);
+                  toast({ title: "Voice-over attached", description: "Will play with the rendered video." });
+                }}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="music" className="space-y-4">
+            <div className="glass rounded-2xl p-5 h-[600px]">
+              <MusicLibrary
+                selectedTrackId={p.music_track_id}
+                volume={p.music_volume ?? 0.25}
+                onVolumeChange={async (v) => {
+                  const { data } = await supabase
+                    .from("video_projects")
+                    .update({ music_volume: v })
+                    .eq("id", p.id)
+                    .select("*")
+                    .single();
+                  if (data) {
+                    const updated = mapVideoProject(data);
+                    setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
+                    setActiveProject(updated);
+                  }
+                }}
+                onSelect={async (track: AudioTrack | null) => {
+                  const { data, error } = await supabase
+                    .from("video_projects")
+                    .update({ music_track_id: track?.id ?? null })
+                    .eq("id", p.id)
+                    .select("*")
+                    .single();
+                  if (error || !data) {
+                    toast({ title: "Save failed", description: error?.message, variant: "destructive" });
+                    return;
+                  }
+                  const updated = mapVideoProject(data);
+                  setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
+                  setActiveProject(updated);
+                  if (track) toast({ title: "Music attached", description: `${track.name} • ${Math.round((p.music_volume ?? 0.25) * 100)}%` });
+                }}
+              />
+            </div>
           </TabsContent>
         </Tabs>
 
