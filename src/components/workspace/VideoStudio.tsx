@@ -561,7 +561,9 @@ const VideoStudio = () => {
     setProjects(prev => prev.map(p => p.id === activeProject.id ? persistedProject : p));
     setEditingScene(null);
     setEditForm({});
-    toast({ title: "Scene Updated", description: `Scene ${updatedScenes[editingScene].scene_number} saved.` });
+    toast({ title: "Scene Updated", description: `Re-rendering video with your changes…` });
+    // Auto re-render so the final video reflects the edit immediately
+    autoRenderPipeline(persistedProject);
   };
 
   const aiEditScene = async () => {
@@ -739,6 +741,14 @@ const VideoStudio = () => {
       const scene = scenes[i];
       const key = `${project.id}-${scene.scene_number || i + 1}`;
       setExportProgress(Math.round((i / scenes.length) * 50));
+
+      // Reuse an already-generated image if we have one cached
+      const cached = sceneImages[key];
+      if (cached) {
+        imageMap[key] = cached;
+        continue;
+      }
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const body: Record<string, any> = {
@@ -1325,11 +1335,18 @@ const VideoStudio = () => {
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
             </Button>
-            {!renderedVideoUrl && autoRenderStage === "idle" && (
-              <Button size="sm" variant="outline" onClick={() => autoRenderPipeline(p)} disabled={isExporting || autoRenderStage !== "idle"}>
-                <FileVideo className="w-4 h-4 mr-1" /> Render Video
-              </Button>
-            )}
+            <Button
+              size="sm"
+              variant="hero"
+              onClick={() => autoRenderPipeline(p)}
+              disabled={isExporting || (autoRenderStage !== "idle" && autoRenderStage !== "done")}
+            >
+              {autoRenderStage !== "idle" && autoRenderStage !== "done" ? (
+                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Rendering…</>
+              ) : (
+                <><FileVideo className="w-4 h-4 mr-1" /> {renderedVideoUrl ? "Re-render with Audio" : "Render Video"}</>
+              )}
+            </Button>
             {renderedVideoUrl && (
               <Button size="sm" variant="outline" onClick={() => {
                 const a = document.createElement("a");
@@ -1796,7 +1813,8 @@ const VideoStudio = () => {
                   const updated = mapVideoProject(data);
                   setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
                   setActiveProject(updated);
-                  toast({ title: "Voice-over attached", description: "Will play with the rendered video." });
+                  toast({ title: "Voice-over attached", description: "Re-rendering video with narration…" });
+                  autoRenderPipeline(updated);
                 }}
               />
             </div>
@@ -1834,7 +1852,10 @@ const VideoStudio = () => {
                   const updated = mapVideoProject(data);
                   setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
                   setActiveProject(updated);
-                  if (track) toast({ title: "Music attached", description: `${track.name} • ${Math.round((p.music_volume ?? 0.25) * 100)}%` });
+                  if (track) {
+                    toast({ title: "Music attached", description: `${track.name} — re-rendering video…` });
+                    autoRenderPipeline(updated);
+                  }
                 }}
               />
             </div>
