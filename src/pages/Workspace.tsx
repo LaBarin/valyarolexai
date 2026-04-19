@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
   Plug, Presentation, Megaphone, MessageSquare, Menu, Video,
-  ArrowLeft, LogOut, Coins
+  ArrowLeft, LogOut, Coins, Sparkles
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
@@ -28,6 +28,7 @@ import IntegrationHub from "@/components/workspace/IntegrationHub";
 import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
 import VideoStudio from "@/components/workspace/VideoStudio";
+import CreativeStudio from "@/components/workspace/CreativeStudio";
 import CreditsManager from "@/components/workspace/CreditsManager";
 import { PaywallGate } from "@/components/PaywallGate";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -45,6 +46,7 @@ const navItems = [
   { id: "pitchdeck", label: "Pitch Deck", icon: Presentation, group: "tools" },
   { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
   { id: "videos", label: "Video Studio", icon: Video, group: "tools" },
+  { id: "creative", label: "Creative Studio", icon: Sparkles, group: "tools" },
   { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
   { id: "credits", label: "Credits", icon: Coins, group: "settings" },
 ] as const;
@@ -188,6 +190,7 @@ const WorkspaceContent = () => {
     pitchdeck: "Pitch Deck Studio",
     campaigns: "Campaign Manager",
     videos: "Video Studio",
+    creative: "Creative Studio",
     integrations: "Integrations",
     credits: "Credits & Billing",
   };
@@ -272,6 +275,13 @@ const WorkspaceContent = () => {
                 <div className="max-w-4xl">
                   <PaywallGate feature="Video Studio" onUpgrade={() => window.location.href = "/landing#pricing"}>
                     <VideoStudio />
+                  </PaywallGate>
+                </div>
+              )}
+              {activeTab === "creative" && (
+                <div className="max-w-5xl">
+                  <PaywallGate feature="Creative Studio" onUpgrade={() => window.location.href = "/landing#pricing"}>
+                    <CreativeStudio />
                   </PaywallGate>
                 </div>
               )}
