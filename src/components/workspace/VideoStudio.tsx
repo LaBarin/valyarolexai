@@ -561,7 +561,9 @@ const VideoStudio = () => {
     setProjects(prev => prev.map(p => p.id === activeProject.id ? persistedProject : p));
     setEditingScene(null);
     setEditForm({});
-    toast({ title: "Scene Updated", description: `Scene ${updatedScenes[editingScene].scene_number} saved.` });
+    toast({ title: "Scene Updated", description: `Re-rendering video with your changes…` });
+    // Auto re-render so the final video reflects the edit immediately
+    autoRenderPipeline(persistedProject);
   };
 
   const aiEditScene = async () => {
