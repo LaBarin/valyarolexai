@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPaddleEnvironment } from "@/lib/paddle";
+import { isOwnerEmail } from "@/lib/owner";
 
 export type Subscription = {
   id: string;
@@ -55,17 +56,23 @@ export function useSubscription() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // Platform owners always have full access regardless of subscription state.
+  const isOwner = isOwnerEmail(user?.email);
+
   // Cancellation = immediate revoke. A subscription that's scheduled to cancel
   // (cancel_at_period_end=true) or has status 'canceled' loses access right away.
-  const isActive = !!subscription
+  const hasActiveSub = !!subscription
     && ["active", "trialing"].includes(subscription.status)
     && !subscription.cancel_at_period_end
     && (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date());
 
-  const tier: "free" | "pro" | "business" =
-    !isActive ? "free" :
+  const isActive = isOwner || hasActiveSub;
+
+  const tier: "free" | "pro" | "business" | "owner" =
+    isOwner ? "owner" :
+    !hasActiveSub ? "free" :
     subscription?.product_id === "business_plan" ? "business" :
     subscription?.product_id === "pro_plan" ? "pro" : "free";
 
-  return { subscription, loading, isActive, tier, refresh };
+  return { subscription, loading, isActive, isOwner, tier, refresh };
 }

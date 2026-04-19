@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Coins, Check, Sparkles, Zap, Crown, History } from "lucide-react";
+import { Coins, Check, Sparkles, Zap, Crown, History, Infinity as InfinityIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useSubscription } from "@/hooks/useSubscription";
 
 type Pack = {
   id: string;
@@ -38,6 +39,7 @@ type Tx = {
 const CreditsManager = () => {
   const { user } = useAuth();
   const { openCheckout } = usePaddleCheckout();
+  const { isOwner } = useSubscription();
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
@@ -112,6 +114,26 @@ const CreditsManager = () => {
       setPurchasingId(null);
     }
   };
+
+  if (isOwner) {
+    return (
+      <div className="space-y-6">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <Card className="p-6 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border-primary/30">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <InfinityIcon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">Owner Account · Unlimited Access</h2>
+                <p className="text-sm text-muted-foreground">All features unlocked. No credit limits apply.</p>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
