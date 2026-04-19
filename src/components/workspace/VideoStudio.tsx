@@ -2039,36 +2039,47 @@ const VideoStudio = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => { setActiveProject(p); setActiveScene(0); }}
-                className="glass rounded-xl p-4 cursor-pointer hover:border-primary/30 transition-all group"
+                className="glass rounded-xl overflow-hidden cursor-pointer hover:border-primary/30 transition-all group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center relative overflow-hidden"
-                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.3))` }}>
-                      <FormatIcon className="w-5 h-5 text-primary relative z-10" />
+                {/* Thumbnail */}
+                <div className="relative aspect-video w-full bg-muted overflow-hidden">
+                  {p.thumbnail_url ? (
+                    <img
+                      src={p.thumbnail_url}
+                      alt={`Thumbnail for ${p.title}`}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center"
+                      style={{ background: `linear-gradient(135deg, hsl(var(--primary) / 0.25), hsl(var(--accent) / 0.2))` }}>
+                      <FormatIcon className="w-10 h-10 text-primary/70" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-sm">{p.title}</h3>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <Badge className={`${PLATFORM_COLORS[p.platform] || PLATFORM_COLORS.general} text-[9px] px-1.5`}>{p.platform}</Badge>
-                        <Badge variant="outline" className="text-[9px] px-1.5">{p.format}</Badge>
-                        <Badge className={`${STATUS_COLORS[p.status] || STATUS_COLORS.draft} text-[9px] px-1.5`}>{p.status}</Badge>
-                      </div>
-                    </div>
+                  )}
+                  <div className="absolute top-2 right-2">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="opacity-0 group-hover:opacity-100 h-7 w-7"
+                      onClick={(e) => { e.stopPropagation(); deleteProject(p.id); }}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    </Button>
                   </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="opacity-0 group-hover:opacity-100 h-7 w-7"
-                    onClick={(e) => { e.stopPropagation(); deleteProject(p.id); }}
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                  </Button>
                 </div>
-                {p.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{p.description}</p>}
-                <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
-                  <Film className="w-3 h-3" />
-                  {p.storyboard?.length || 0} scenes
+
+                <div className="p-4">
+                  <h3 className="font-semibold text-sm line-clamp-1">{p.title}</h3>
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <Badge className={`${PLATFORM_COLORS[p.platform] || PLATFORM_COLORS.general} text-[9px] px-1.5`}>{p.platform}</Badge>
+                    <Badge variant="outline" className="text-[9px] px-1.5">{p.format}</Badge>
+                    <Badge className={`${STATUS_COLORS[p.status] || STATUS_COLORS.draft} text-[9px] px-1.5`}>{p.status}</Badge>
+                  </div>
+                  {p.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{p.description}</p>}
+                  <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
+                    <Film className="w-3 h-3" />
+                    {p.storyboard?.length || 0} scenes
+                  </div>
                 </div>
               </motion.div>
             );
