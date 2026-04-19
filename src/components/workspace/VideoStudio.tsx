@@ -920,14 +920,17 @@ const VideoStudio = () => {
 
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        const isLast = i === scenes.length - 1;
+        const sceneRole: "main" | "closing" = isLast ? "closing" : "main";
         const body: Record<string, any> = {
           visual: scene.visual,
           text_overlay: scene.text_overlay,
           format: project.format,
           platform: project.platform,
+          scene_role: sceneRole,
         };
-        if (referenceImage) body.reference_image_url = referenceImage;
-        if (includeBranding) {
+        if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
+        if (includeBranding && sceneRole !== "closing") {
           try {
             const logoSrc = clientLogo || logoImg;
             const logoResp = await fetch(logoSrc);
