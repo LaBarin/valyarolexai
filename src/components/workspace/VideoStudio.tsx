@@ -1813,6 +1813,70 @@ const VideoStudio = () => {
                 </Button>
                 <span className="text-xs text-muted-foreground min-w-[36px] text-center">{activeScene + 1}/{scenes.length}</span>
                 <Progress value={((activeScene + 1) / scenes.length) * 100} className="w-24 h-1.5" />
+
+                {/* Voice-over audio control */}
+                {previewVoiceoverUrl && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Voice-over volume">
+                        {voiceoverMuted || voiceoverVolume === 0 ? (
+                          <VolumeX className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <Mic className="w-4 h-4 text-primary" />
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium flex items-center gap-1.5"><Mic className="w-3 h-3" /> Voice-over</span>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={() => setVoiceoverMuted((m) => !m)}>
+                          {voiceoverMuted ? "Unmute" : "Mute"}
+                        </Button>
+                      </div>
+                      <Slider value={[voiceoverMuted ? 0 : voiceoverVolume * 100]} min={0} max={100} step={1}
+                        onValueChange={(v) => { setVoiceoverMuted(false); setVoiceoverVolume(v[0] / 100); }} />
+                    </PopoverContent>
+                  </Popover>
+                )}
+
+                {/* Music audio control (volume persists to project) */}
+                {previewMusicUrl && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" title="Music volume">
+                        {musicMuted || (activeProject?.music_volume ?? 0.25) === 0 ? (
+                          <VolumeX className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <Music className="w-4 h-4 text-accent" />
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium flex items-center gap-1.5"><Music className="w-3 h-3" /> Music</span>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px]" onClick={() => setMusicMuted((m) => !m)}>
+                          {musicMuted ? "Unmute" : "Mute"}
+                        </Button>
+                      </div>
+                      <Slider
+                        value={[musicMuted ? 0 : Math.round((activeProject?.music_volume ?? 0.25) * 100)]}
+                        min={0} max={100} step={1}
+                        onValueChange={async (v) => {
+                          setMusicMuted(false);
+                          const newVol = v[0] / 100;
+                          if (!activeProject) return;
+                          // Optimistic local update for snappy slider
+                          setActiveProject({ ...activeProject, music_volume: newVol });
+                          await supabase
+                            .from("video_projects")
+                            .update({ music_volume: newVol })
+                            .eq("id", activeProject.id);
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
+
                 <NarratorControls
                   slides={videoNarratorSlides}
                   currentSlide={activeScene}
