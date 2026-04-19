@@ -1694,6 +1694,16 @@ const VideoStudio = () => {
               <VoiceoverStudio
                 videoId={p.id}
                 selectedId={p.voiceover_id}
+                initialScript={(() => {
+                  const scenes = p.script?.scenes || p.storyboard || [];
+                  const lines = scenes
+                    .map((s) => s.voiceover || s.text_overlay)
+                    .filter((s): s is string => !!s && s.trim().length > 0);
+                  if (lines.length > 0) return lines.join(" ");
+                  return [p.script?.hook, p.script?.description, p.script?.cta]
+                    .filter(Boolean)
+                    .join(" ");
+                })()}
                 onSelect={async (vo) => {
                   const { data, error } = await supabase
                     .from("video_projects")
