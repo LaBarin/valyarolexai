@@ -975,6 +975,7 @@ const VideoStudio = () => {
         voiceoverUrl,
         musicUrl,
         musicVolume: p.music_volume ?? 0.25,
+        brandFooter: extractBrandFooter(p),
       });
 
       // Upload to storage
