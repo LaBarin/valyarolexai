@@ -21,7 +21,7 @@ type Pack = {
 
 const PACKS: Pack[] = [
   { id: "starter", name: "Starter", credits: 100, price: 9, icon: Sparkles, description: "Perfect for trying things out" },
-  { id: "pro", name: "Pro Pack", credits: 500, price: 39, bonus: 50, popular: true, icon: Zap, description: "Best value for regular users" },
+  { id: "pro", name: "Pro Pack", credits: 500, price: 20, bonus: 50, popular: true, icon: Zap, description: "Best value for regular users" },
   { id: "power", name: "Power Pack", credits: 1500, price: 99, bonus: 250, icon: Crown, description: "Ideal for heavy automation workflows" },
 ];
 
