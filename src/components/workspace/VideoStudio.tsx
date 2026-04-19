@@ -1848,6 +1848,84 @@ const VideoStudio = () => {
         </div>
 
         {sceneEditDialogJsx}
+
+        {/* All Scene Images Gallery */}
+        <Dialog open={showImageGallery} onOpenChange={setShowImageGallery}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-primary" />
+                Scene Images — {p.title}
+              </DialogTitle>
+              <DialogDescription>
+                All visuals generated for this storyboard. Click the download icon to save any image.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="flex-1 pr-3">
+              <div className="grid gap-4 sm:grid-cols-2">
+                {scenes.map((scene, i) => {
+                  const imgKey = `${p.id}-${scene.scene_number || i + 1}`;
+                  const sceneImg = sceneImages[imgKey];
+                  const isGen = generatingImages[imgKey];
+                  const isFocus = i === galleryFocusIndex;
+                  return (
+                    <div
+                      key={i}
+                      className={`glass rounded-xl overflow-hidden border ${isFocus ? "border-primary/60 shadow-glow" : "border-border/50"}`}
+                    >
+                      <div className={`relative ${p.format === "9:16" ? "aspect-[9/16]" : p.format === "1:1" ? "aspect-square" : "aspect-video"} bg-muted/20`}>
+                        {sceneImg ? (
+                          <img
+                            src={sceneImg}
+                            alt={`Scene ${scene.scene_number || i + 1}`}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                            {isGen ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                <span className="text-xs">Generating…</span>
+                              </>
+                            ) : (
+                              <>
+                                <ImageIcon className="w-6 h-6 opacity-50" />
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => generateSceneImage(scene, p.id, p.format, p.platform)}
+                                >
+                                  Generate Image
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        <Badge className="absolute top-2 left-2 bg-black/60 text-white border-white/20 text-[10px] backdrop-blur-sm">
+                          Scene {scene.scene_number || i + 1} — {scene.duration_seconds}s
+                        </Badge>
+                        {sceneImg && (
+                          <button
+                            onClick={() => downloadSceneImage(sceneImg, `${p.title}-scene-${scene.scene_number || i + 1}.png`)}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-md bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="p-3 space-y-1">
+                        <p className="text-xs text-foreground/90 line-clamp-2">{scene.visual}</p>
+                        {scene.text_overlay && (
+                          <p className="text-[10px] text-primary line-clamp-1">"{scene.text_overlay}"</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
       <PreviewDialogComponent />
       </>
