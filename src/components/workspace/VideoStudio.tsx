@@ -362,6 +362,8 @@ const VideoStudio = () => {
   const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
   const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [galleryFocusIndex, setGalleryFocusIndex] = useState(0);
   // Active detail tab
   const [activeDetailTab, setActiveDetailTab] = useState("storyboard");
 
