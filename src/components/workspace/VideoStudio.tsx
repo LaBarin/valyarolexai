@@ -1217,7 +1217,97 @@ const VideoStudio = () => {
     }
   };
 
-  // Resolve signed URLs for the active project's voiceover + music whenever
+  /**
+   * Server-side MP4 export via Remotion Lambda.
+   * Submits the project to the `render-video-lambda` edge function, then polls
+   * status every 3s until the render completes. The resulting MP4 lands in the
+   * private `video-exports` bucket and we open it in the existing preview.
+   */
+  const exportVideoMp4 = async () => {
+    if (!activeProject || isMp4Exporting) return;
+    const p = activeProject;
+    const scenes = p.storyboard || p.script?.scenes || [];
+    const missingImages = scenes.some((s) => !s.image_url);
+    if (scenes.length === 0 || missingImages) {
+      toast({
+        title: "Generate scene images first",
+        description: "Every scene needs a generated image before MP4 export. Click 'Render Video' once to generate them.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsMp4Exporting(true);
+    setMp4Progress(0);
+    setMp4Status("Submitting to renderer…");
+
+    try {
+      const animMap: Record<string, string> = {};
+      scenes.forEach((_, i) => {
+        const a = sceneAnimations[i];
+        animMap[String(i)] = a && a !== "auto" ? (a as string) : resolveSceneAnimation(animationPreset, i);
+      });
+
+      const startBody = {
+        action: "start",
+        video_project_id: p.id,
+        scene_animations: animMap,
+        brand_footer: extractBrandFooter(p),
+        closing_card: buildClosingCard(p),
+        environment: import.meta.env.MODE === "production" ? "live" : "sandbox",
+      };
+
+      const startRes = await supabase.functions.invoke("render-video-lambda", { body: startBody });
+      if (startRes.error || !startRes.data?.ok) {
+        const msg = startRes.data?.error || startRes.error?.message || "Failed to start render";
+        throw new Error(msg);
+      }
+      const { renderId, bucketName } = startRes.data as { renderId: string; bucketName: string };
+
+      setMp4Status("Rendering on Lambda…");
+
+      // Poll progress every 3s, up to ~5 min
+      const MAX_POLLS = 100;
+      for (let i = 0; i < MAX_POLLS; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const statusRes = await supabase.functions.invoke("render-video-lambda", {
+          body: { action: "status", renderId, bucketName, video_project_id: p.id },
+        });
+        if (statusRes.error) throw new Error(statusRes.error.message);
+        const data = statusRes.data;
+        if (data?.failed) throw new Error(data.error || "Render failed");
+        if (typeof data?.progress === "number") setMp4Progress(data.progress);
+        if (data?.done) {
+          setMp4Progress(100);
+          setMp4Status("Done");
+          if (data.signed_url) {
+            setRenderedVideoUrl(data.signed_url);
+            setShowVideoPreview(true);
+          }
+          // Also reload the project so badges update
+          const { data: row } = await supabase
+            .from("video_projects").select("*").eq("id", p.id).maybeSingle();
+          if (row) {
+            const updated = mapVideoProject(row);
+            setActiveProject(updated);
+            setProjects((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+          }
+          toast({
+            title: "MP4 Ready",
+            description: `Rendered ${(data.size_bytes / 1024 / 1024).toFixed(1)} MB. Saved to your library.`,
+          });
+          return;
+        }
+      }
+      throw new Error("Render timed out (5 min)");
+    } catch (e: any) {
+      toast({ title: "MP4 Export Failed", description: e.message, variant: "destructive" });
+    } finally {
+      setIsMp4Exporting(false);
+      setTimeout(() => { setMp4Progress(null); setMp4Status(""); }, 2000);
+    }
+  };
+
   // the attachments change. Stop any in-flight playback first so we don't
   // leak audio elements between projects.
   useEffect(() => {
