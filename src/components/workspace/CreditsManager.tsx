@@ -37,6 +37,7 @@ type Tx = {
 
 const CreditsManager = () => {
   const { user } = useAuth();
+  const { openCheckout } = usePaddleCheckout();
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
@@ -72,36 +73,44 @@ const CreditsManager = () => {
 
   useEffect(() => {
     loadData();
+
+    if (!user) return;
+    const channel = supabase
+      .channel(`credits-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_credits", filter: `user_id=eq.${user.id}` },
+        () => loadData()
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "credit_transactions", filter: `user_id=eq.${user.id}` },
+        () => loadData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handlePurchase = async (pack: Pack) => {
     if (!user) return;
     setPurchasingId(pack.id);
-
-    const totalCredits = pack.credits + (pack.bonus || 0);
-    const newBalance = balance + totalCredits;
-
-    const { error: updateErr } = await supabase
-      .from("user_credits")
-      .upsert({ user_id: user.id, balance: newBalance }, { onConflict: "user_id" });
-
-    if (updateErr) {
-      toast.error("Failed to add credits");
+    try {
+      await openCheckout({
+        priceId: pack.priceId,
+        customerEmail: user.email,
+        customData: { userId: user.id },
+        successUrl: `${window.location.origin}/workspace?tab=credits&checkout=success`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to open checkout");
+    } finally {
       setPurchasingId(null);
-      return;
     }
-
-    await supabase.from("credit_transactions").insert({
-      user_id: user.id,
-      amount: totalCredits,
-      type: "purchase",
-      description: `${pack.name} — ${pack.credits}${pack.bonus ? ` + ${pack.bonus} bonus` : ""} credits`,
-    });
-
-    toast.success(`Added ${totalCredits} credits to your account!`);
-    setPurchasingId(null);
-    loadData();
   };
 
   return (
