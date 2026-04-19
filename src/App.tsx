@@ -17,7 +17,7 @@ import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import Refund from "./pages/Refund";
 import Privacy from "./pages/Privacy";
-import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner";
+
 
 const queryClient = new QueryClient();
 
@@ -27,7 +27,6 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <PaymentTestModeBanner />
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
