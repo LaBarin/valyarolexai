@@ -77,6 +77,8 @@ type RenderOptions = {
   musicVolume?: number;
   /** Voiceover volume 0-1 (default 1.0) */
   voiceoverVolume?: number;
+  /** Optional persistent brand info shown as a small footer on every frame */
+  brandFooter?: { website?: string; phone?: string } | null;
 };
 
 // ─── Constants ──────────────────────────────────────────────────
