@@ -136,6 +136,8 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
+      // Best-effort refund since the spend already happened
+      await refundCredits(userId, SCENE_IMAGE_COST, "refund:scene-image-failed");
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
           status: 429,
@@ -143,7 +145,7 @@ serve(async (req) => {
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Usage limit reached. Please add credits." }), {
+        return new Response(JSON.stringify({ error: "AI provider usage limit reached." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -160,6 +162,7 @@ serve(async (req) => {
     const imageUrl = aiResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
+      await refundCredits(userId, SCENE_IMAGE_COST, "refund:scene-image-empty");
       return new Response(JSON.stringify({ error: "No image was generated" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
