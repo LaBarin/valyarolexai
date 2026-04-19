@@ -1257,6 +1257,9 @@ const VideoStudio = () => {
           <TabsList className="glass">
             <TabsTrigger value="storyboard">Storyboard</TabsTrigger>
             <TabsTrigger value="script">Script</TabsTrigger>
+            <TabsTrigger value="style"><Palette className="w-3.5 h-3.5 mr-1.5" />Style</TabsTrigger>
+            <TabsTrigger value="voice"><Mic className="w-3.5 h-3.5 mr-1.5" />Voice</TabsTrigger>
+            <TabsTrigger value="music"><Music className="w-3.5 h-3.5 mr-1.5" />Music</TabsTrigger>
             <TabsTrigger value="details">Ad Details</TabsTrigger>
           </TabsList>
 
