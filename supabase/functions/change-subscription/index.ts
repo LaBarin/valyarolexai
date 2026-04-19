@@ -70,6 +70,9 @@ serve(async (req) => {
     return new Response(JSON.stringify({ ok: true, status: updated.status }), responseHeaders);
   } catch (e) {
     console.error("change-subscription error:", e);
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, ...responseHeaders });
+    return new Response(
+      JSON.stringify({ error: "Unable to change your subscription. Please try again or contact support." }),
+      { status: 500, ...responseHeaders },
+    );
   }
 });
