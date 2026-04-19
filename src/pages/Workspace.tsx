@@ -29,6 +29,10 @@ import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
 import VideoStudio from "@/components/workspace/VideoStudio";
 import CreditsManager from "@/components/workspace/CreditsManager";
+import { PaywallGate } from "@/components/PaywallGate";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const navItems = [
   { id: "command", label: "Command Center", icon: LayoutDashboard, group: "core" },
