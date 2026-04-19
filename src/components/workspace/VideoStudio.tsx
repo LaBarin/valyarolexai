@@ -867,7 +867,14 @@ const VideoStudio = () => {
       const filePath = `${session.user.id}/${project.id}.webm`;
       await supabase.storage.from("video-exports").upload(filePath, blob, { upsert: true, contentType: "video/webm" });
       const thumbnailUrl = sceneInputs[0]?.imageUrl ?? null;
-      await supabase.from("video_projects").update({ exported_video_url: filePath, status: "completed", thumbnail_url: thumbnailUrl } as any).eq("id", project.id);
+      const renderMeta = buildRenderMeta(project);
+      const updatedScript = mergeVideoScript(project, project.script, { last_render_meta: renderMeta });
+      await supabase.from("video_projects").update({
+        exported_video_url: filePath,
+        status: "completed",
+        thumbnail_url: thumbnailUrl,
+        script: updatedScript as any,
+      } as any).eq("id", project.id);
 
       const videoObjectUrl = URL.createObjectURL(blob);
       setRenderedVideoUrl(videoObjectUrl);
@@ -877,8 +884,8 @@ const VideoStudio = () => {
       // Auto-switch to details tab to show publishing links
       setActiveDetailTab("details");
       // Update project status locally
-      setActiveProject(prev => prev ? { ...prev, status: "completed" } : null);
-      setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed" } : p));
+      setActiveProject(prev => prev ? { ...prev, status: "completed", script: updatedScript } : null);
+      setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed", script: updatedScript } : p));
       toast({ title: "Video Ready!", description: "Your video has been rendered. Review and share it." });
     } catch (e: any) {
       setAutoRenderStage("idle");
