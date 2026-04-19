@@ -670,6 +670,39 @@ const VideoStudio = () => {
     }
   };
 
+  /** Resolve signed audio URLs for a project's voiceover and music tracks. */
+  const resolveProjectAudio = async (project: VideoProject): Promise<{ voiceoverUrl: string | null; musicUrl: string | null }> => {
+    let voiceoverUrl: string | null = null;
+    let musicUrl: string | null = null;
+    try {
+      if (project.voiceover_id) {
+        const { data: vo } = await supabase
+          .from("voiceovers")
+          .select("storage_path")
+          .eq("id", project.voiceover_id)
+          .maybeSingle();
+        if (vo?.storage_path) {
+          const { data } = await supabase.functions.invoke("get-audio-url", { body: { path: vo.storage_path } });
+          if (data?.url) voiceoverUrl = data.url;
+        }
+      }
+      if (project.music_track_id) {
+        const { data: tr } = await supabase
+          .from("audio_tracks")
+          .select("storage_path")
+          .eq("id", project.music_track_id)
+          .maybeSingle();
+        if (tr?.storage_path) {
+          const { data } = await supabase.functions.invoke("get-audio-url", { body: { path: tr.storage_path } });
+          if (data?.url) musicUrl = data.url;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to resolve project audio", e);
+    }
+    return { voiceoverUrl, musicUrl };
+  };
+
   const autoRenderPipeline = async (project: VideoProject) => {
     const scenes = project.storyboard || project.script?.scenes || [];
     if (scenes.length === 0) return;
