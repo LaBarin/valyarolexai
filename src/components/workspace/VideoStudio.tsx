@@ -4,7 +4,7 @@ import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
   Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download,
-  FileVideo, Upload
+  FileVideo, Upload, CheckCircle2, AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -61,6 +61,13 @@ type VideoData = {
     hashtags?: string[];
   };
   publishing_links?: Record<string, string>;
+  last_render_meta?: {
+    voiceover_id?: string | null;
+    music_track_id?: string | null;
+    music_volume?: number | null;
+    scenes_hash?: string;
+    rendered_at?: string;
+  };
 };
 
 type VideoProject = {
@@ -151,7 +158,46 @@ const normalizeVideoScript = (value: unknown): VideoData | null => {
       rawLinks && typeof rawLinks === "object" && !Array.isArray(rawLinks)
         ? Object.fromEntries(Object.entries(rawLinks).map(([key, link]) => [key, String(link ?? "")]))
         : {},
+    last_render_meta: (script as any).last_render_meta ?? undefined,
   };
+};
+
+// Compute a stable hash of scene content (visual + overlay + duration) used for render-sync detection
+const computeScenesHash = (scenes: Scene[]): string => {
+  const payload = scenes.map((s) => ({
+    n: s.scene_number,
+    v: s.visual ?? "",
+    t: s.text_overlay ?? "",
+    d: s.duration_seconds ?? 0,
+  }));
+  const json = JSON.stringify(payload);
+  // Lightweight 32-bit FNV-1a hash — good enough for change detection
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < json.length; i++) {
+    hash ^= json.charCodeAt(i);
+    hash = (hash * 0x01000193) >>> 0;
+  }
+  return hash.toString(16);
+};
+
+const buildRenderMeta = (project: VideoProject) => ({
+  voiceover_id: project.voiceover_id ?? null,
+  music_track_id: project.music_track_id ?? null,
+  music_volume: project.music_volume ?? null,
+  scenes_hash: computeScenesHash(project.storyboard || project.script?.scenes || []),
+  rendered_at: new Date().toISOString(),
+});
+
+const isRenderInSync = (project: VideoProject): boolean => {
+  const meta = project.script?.last_render_meta;
+  if (!meta) return false;
+  const currentHash = computeScenesHash(project.storyboard || project.script?.scenes || []);
+  return (
+    meta.voiceover_id === (project.voiceover_id ?? null) &&
+    meta.music_track_id === (project.music_track_id ?? null) &&
+    (meta.music_volume ?? null) === (project.music_volume ?? null) &&
+    meta.scenes_hash === currentHash
+  );
 };
 
 const getStoryboardScenes = (value: unknown): Scene[] => {
@@ -184,6 +230,7 @@ const mergeVideoScript = (
     scenes: nextScenes,
     ad_copy: currentScript?.ad_copy,
     publishing_links: currentScript?.publishing_links ?? {},
+    last_render_meta: currentScript?.last_render_meta,
     ...overrides,
   };
 };
@@ -820,7 +867,14 @@ const VideoStudio = () => {
       const filePath = `${session.user.id}/${project.id}.webm`;
       await supabase.storage.from("video-exports").upload(filePath, blob, { upsert: true, contentType: "video/webm" });
       const thumbnailUrl = sceneInputs[0]?.imageUrl ?? null;
-      await supabase.from("video_projects").update({ exported_video_url: filePath, status: "completed", thumbnail_url: thumbnailUrl } as any).eq("id", project.id);
+      const renderMeta = buildRenderMeta(project);
+      const updatedScript = mergeVideoScript(project, project.script, { last_render_meta: renderMeta });
+      await supabase.from("video_projects").update({
+        exported_video_url: filePath,
+        status: "completed",
+        thumbnail_url: thumbnailUrl,
+        script: updatedScript as any,
+      } as any).eq("id", project.id);
 
       const videoObjectUrl = URL.createObjectURL(blob);
       setRenderedVideoUrl(videoObjectUrl);
@@ -830,8 +884,8 @@ const VideoStudio = () => {
       // Auto-switch to details tab to show publishing links
       setActiveDetailTab("details");
       // Update project status locally
-      setActiveProject(prev => prev ? { ...prev, status: "completed" } : null);
-      setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed" } : p));
+      setActiveProject(prev => prev ? { ...prev, status: "completed", script: updatedScript } : null);
+      setProjects(prev => prev.map(p => p.id === project.id ? { ...p, status: "completed", script: updatedScript } : p));
       toast({ title: "Video Ready!", description: "Your video has been rendered. Review and share it." });
     } catch (e: any) {
       setAutoRenderStage("idle");
@@ -1007,10 +1061,14 @@ const VideoStudio = () => {
       // Store the file path (not public URL since bucket is private)
       // Save path to project so we can generate signed URLs when needed
       const thumbnailUrl = sceneInputs[0]?.imageUrl ?? null;
+      const renderMeta = buildRenderMeta(p);
+      const updatedScript = mergeVideoScript(p, p.script, { last_render_meta: renderMeta });
       await supabase
         .from("video_projects")
-        .update({ exported_video_url: filePath, thumbnail_url: thumbnailUrl } as any)
+        .update({ exported_video_url: filePath, thumbnail_url: thumbnailUrl, script: updatedScript as any } as any)
         .eq("id", p.id);
+      setActiveProject(prev => prev ? { ...prev, script: updatedScript } : null);
+      setProjects(prev => prev.map(proj => proj.id === p.id ? { ...proj, script: updatedScript } : proj));
 
       // Also trigger download
       const a = document.createElement("a");
@@ -1332,6 +1390,21 @@ const VideoStudio = () => {
             <Badge className={STATUS_COLORS[p.status] || STATUS_COLORS.draft}>{p.status}</Badge>
             <Badge className={PLATFORM_COLORS[p.platform] || PLATFORM_COLORS.general}>{p.platform}</Badge>
             <Badge variant="outline"><FormatIcon className="w-3 h-3 mr-1" />{p.format}</Badge>
+            {p.script?.last_render_meta ? (
+              isRenderInSync(p) ? (
+                <Badge className="bg-green-500/20 text-green-400 border-transparent" title="Exported video matches the currently-attached voice-over, music, and scenes.">
+                  <CheckCircle2 className="w-3 h-3 mr-1" /> In sync
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-500/20 text-amber-400 border-transparent" title="Voice-over, music, or scenes have changed since the last export. Re-render to update.">
+                  <AlertCircle className="w-3 h-3 mr-1" /> Re-render needed
+                </Badge>
+              )
+            ) : (
+              <Badge variant="outline" className="text-muted-foreground" title="No exported video yet.">
+                <AlertCircle className="w-3 h-3 mr-1" /> Not rendered
+              </Badge>
+            )}
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
             </Button>
