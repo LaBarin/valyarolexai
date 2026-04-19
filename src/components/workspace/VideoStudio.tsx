@@ -1548,7 +1548,7 @@ const VideoStudio = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
-                    onClick={() => { setActiveScene(i); setIsPlaying(false); }}
+                    onClick={() => { setActiveScene(i); setIsPlaying(false); setGalleryFocusIndex(i); setShowImageGallery(true); }}
                     className={`glass rounded-xl overflow-hidden cursor-pointer text-left transition-all ${activeScene === i ? "border-primary/50 shadow-glow" : "hover:border-border"}`}
                   >
                     <div className="relative h-24 overflow-hidden">
