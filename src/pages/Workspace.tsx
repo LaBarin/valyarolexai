@@ -140,6 +140,7 @@ const WorkspaceContent = () => {
     campaigns: "Campaign Manager",
     videos: "Video Studio",
     integrations: "Integrations",
+    credits: "Credits & Billing",
   };
 
   return (
