@@ -1843,6 +1843,59 @@ const VideoStudio = () => {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1">
+            <label className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Palette className="w-3 h-3" />Visual Style</label>
+            <Select value={preGenStyle} onValueChange={setPreGenStyle}>
+              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="kinetic">Kinetic Typography</SelectItem>
+                <SelectItem value="cinematic">Cinematic Live-Action</SelectItem>
+                <SelectItem value="commercial-animated">Commercial Animated</SelectItem>
+                <SelectItem value="3d-animated">3D Animated</SelectItem>
+                <SelectItem value="2d-animated">2D Cartoon</SelectItem>
+                <SelectItem value="minimal">Minimal / Clean</SelectItem>
+                <SelectItem value="ugc">UGC / Selfie Style</SelectItem>
+                <SelectItem value="motion-graphics">Motion Graphics</SelectItem>
+                <SelectItem value="retro">Retro / Vintage</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Mic className="w-3 h-3" />Voice</label>
+            <Select value={preGenVoiceId} onValueChange={setPreGenVoiceId}>
+              <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {VOICES.map((v) => (
+                  <SelectItem key={v.id} value={v.id} className="text-xs">
+                    {v.name} <span className="text-muted-foreground ml-1">— {v.style}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1"><Music className="w-3 h-3" />Music</label>
+            <Select value={preGenTrackId ?? "__none"} onValueChange={(v) => setPreGenTrackId(v === "__none" ? null : v)}>
+              <SelectTrigger className="w-44 h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">No background music</SelectItem>
+                {availableTracks.map((t) => (
+                  <SelectItem key={t.id} value={t.id} className="text-xs">
+                    {t.name} <span className="text-muted-foreground ml-1">— {t.mood}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <a
+            href="https://pixabay.com/music/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-primary hover:underline self-end pb-2"
+            title="Browse free royalty-free music on Pixabay, then upload your picks in the Music tab"
+          >
+            Browse Pixabay music ↗
+          </a>
         </div>
 
         <div className="flex flex-wrap gap-3 items-end">
