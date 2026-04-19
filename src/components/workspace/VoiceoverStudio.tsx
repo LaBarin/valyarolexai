@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-const VOICES = [
+export const VOICES = [
   { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", gender: "Male", style: "Warm, narrator" },
   { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", gender: "Female", style: "Clear, friendly" },
   { id: "FGY2WhTYpPnrIDTdsKH5", name: "Laura", gender: "Female", style: "Conversational" },
