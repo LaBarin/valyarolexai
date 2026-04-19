@@ -1183,20 +1183,123 @@ const VideoStudio = () => {
     }
   };
 
-  // Storyboard playback simulation
+  // Resolve signed URLs for the active project's voiceover + music whenever
+  // the attachments change. Stop any in-flight playback first so we don't
+  // leak audio elements between projects.
   useEffect(() => {
-    if (!isPlaying || !activeProject?.storyboard?.length) return;
+    let cancelled = false;
+    // Tear down current audio
+    if (voiceoverAudioRef.current) {
+      voiceoverAudioRef.current.pause();
+      voiceoverAudioRef.current.src = "";
+      voiceoverAudioRef.current = null;
+    }
+    if (musicAudioRef.current) {
+      musicAudioRef.current.pause();
+      musicAudioRef.current.src = "";
+      musicAudioRef.current = null;
+    }
+    setPreviewVoiceoverUrl(null);
+    setPreviewMusicUrl(null);
+
+    if (!activeProject) return;
+    if (!activeProject.voiceover_id && !activeProject.music_track_id) return;
+
+    (async () => {
+      const { voiceoverUrl, musicUrl } = await resolveProjectAudio(activeProject);
+      if (cancelled) return;
+      setPreviewVoiceoverUrl(voiceoverUrl);
+      setPreviewMusicUrl(musicUrl);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeProject?.id, activeProject?.voiceover_id, activeProject?.music_track_id]);
+
+  // Construct/teardown <audio> elements when URLs become available
+  useEffect(() => {
+    if (previewVoiceoverUrl) {
+      const a = new Audio(previewVoiceoverUrl);
+      a.preload = "auto";
+      a.volume = voiceoverMuted ? 0 : voiceoverVolume;
+      voiceoverAudioRef.current = a;
+    }
+    return () => {
+      if (voiceoverAudioRef.current) {
+        voiceoverAudioRef.current.pause();
+        voiceoverAudioRef.current = null;
+      }
+    };
+  }, [previewVoiceoverUrl]);
+
+  useEffect(() => {
+    if (previewMusicUrl) {
+      const a = new Audio(previewMusicUrl);
+      a.preload = "auto";
+      a.loop = true;
+      const projVol = activeProject?.music_volume ?? 0.25;
+      a.volume = musicMuted ? 0 : projVol;
+      musicAudioRef.current = a;
+    }
+    return () => {
+      if (musicAudioRef.current) {
+        musicAudioRef.current.pause();
+        musicAudioRef.current = null;
+      }
+    };
+  }, [previewMusicUrl]);
+
+  // Keep volume/mute states in sync with live <audio> elements
+  useEffect(() => {
+    if (voiceoverAudioRef.current) {
+      voiceoverAudioRef.current.volume = voiceoverMuted ? 0 : voiceoverVolume;
+    }
+  }, [voiceoverVolume, voiceoverMuted]);
+
+  useEffect(() => {
+    if (musicAudioRef.current) {
+      const projVol = activeProject?.music_volume ?? 0.25;
+      musicAudioRef.current.volume = musicMuted ? 0 : projVol;
+    }
+  }, [musicMuted, activeProject?.music_volume]);
+
+  // Storyboard playback simulation — also drives audio playback
+  useEffect(() => {
+    if (!isPlaying || !activeProject?.storyboard?.length) {
+      // Pause any audio when not playing
+      voiceoverAudioRef.current?.pause();
+      musicAudioRef.current?.pause();
+      return;
+    }
     const scene = activeProject.storyboard[activeScene];
+
+    // Start audio on the FIRST scene of a play session, and resume on subsequent scenes.
+    // We treat scene 0 as a "start from beginning" cue.
+    const vo = voiceoverAudioRef.current;
+    const mu = musicAudioRef.current;
+    if (activeScene === 0) {
+      if (vo) { try { vo.currentTime = 0; } catch {} vo.play().catch(() => {}); }
+      if (mu) { try { mu.currentTime = 0; } catch {} mu.play().catch(() => {}); }
+    } else {
+      // Mid-storyboard: ensure audio is still playing (e.g. user pressed pause/play)
+      if (vo && vo.paused) vo.play().catch(() => {});
+      if (mu && mu.paused) mu.play().catch(() => {});
+    }
+
     const timer = setTimeout(() => {
       if (activeScene < activeProject.storyboard.length - 1) {
         setActiveScene(activeScene + 1);
       } else {
         setIsPlaying(false);
         setActiveScene(0);
+        voiceoverAudioRef.current?.pause();
+        musicAudioRef.current?.pause();
       }
     }, (scene?.duration_seconds || 3) * 1000);
     return () => clearTimeout(timer);
   }, [isPlaying, activeScene, activeProject]);
+
 
   // Scene edit dialog — rendered inline (not as a sub-component) to avoid remounting on state change
   const sceneEditDialogJsx = editingScene !== null && activeProject ? (() => {
