@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
   Plug, Presentation, Megaphone, MessageSquare, Menu, Video,
-  ArrowLeft, LogOut
+  ArrowLeft, LogOut, Coins
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
@@ -28,6 +28,7 @@ import IntegrationHub from "@/components/workspace/IntegrationHub";
 import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
 import VideoStudio from "@/components/workspace/VideoStudio";
+import CreditsManager from "@/components/workspace/CreditsManager";
 
 const navItems = [
   { id: "command", label: "Command Center", icon: LayoutDashboard, group: "core" },
@@ -41,6 +42,7 @@ const navItems = [
   { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
   { id: "videos", label: "Video Studio", icon: Video, group: "tools" },
   { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
+  { id: "credits", label: "Credits", icon: Coins, group: "settings" },
 ] as const;
 
 type TabId = typeof navItems[number]["id"];
@@ -138,6 +140,7 @@ const WorkspaceContent = () => {
     campaigns: "Campaign Manager",
     videos: "Video Studio",
     integrations: "Integrations",
+    credits: "Credits & Billing",
   };
 
   return (
@@ -212,6 +215,11 @@ const WorkspaceContent = () => {
               {activeTab === "videos" && (
                 <div className="max-w-4xl">
                   <VideoStudio />
+                </div>
+              )}
+              {activeTab === "credits" && (
+                <div className="max-w-4xl">
+                  <CreditsManager />
                 </div>
               )}
             </motion.div>
