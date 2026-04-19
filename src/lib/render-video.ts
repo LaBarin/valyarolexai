@@ -352,6 +352,121 @@ function drawBrandFooter(
   ctx.fillText(text, canvasW / 2, cardY + cardH / 2);
   ctx.restore();
 }
+
+/**
+ * Draws a centered branded closing card: client logo + small "Powered by" reference logo
+ * + company contact info. Drawn on top of the (subtle) AI background of the last scene.
+ */
+function drawClosingCard(
+  ctx: CanvasRenderingContext2D,
+  card: {
+    clientLogo?: HTMLImageElement | null;
+    referenceLogo?: HTMLImageElement | null;
+    companyName?: string;
+    website?: string;
+    phone?: string;
+    address?: string;
+    poweredByLabel?: string;
+  },
+  canvasW: number,
+  canvasH: number,
+  alpha: number = 1,
+) {
+  ctx.save();
+  ctx.globalAlpha = clamp(alpha, 0, 1);
+
+  // Soft dark scrim so logos and text always read
+  const scrim = ctx.createLinearGradient(0, 0, 0, canvasH);
+  scrim.addColorStop(0, "rgba(8, 12, 18, 0.55)");
+  scrim.addColorStop(0.5, "rgba(8, 12, 18, 0.7)");
+  scrim.addColorStop(1, "rgba(8, 12, 18, 0.85)");
+  ctx.fillStyle = scrim;
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  const centerX = canvasW / 2;
+
+  // ── Client logo (large, hero) ─────────────────────────────
+  const clientLogoMaxW = canvasW * 0.55;
+  const clientLogoMaxH = canvasH * 0.32;
+  let clientLogoBottom = canvasH * 0.42;
+  if (card.clientLogo) {
+    const ratio = card.clientLogo.width / card.clientLogo.height;
+    let lw = clientLogoMaxW;
+    let lh = lw / ratio;
+    if (lh > clientLogoMaxH) { lh = clientLogoMaxH; lw = lh * ratio; }
+    const lx = centerX - lw / 2;
+    const ly = canvasH * 0.12;
+    ctx.drawImage(card.clientLogo, lx, ly, lw, lh);
+    clientLogoBottom = ly + lh;
+  } else if (card.companyName) {
+    const fs = clamp(Math.round(canvasW * 0.06), 36, 110);
+    ctx.font = `700 ${fs}px "Space Grotesk", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 14;
+    const ly = canvasH * 0.18;
+    ctx.fillText(card.companyName, centerX, ly);
+    clientLogoBottom = ly + fs;
+    ctx.shadowBlur = 0;
+  }
+
+  // ── "Powered by" + small reference logo ──────────────────
+  let poweredByBottom = clientLogoBottom + canvasH * 0.04;
+  if (card.referenceLogo || card.poweredByLabel) {
+    const label = card.poweredByLabel || "Powered by";
+    const labelFs = clamp(Math.round(canvasW * 0.018), 14, 28);
+    ctx.font = `500 ${labelFs}px "Space Grotesk", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+
+    const refLogoH = card.referenceLogo ? clamp(Math.round(canvasH * 0.06), 36, 90) : 0;
+    const refLogoW = card.referenceLogo
+      ? refLogoH * (card.referenceLogo.width / card.referenceLogo.height)
+      : 0;
+    const labelW = ctx.measureText(label).width;
+    const gap = labelFs * 0.6;
+    const totalW = labelW + (refLogoW > 0 ? gap + refLogoW : 0);
+    const startX = centerX - totalW / 2;
+    const rowY = clientLogoBottom + canvasH * 0.05 + refLogoH / 2;
+
+    ctx.fillText(label, startX + labelW / 2, rowY);
+    if (card.referenceLogo) {
+      ctx.drawImage(
+        card.referenceLogo,
+        startX + labelW + gap,
+        rowY - refLogoH / 2,
+        refLogoW,
+        refLogoH,
+      );
+    }
+    poweredByBottom = rowY + refLogoH / 2;
+  }
+
+  // ── Contact info block ────────────────────────────────────
+  const lines: string[] = [];
+  if (card.website) lines.push(card.website);
+  if (card.phone) lines.push(card.phone);
+  if (card.address) lines.push(card.address);
+
+  if (lines.length > 0) {
+    const fs = clamp(Math.round(canvasW * 0.022), 18, 38);
+    const lineH = Math.round(fs * 1.4);
+    ctx.font = `500 ${fs}px "Space Grotesk", sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(0,0,0,0.5)";
+    ctx.shadowBlur = 10;
+    const startY = poweredByBottom + canvasH * 0.06;
+    lines.forEach((l, i) => ctx.fillText(l, centerX, startY + i * lineH));
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.restore();
+}
 async function loadAudioBuffer(
   audioCtx: AudioContext,
   url: string,
