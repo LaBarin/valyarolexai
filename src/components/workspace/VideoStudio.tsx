@@ -428,6 +428,18 @@ const VideoStudio = () => {
   const [preGenTrackId, setPreGenTrackId] = useState<string | null>(null);
   const [availableTracks, setAvailableTracks] = useState<AudioTrack[]>([]);
 
+  // ── Preview audio playback ────────────────────────────────────────────────
+  // Resolves signed URLs for the active project's voiceover + music tracks
+  // and plays them in sync with the storyboard scene timer.
+  const voiceoverAudioRef = useRef<HTMLAudioElement | null>(null);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [previewVoiceoverUrl, setPreviewVoiceoverUrl] = useState<string | null>(null);
+  const [previewMusicUrl, setPreviewMusicUrl] = useState<string | null>(null);
+  const [voiceoverMuted, setVoiceoverMuted] = useState(false);
+  const [musicMuted, setMusicMuted] = useState(false);
+  const [voiceoverVolume, setVoiceoverVolume] = useState(1);
+  // music volume is persisted on the project; we shadow it locally for slider responsiveness
+
   useEffect(() => {
     let active = true;
     supabase
