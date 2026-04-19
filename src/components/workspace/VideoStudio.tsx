@@ -1390,6 +1390,21 @@ const VideoStudio = () => {
             <Badge className={STATUS_COLORS[p.status] || STATUS_COLORS.draft}>{p.status}</Badge>
             <Badge className={PLATFORM_COLORS[p.platform] || PLATFORM_COLORS.general}>{p.platform}</Badge>
             <Badge variant="outline"><FormatIcon className="w-3 h-3 mr-1" />{p.format}</Badge>
+            {p.script?.last_render_meta ? (
+              isRenderInSync(p) ? (
+                <Badge className="bg-green-500/20 text-green-400 border-transparent" title="Exported video matches the currently-attached voice-over, music, and scenes.">
+                  <CheckCircle2 className="w-3 h-3 mr-1" /> In sync
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-500/20 text-amber-400 border-transparent" title="Voice-over, music, or scenes have changed since the last export. Re-render to update.">
+                  <AlertCircle className="w-3 h-3 mr-1" /> Re-render needed
+                </Badge>
+              )
+            ) : (
+              <Badge variant="outline" className="text-muted-foreground" title="No exported video yet.">
+                <AlertCircle className="w-3 h-3 mr-1" /> Not rendered
+              </Badge>
+            )}
             <Button size="sm" variant="outline" onClick={() => shareVideo(p.id)}>
               <Link className="w-4 h-4 mr-1" /> {p.share_token ? "Copy Link" : "Share"}
             </Button>
