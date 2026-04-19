@@ -42,6 +42,7 @@ const navItems = [
   { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
   { id: "videos", label: "Video Studio", icon: Video, group: "tools" },
   { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
+  { id: "credits", label: "Credits", icon: Coins, group: "settings" },
 ] as const;
 
 type TabId = typeof navItems[number]["id"];
