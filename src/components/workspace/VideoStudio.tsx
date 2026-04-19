@@ -984,6 +984,7 @@ const VideoStudio = () => {
         musicUrl,
         musicVolume: project.music_volume ?? 0.25,
         brandFooter: extractBrandFooter(project),
+        closingCard: buildClosingCard(project),
       });
 
       // Upload to storage
@@ -1170,6 +1171,7 @@ const VideoStudio = () => {
         musicUrl,
         musicVolume: p.music_volume ?? 0.25,
         brandFooter: extractBrandFooter(p),
+        closingCard: buildClosingCard(p),
       });
 
       // Upload to storage
