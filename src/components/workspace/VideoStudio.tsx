@@ -76,6 +76,11 @@ type VideoProject = {
   ai_generated: boolean;
   created_at: string;
   share_token?: string | null;
+  template_style?: string | null;
+  ad_preset?: string | null;
+  voiceover_id?: string | null;
+  music_track_id?: string | null;
+  music_volume?: number | null;
 };
 
 const FORMAT_ICONS: Record<string, typeof Monitor> = {
