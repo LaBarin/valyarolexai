@@ -820,23 +820,46 @@ const VideoStudio = () => {
   };
 
   /** Extract a website + phone for the persistent footer overlay. */
-  const extractBrandFooter = (project: VideoProject): { website?: string; phone?: string } | null => {
+  const extractBrandFooter = (project: VideoProject): { website?: string; phone?: string; address?: string; companyName?: string } | null => {
     const haystack = `${project.title || ""} ${project.description || ""}`;
     // Auto-attach Xyz Diverse Services contact info to its branded videos
     const isXyz = /xyz\s*diverse|xyzdiverseservices/i.test(haystack);
     if (isXyz) {
-      return { website: "XyzDiverseServices.com", phone: "1-888-839-3469" };
+      return { companyName: "Xyz Diverse Services", website: "XyzDiverseServices.com", phone: "1-888-839-3469" };
     }
-    // Generic extraction from description (URL + phone-like pattern)
+    // Generic extraction from description (URL + phone + simple street/city)
     const urlMatch = haystack.match(/\b((?:https?:\/\/)?[a-z0-9-]+\.[a-z]{2,}(?:\/[^\s]*)?)/i);
     const phoneMatch = haystack.match(/\b(?:1[\s-]?)?(?:\(?\d{3}\)?[\s-]?)\d{3}[\s-]?\d{4}\b/);
-    if (urlMatch || phoneMatch) {
+    const addressMatch = haystack.match(/\b\d{1,5}\s+[A-Za-z][A-Za-z0-9.\s]{2,40}(?:Ave|Avenue|St|Street|Rd|Road|Blvd|Boulevard|Dr|Drive|Ln|Lane|Way|Ct|Court|Pl|Place)\b[^,\n]*(?:,\s*[A-Za-z\s]{2,30})?(?:,?\s*[A-Z]{2}\s*\d{5})?/i);
+    if (urlMatch || phoneMatch || addressMatch) {
       return {
         website: urlMatch?.[1]?.replace(/^https?:\/\//, ""),
         phone: phoneMatch?.[0],
+        address: addressMatch?.[0]?.trim(),
       };
     }
     return null;
+  };
+
+  /**
+   * Build the closing-card payload for the last scene.
+   * - Client logo (uploaded by user, or default Valyarolex logo) is the hero element.
+   * - Reference image (if uploaded) is shown small as "Powered by <reference logo>".
+   * - Contact info (website / phone / address) is pulled from the project brand footer.
+   */
+  const buildClosingCard = (project: VideoProject) => {
+    const footer = extractBrandFooter(project);
+    const hasAnything = clientLogo || referenceImage || footer?.website || footer?.phone || footer?.address || footer?.companyName;
+    if (!hasAnything) return null;
+    return {
+      clientLogoUrl: clientLogo || logoImg,
+      referenceLogoUrl: referenceImage || null,
+      companyName: footer?.companyName,
+      website: footer?.website,
+      phone: footer?.phone,
+      address: footer?.address,
+      poweredByLabel: referenceImage ? "Powered by" : undefined,
+    };
   };
 
   /** Resolve signed audio URLs for a project's voiceover and music tracks. */
