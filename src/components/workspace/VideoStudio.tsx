@@ -768,11 +768,15 @@ const VideoStudio = () => {
     }
 
     try {
+      const { voiceoverUrl, musicUrl } = await resolveProjectAudio(project);
       const blob = await renderVideo({
         format: project.format,
         scenes: sceneInputs.map((s, i) => { const a = sceneAnimations[i]; return { ...s, animation: a && a !== "auto" ? a as SceneAnimation : undefined }; }) as any[],
         onProgress: (p) => setExportProgress(50 + Math.round(p * 0.5)),
         preset: animationPreset,
+        voiceoverUrl,
+        musicUrl,
+        musicVolume: project.music_volume ?? 0.25,
       });
 
       // Upload to storage
