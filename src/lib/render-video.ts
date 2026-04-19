@@ -484,7 +484,7 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
     format, scenes, onProgress, preset = "none",
     voiceoverUrl, musicUrl,
     musicVolume = 0.25, voiceoverVolume = 1.0,
-    brandFooter,
+    brandFooter, closingCard,
   } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
@@ -495,6 +495,21 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
     onProgress?.(Math.round((i / (scenes.length * 2)) * 100));
     images.push(await loadImageAsBlob(scenes[i].imageUrl));
   }
+
+  // Pre-load closing-card logos (best-effort; missing logos just degrade gracefully)
+  let closingClientLogo: HTMLImageElement | null = null;
+  let closingReferenceLogo: HTMLImageElement | null = null;
+  if (closingCard?.clientLogoUrl) {
+    try { closingClientLogo = await loadImageAsBlob(closingCard.clientLogoUrl); } catch (e) { console.warn("Closing client logo failed to load", e); }
+  }
+  if (closingCard?.referenceLogoUrl) {
+    try { closingReferenceLogo = await loadImageAsBlob(closingCard.referenceLogoUrl); } catch (e) { console.warn("Closing reference logo failed to load", e); }
+  }
+  const hasClosingCard = !!closingCard && (
+    !!closingClientLogo || !!closingReferenceLogo ||
+    !!closingCard.companyName || !!closingCard.website ||
+    !!closingCard.phone || !!closingCard.address
+  );
 
   // Total video duration (seconds)
   const totalDurationSec = scenes.reduce((sum, s) => sum + s.durationSeconds, 0);
