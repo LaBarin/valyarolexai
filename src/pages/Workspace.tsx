@@ -136,6 +136,8 @@ const ManageSubscriptionButton = () => {
     </button>
   );
 };
+
+const WorkspaceContent = () => {
   const { user, loading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabId>((searchParams.get("tab") as TabId) || "command");
