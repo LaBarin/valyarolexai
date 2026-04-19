@@ -197,7 +197,7 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
         </div>
         <div className="min-w-0">
           <h3 className="text-sm font-semibold">Music Library</h3>
-          <p className="text-xs text-muted-foreground">Royalty-free background tracks</p>
+          <p className="text-xs text-muted-foreground">ElevenLabs AI music · royalty-free</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <input
@@ -225,7 +225,7 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tracks..."
+            placeholder="Search ElevenLabs tracks…"
             className="pl-8 h-8 text-xs"
           />
         </div>
