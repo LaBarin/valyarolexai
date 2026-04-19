@@ -477,10 +477,26 @@ const VideoStudio = () => {
     setLoading(false);
   };
 
-  // Persist a generated scene image into the storyboard JSON so it survives reloads
+  // Persist a generated scene image into the storyboard JSON so it survives reloads.
+  // Uses a per-project ref + serialized queue so concurrent calls (Promise.all) all
+  // accumulate into the same storyboard rather than racing with stale React state.
   const persistSceneImage = async (projectId: string, sceneNumber: number, imageUrl: string) => {
     const key = `${projectId}-${sceneNumber}`;
     setSceneImages(prev => ({ ...prev, [key]: imageUrl }));
+
+    // Seed the latest-storyboard ref for this project from current React state if empty
+    if (!latestStoryboardRef.current[projectId]) {
+      const src =
+        (activeProject && activeProject.id === projectId ? activeProject.storyboard : null) ||
+        projects.find(p => p.id === projectId)?.storyboard ||
+        [];
+      latestStoryboardRef.current[projectId] = src.map(s => ({ ...s }));
+    }
+
+    // Merge this image into the ref-tracked storyboard
+    latestStoryboardRef.current[projectId] = (latestStoryboardRef.current[projectId] || []).map(s =>
+      s.scene_number === sceneNumber ? { ...s, image_url: imageUrl } : s
+    );
 
     const applyToProject = (proj: VideoProject | null): VideoProject | null => {
       if (!proj || proj.id !== projectId) return proj;
@@ -495,29 +511,25 @@ const VideoStudio = () => {
       return { ...proj, storyboard: nextStoryboard, script: nextScript };
     };
 
-    let nextStoryboardForDb: Scene[] | null = null;
-    setActiveProject(prev => {
-      const next = applyToProject(prev);
-      if (next && next !== prev) nextStoryboardForDb = next.storyboard;
-      return next;
-    });
+    setActiveProject(prev => applyToProject(prev));
     setProjects(prev => prev.map(p => applyToProject(p) || p));
 
-    if (!nextStoryboardForDb) {
-      const target = projects.find(p => p.id === projectId);
-      const updated = applyToProject(target || null);
-      nextStoryboardForDb = updated?.storyboard ?? null;
-    }
-    if (!nextStoryboardForDb) return;
-
-    try {
-      await supabase
-        .from("video_projects")
-        .update({ storyboard: nextStoryboardForDb as any } as any)
-        .eq("id", projectId);
-    } catch {
-      /* non-fatal — image still in memory for this session */
-    }
+    // Serialize DB writes per-project so each PATCH includes all accumulated images
+    const prevWrite = persistQueueRef.current[projectId] || Promise.resolve();
+    const nextWrite = prevWrite.then(async () => {
+      const storyboardToSave = latestStoryboardRef.current[projectId];
+      if (!storyboardToSave) return;
+      try {
+        await supabase
+          .from("video_projects")
+          .update({ storyboard: storyboardToSave as any } as any)
+          .eq("id", projectId);
+      } catch {
+        /* non-fatal — image still in memory for this session */
+      }
+    });
+    persistQueueRef.current[projectId] = nextWrite;
+    await nextWrite;
   };
 
   // Hydrate sceneImages cache from saved storyboard whenever a project is opened
