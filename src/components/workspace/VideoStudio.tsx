@@ -1805,7 +1805,8 @@ const VideoStudio = () => {
                   const updated = mapVideoProject(data);
                   setProjects((prev) => prev.map((proj) => (proj.id === p.id ? updated : proj)));
                   setActiveProject(updated);
-                  toast({ title: "Voice-over attached", description: "Will play with the rendered video." });
+                  toast({ title: "Voice-over attached", description: "Re-rendering video with narration…" });
+                  autoRenderPipeline(updated);
                 }}
               />
             </div>
