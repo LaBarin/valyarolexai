@@ -25,6 +25,10 @@ import { renderVideo, type SceneAnimation, type AnimationPreset, SCENE_ANIMATION
 import { createShareToken, normalizeVideoOverlayText, normalizeVideoScenes } from "@/lib/video-script";
 import { NarratorControls } from "./NarratorControls";
 import { useNarrator } from "@/hooks/use-narrator";
+import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
+import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
+import { VoiceoverStudio } from "./VoiceoverStudio";
+import { Palette, Volume2 } from "lucide-react";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
