@@ -2257,6 +2257,17 @@ const VideoStudio = () => {
                     <Badge className={`${PLATFORM_COLORS[p.platform] || PLATFORM_COLORS.general} text-[9px] px-1.5`}>{p.platform}</Badge>
                     <Badge variant="outline" className="text-[9px] px-1.5">{p.format}</Badge>
                     <Badge className={`${STATUS_COLORS[p.status] || STATUS_COLORS.draft} text-[9px] px-1.5`}>{p.status}</Badge>
+                    {p.script?.last_render_meta ? (
+                      isRenderInSync(p) ? (
+                        <Badge className="bg-green-500/20 text-green-400 border-transparent text-[9px] px-1.5" title="Exported video matches current voice-over, music, and scenes.">
+                          <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" /> In sync
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-amber-500/20 text-amber-400 border-transparent text-[9px] px-1.5" title="Voice-over, music, or scenes changed since the last export.">
+                          <AlertCircle className="w-2.5 h-2.5 mr-0.5" /> Stale
+                        </Badge>
+                      )
+                    ) : null}
                   </div>
                   {p.description && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{p.description}</p>}
                   <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
