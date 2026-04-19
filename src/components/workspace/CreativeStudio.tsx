@@ -61,7 +61,7 @@ export default function CreativeStudio() {
         {isOwner && (
           <Button size="sm" variant="outline" onClick={handleSeed} disabled={seeding}>
             {seeding ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1.5" />}
-            Seed music library
+            Generate ElevenLabs library
           </Button>
         )}
       </div>
@@ -143,7 +143,7 @@ export default function CreativeStudio() {
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
             <div className="text-xs text-muted-foreground">
-              <strong className="text-foreground">Owner tip:</strong> Click <em>Seed music library</em> once to download all 18 royalty-free curated tracks into storage. Tracks are sourced from Pixabay's free CDN (Pixabay Content License — free for commercial use, no attribution required). Re-running is safe; existing files are skipped.
+              <strong className="text-foreground">Owner tip:</strong> Click <em>Generate ElevenLabs library</em> to compose all 17 curated background tracks via the ElevenLabs Music API and upload them to storage. This replaces the existing curated library and may take several minutes. Costs only your ElevenLabs quota — no per-user credits.
             </div>
           </div>
         </Card>
