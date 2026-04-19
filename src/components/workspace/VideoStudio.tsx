@@ -945,11 +945,15 @@ const VideoStudio = () => {
     setExportProgress(0);
 
     try {
+      const { voiceoverUrl, musicUrl } = await resolveProjectAudio(p);
       const blob = await renderVideo({
         format: p.format,
         scenes: sceneInputs.map((s, i) => { const a = sceneAnimations[i]; return { ...s, animation: a && a !== "auto" ? a as SceneAnimation : undefined }; }) as any[],
         onProgress: setExportProgress,
         preset: animationPreset,
+        voiceoverUrl,
+        musicUrl,
+        musicVolume: p.music_volume ?? 0.25,
       });
 
       // Upload to storage
