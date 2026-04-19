@@ -29,10 +29,15 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="border-t border-border pt-6">
+        <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground text-center">
             © 2026 Valyarolex.AI — One Workspace. Infinite Intelligence.
           </p>
+          <nav className="flex items-center gap-4 text-xs text-muted-foreground">
+            <a href="/terms" className="hover:text-foreground transition-colors">Terms</a>
+            <a href="/refund" className="hover:text-foreground transition-colors">Refund Policy</a>
+            <a href="/privacy" className="hover:text-foreground transition-colors">Privacy</a>
+          </nav>
         </div>
       </div>
     </footer>

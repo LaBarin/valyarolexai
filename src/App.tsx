@@ -14,6 +14,9 @@ import SharedCampaign from "./pages/SharedCampaign";
 import SharedVideo from "./pages/SharedVideo";
 import SharedPitchDeck from "./pages/SharedPitchDeck";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Refund from "./pages/Refund";
+import Privacy from "./pages/Privacy";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner";
 
 const queryClient = new QueryClient();
@@ -36,6 +39,9 @@ const App = () => (
             <Route path="/campaign/:token" element={<SharedCampaign />} />
             <Route path="/video/:token" element={<SharedVideo />} />
             <Route path="/deck/:token" element={<SharedPitchDeck />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/refund" element={<Refund />} />
+            <Route path="/privacy" element={<Privacy />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

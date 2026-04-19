@@ -13,6 +13,12 @@ const CREDIT_PACKS: Record<string, number> = {
   credits_power_onetime: 1750,
 };
 
+// Monthly credit grants per subscription tier (refreshed each billing cycle)
+const MONTHLY_GRANTS: Record<string, number> = {
+  pro_plan: 2000,
+  business_plan: 6000,
+};
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -76,9 +82,21 @@ async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
     status,
     current_period_start: currentBillingPeriod?.startsAt,
     current_period_end: currentBillingPeriod?.endsAt,
+    cancel_at_period_end: false,
     environment: env,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id,environment' });
+
+  // Grant initial monthly credits for the new subscription
+  const grant = MONTHLY_GRANTS[productId];
+  if (grant) {
+    await supabase.rpc('grant_credits', {
+      p_user_id: userId,
+      p_amount: grant,
+      p_type: 'monthly_grant',
+      p_description: `subscription:${productId}:initial`,
+    });
+  }
 
   console.log('Subscription created for user', userId);
 }
@@ -103,6 +121,37 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
     .update(updates)
     .eq('paddle_subscription_id', id)
     .eq('environment', env);
+
+  // If we just renewed (period advanced), grant monthly credits to subscriber
+  if (productId && currentBillingPeriod?.startsAt) {
+    const grant = MONTHLY_GRANTS[productId];
+    if (grant) {
+      // Use a per-period idempotency key in description so renewals only grant once
+      const periodKey = `subscription:${productId}:${currentBillingPeriod.startsAt}`;
+      const { data: existing } = await supabase
+        .from('credit_transactions')
+        .select('id')
+        .eq('description', periodKey)
+        .maybeSingle();
+      if (!existing) {
+        // Get user_id
+        const { data: subRow } = await supabase
+          .from('subscriptions')
+          .select('user_id')
+          .eq('paddle_subscription_id', id)
+          .eq('environment', env)
+          .maybeSingle();
+        if (subRow?.user_id) {
+          await supabase.rpc('grant_credits', {
+            p_user_id: subRow.user_id,
+            p_amount: grant,
+            p_type: 'monthly_grant',
+            p_description: periodKey,
+          });
+        }
+      }
+    }
+  }
 }
 
 async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {

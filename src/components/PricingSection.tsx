@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const plans = [
@@ -53,10 +54,11 @@ const plans = [
   {
     name: "Business",
     price: "$79",
-    period: "/mo per user",
+    period: "/mo",
     description: "For growing teams that need collaboration, security, and scale.",
     features: [
       "Everything in Pro",
+      "6,000 AI credits / month",
       "Team workspaces & collaboration",
       "Shared campaigns & pitch decks",
       "SSO & SAML authentication",
@@ -77,7 +79,7 @@ const PricingSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { openCheckout, loading } = usePaddleCheckout();
-  const { tier } = useSubscription();
+  const { tier, isActive } = useSubscription();
 
   const handleSubscribe = async (priceId: string, productId: string) => {
     if (!user) {
@@ -88,6 +90,22 @@ const PricingSection = () => {
       toast.info("You're already on this plan");
       return;
     }
+
+    // Existing subscriber switching plans → prorated swap (no second checkout)
+    if (isActive) {
+      try {
+        const { data, error } = await supabase.functions.invoke("change-subscription", {
+          body: { newPriceId: priceId },
+        });
+        if (error || (data as any)?.error) throw new Error((data as any)?.error || error?.message);
+        toast.success("Plan updated. Charges are prorated.");
+      } catch (e: any) {
+        console.error(e);
+        toast.error(e?.message || "Could not change plan");
+      }
+      return;
+    }
+
     try {
       await openCheckout({
         priceId,

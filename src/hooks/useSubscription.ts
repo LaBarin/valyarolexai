@@ -55,8 +55,12 @@ export function useSubscription() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const isActive = !!subscription && ["active", "trialing"].includes(subscription.status) &&
-    (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date());
+  // Cancellation = immediate revoke. A subscription that's scheduled to cancel
+  // (cancel_at_period_end=true) or has status 'canceled' loses access right away.
+  const isActive = !!subscription
+    && ["active", "trialing"].includes(subscription.status)
+    && !subscription.cancel_at_period_end
+    && (!subscription.current_period_end || new Date(subscription.current_period_end) > new Date());
 
   const tier: "free" | "pro" | "business" =
     !isActive ? "free" :

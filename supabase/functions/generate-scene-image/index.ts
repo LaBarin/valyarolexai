@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { chargeOrSubscribe, envFromRequest, refundCredits } from "../_shared/entitlement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -41,7 +42,8 @@ serve(async (req) => {
     const ALLOWED_FORMATS = ["9:16", "1:1", "16:9"];
     const ALLOWED_PLATFORMS = ["tiktok", "instagram", "youtube", "facebook", "linkedin", "twitter", "snapchat", "pinterest", "general"];
 
-    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url } = await req.json();
+    const body = await req.json();
+    const { visual, text_overlay, format, platform, brand_logo_url, reference_image_url } = body;
     if (!visual || typeof visual !== "string" || visual.length > MAX_VISUAL_LEN) {
       return new Response(JSON.stringify({ error: "Invalid or too-long visual description" }), {
         status: 400,
@@ -84,6 +86,24 @@ serve(async (req) => {
       }
     }
 
+    const userId = (data.claims as any).sub as string;
+
+    // Entitlement: 5 credits per image unless subscribed
+    const SCENE_IMAGE_COST = 5;
+    const env = envFromRequest(body);
+    const charge = await chargeOrSubscribe({
+      userId,
+      amount: SCENE_IMAGE_COST,
+      description: "ai:scene-image",
+      env,
+    });
+    if (!charge.ok) {
+      return new Response(JSON.stringify({
+        error: "Insufficient credits. Upgrade to a paid plan or buy a credit pack.",
+        code: "insufficient_credits",
+      }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -116,6 +136,8 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
+      // Best-effort refund since the spend already happened
+      await refundCredits(userId, SCENE_IMAGE_COST, "refund:scene-image-failed");
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
           status: 429,
@@ -123,7 +145,7 @@ serve(async (req) => {
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Usage limit reached. Please add credits." }), {
+        return new Response(JSON.stringify({ error: "AI provider usage limit reached." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -140,6 +162,7 @@ serve(async (req) => {
     const imageUrl = aiResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
+      await refundCredits(userId, SCENE_IMAGE_COST, "refund:scene-image-empty");
       return new Response(JSON.stringify({ error: "No image was generated" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
