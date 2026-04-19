@@ -391,6 +391,11 @@ const VideoStudio = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [sceneImages, setSceneImages] = useState<Record<string, string>>({});
   const [generatingImages, setGeneratingImages] = useState<Record<string, boolean>>({});
+  // Latest storyboard per project (ref-based) to avoid race conditions when
+  // multiple persistSceneImage calls fire concurrently. Each update merges into
+  // the latest known storyboard for that project before persisting.
+  const latestStoryboardRef = useRef<Record<string, Scene[]>>({});
+  const persistQueueRef = useRef<Record<string, Promise<void>>>({});
   // Scene editing state
   const [editingScene, setEditingScene] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<Scene>>({});
