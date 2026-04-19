@@ -1736,12 +1736,25 @@ const VideoStudio = () => {
               size="sm"
               variant="hero"
               onClick={() => autoRenderPipeline(p)}
-              disabled={isExporting || (autoRenderStage !== "idle" && autoRenderStage !== "done")}
+              disabled={isExporting || isMp4Exporting || (autoRenderStage !== "idle" && autoRenderStage !== "done")}
             >
               {autoRenderStage !== "idle" && autoRenderStage !== "done" ? (
                 <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Rendering…</>
               ) : (
                 <><FileVideo className="w-4 h-4 mr-1" /> {renderedVideoUrl ? "Re-render with Audio" : "Render Video"}</>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportVideoMp4}
+              disabled={isMp4Exporting || isExporting || (autoRenderStage !== "idle" && autoRenderStage !== "done")}
+              title="Render a real MP4 server-side via Remotion Lambda. Uses credits unless you're subscribed."
+            >
+              {isMp4Exporting ? (
+                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> {mp4Status || "Exporting MP4…"} {mp4Progress !== null ? `(${mp4Progress}%)` : ""}</>
+              ) : (
+                <><Download className="w-4 h-4 mr-1" /> Export MP4</>
               )}
             </Button>
             {renderedVideoUrl && (
