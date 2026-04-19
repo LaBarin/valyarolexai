@@ -81,6 +81,7 @@ type VideoProject = {
   voiceover_id?: string | null;
   music_track_id?: string | null;
   music_volume?: number | null;
+  thumbnail_url?: string | null;
 };
 
 const FORMAT_ICONS: Record<string, typeof Monitor> = {
@@ -205,6 +206,7 @@ const mapVideoProject = (row: any): VideoProject => ({
   voiceover_id: row.voiceover_id ?? null,
   music_track_id: row.music_track_id ?? null,
   music_volume: row.music_volume ?? null,
+  thumbnail_url: row.thumbnail_url ?? null,
 });
 
 const PublishingLinks = forwardRef<HTMLDivElement, { project: VideoProject; script: VideoData | null; onUpdate: (project: VideoProject) => void }>(
