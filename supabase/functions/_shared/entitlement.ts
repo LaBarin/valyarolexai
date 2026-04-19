@@ -1,6 +1,7 @@
 // Shared entitlement helpers for edge functions: check active subscription and
 // charge credits when the user is not subscribed.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isOwnerUser } from "./owner.ts";
 
 export type PaddleEnv = "sandbox" | "live";
 
@@ -43,6 +44,11 @@ export async function chargeOrSubscribe(opts: {
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+
+  // Platform owners get unlimited free access — never charged credits.
+  if (await isOwnerUser(supabase, opts.userId)) {
+    return { ok: true };
+  }
 
   if (await isActiveSubscriber(supabase, opts.userId, opts.env)) {
     return { ok: true };
