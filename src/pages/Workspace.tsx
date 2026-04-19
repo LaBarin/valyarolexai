@@ -217,6 +217,11 @@ const WorkspaceContent = () => {
                   <VideoStudio />
                 </div>
               )}
+              {activeTab === "credits" && (
+                <div className="max-w-4xl">
+                  <CreditsManager />
+                </div>
+              )}
             </motion.div>
           </div>
         </main>
