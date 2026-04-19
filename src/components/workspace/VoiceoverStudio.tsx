@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-const VOICES = [
+export const VOICES = [
   { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", gender: "Male", style: "Warm, narrator" },
   { id: "EXAVITQu4vr4xnSDxMaL", name: "Sarah", gender: "Female", style: "Clear, friendly" },
   { id: "FGY2WhTYpPnrIDTdsKH5", name: "Laura", gender: "Female", style: "Conversational" },
@@ -36,13 +36,22 @@ interface VoiceoverStudioProps {
   videoId?: string | null;
   onSelect?: (vo: Voiceover & { url: string }) => void;
   selectedId?: string | null;
+  initialScript?: string | null;
 }
 
-export function VoiceoverStudio({ videoId, onSelect, selectedId }: VoiceoverStudioProps) {
+export function VoiceoverStudio({ videoId, onSelect, selectedId, initialScript }: VoiceoverStudioProps) {
   const { user } = useAuth();
   const [voiceovers, setVoiceovers] = useState<Voiceover[]>([]);
   const [loading, setLoading] = useState(true);
-  const [script, setScript] = useState("");
+  const [script, setScript] = useState(initialScript ?? "");
+
+  // Auto-populate when an initial script becomes available (e.g., after video generation)
+  useEffect(() => {
+    if (initialScript && !script.trim()) {
+      setScript(initialScript.slice(0, 5000));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialScript]);
   const [voiceId, setVoiceId] = useState(VOICES[0].id);
   const [generating, setGenerating] = useState(false);
   const [uploading, setUploading] = useState(false);
