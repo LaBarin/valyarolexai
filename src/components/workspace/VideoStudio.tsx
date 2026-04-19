@@ -4,8 +4,10 @@ import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
   Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download,
-  FileVideo, Upload, CheckCircle2, AlertCircle
+  FileVideo, Upload, CheckCircle2, AlertCircle, Volume2 as VolumeIcon, VolumeX
 } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
