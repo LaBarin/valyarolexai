@@ -41,6 +41,7 @@ type Scene = {
   voiceover?: string;
   transition: string;
   notes?: string;
+  image_url?: string;
 };
 
 type VideoData = {
@@ -471,6 +472,68 @@ const VideoStudio = () => {
     setLoading(false);
   };
 
+  // Persist a generated scene image into the storyboard JSON so it survives reloads
+  const persistSceneImage = async (projectId: string, sceneNumber: number, imageUrl: string) => {
+    const key = `${projectId}-${sceneNumber}`;
+    setSceneImages(prev => ({ ...prev, [key]: imageUrl }));
+
+    const applyToProject = (proj: VideoProject | null): VideoProject | null => {
+      if (!proj || proj.id !== projectId) return proj;
+      const nextStoryboard = (proj.storyboard || []).map(s =>
+        s.scene_number === sceneNumber ? { ...s, image_url: imageUrl } : s
+      );
+      const nextScript = proj.script
+        ? { ...proj.script, scenes: (proj.script.scenes || []).map(s =>
+            s.scene_number === sceneNumber ? { ...s, image_url: imageUrl } : s
+          ) }
+        : proj.script;
+      return { ...proj, storyboard: nextStoryboard, script: nextScript };
+    };
+
+    let nextStoryboardForDb: Scene[] | null = null;
+    setActiveProject(prev => {
+      const next = applyToProject(prev);
+      if (next && next !== prev) nextStoryboardForDb = next.storyboard;
+      return next;
+    });
+    setProjects(prev => prev.map(p => applyToProject(p) || p));
+
+    if (!nextStoryboardForDb) {
+      const target = projects.find(p => p.id === projectId);
+      const updated = applyToProject(target || null);
+      nextStoryboardForDb = updated?.storyboard ?? null;
+    }
+    if (!nextStoryboardForDb) return;
+
+    try {
+      await supabase
+        .from("video_projects")
+        .update({ storyboard: nextStoryboardForDb as any } as any)
+        .eq("id", projectId);
+    } catch {
+      /* non-fatal — image still in memory for this session */
+    }
+  };
+
+  // Hydrate sceneImages cache from saved storyboard whenever a project is opened
+  useEffect(() => {
+    if (!activeProject) return;
+    const scenes = activeProject.storyboard || activeProject.script?.scenes || [];
+    setSceneImages(prev => {
+      const next = { ...prev };
+      let changed = false;
+      for (const scene of scenes) {
+        const key = `${activeProject.id}-${scene.scene_number}`;
+        if (!next[key] && scene.image_url) {
+          next[key] = scene.image_url;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProject?.id]);
+
   const handleReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -539,7 +602,7 @@ const VideoStudio = () => {
         throw new Error(err.error || "Image generation failed");
       }
       const { image_url } = await resp.json();
-      setSceneImages(prev => ({ ...prev, [key]: image_url }));
+      if (image_url) await persistSceneImage(projectId, scene.scene_number, image_url);
     } catch (e: any) {
       toast({ title: "Image Generation Failed", description: e.message, variant: "destructive" });
     } finally {
@@ -572,7 +635,9 @@ const VideoStudio = () => {
   const saveSceneEdit = async () => {
     if (editingScene === null || !activeProject) return;
     const updatedScenes = [...(activeProject.storyboard || [])];
-    updatedScenes[editingScene] = { ...updatedScenes[editingScene], ...editForm } as Scene;
+    // Strip the saved image_url so the scene re-generates on next render (content changed)
+    const { image_url: _strippedImg, ...prevScene } = updatedScenes[editingScene] as any;
+    updatedScenes[editingScene] = { ...prevScene, ...editForm } as Scene;
 
     const updatedScript = mergeVideoScript(activeProject, activeProject.script, {
       scenes: updatedScenes,
@@ -789,10 +854,11 @@ const VideoStudio = () => {
       const key = `${project.id}-${scene.scene_number || i + 1}`;
       setExportProgress(Math.round((i / scenes.length) * 50));
 
-      // Reuse an already-generated image if we have one cached
-      const cached = sceneImages[key];
+      // Reuse an already-generated image if we have one cached (memory or persisted in storyboard)
+      const cached = sceneImages[key] || scene.image_url;
       if (cached) {
         imageMap[key] = cached;
+        if (!sceneImages[key]) setSceneImages(prev => ({ ...prev, [key]: cached }));
         continue;
       }
 
@@ -827,7 +893,7 @@ const VideoStudio = () => {
           const { image_url } = await resp.json();
           if (image_url) {
             imageMap[key] = image_url;
-            setSceneImages(prev => ({ ...prev, [key]: image_url }));
+            await persistSceneImage(project.id, scene.scene_number || i + 1, image_url);
           }
         }
       } catch { /* continue with remaining scenes */ }
