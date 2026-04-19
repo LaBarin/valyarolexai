@@ -359,6 +359,7 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
     format, scenes, onProgress, preset = "none",
     voiceoverUrl, musicUrl,
     musicVolume = 0.25, voiceoverVolume = 1.0,
+    brandFooter,
   } = options;
   const dims = FORMAT_DIMENSIONS[format] || FORMAT_DIMENSIONS["16:9"];
   const { width, height } = dims;
