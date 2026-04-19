@@ -363,6 +363,25 @@ const VideoStudio = () => {
   // Active detail tab
   const [activeDetailTab, setActiveDetailTab] = useState("storyboard");
 
+  // Pre-generation creative selections (Style / Voice / Music)
+  const [preGenStyle, setPreGenStyle] = useState<string>("kinetic");
+  const [preGenVoiceId, setPreGenVoiceId] = useState<string>("JBFqnCBsd6RMkjVDRZzb");
+  const [preGenTrackId, setPreGenTrackId] = useState<string | null>(null);
+  const [availableTracks, setAvailableTracks] = useState<AudioTrack[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    supabase
+      .from("audio_tracks")
+      .select("*")
+      .order("is_curated", { ascending: false })
+      .order("name")
+      .then(({ data }) => {
+        if (active && data) setAvailableTracks(data as AudioTrack[]);
+      });
+    return () => { active = false; };
+  }, []);
+
   // Narrator for video scenes
   const videoNarratorSlides = useMemo(() => {
     if (!activeProject) return [];
