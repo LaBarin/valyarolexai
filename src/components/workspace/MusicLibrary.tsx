@@ -144,6 +144,42 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
     }
   };
 
+  const handleGenerate = async () => {
+    if (!user) {
+      toast.error("Please sign in first");
+      return;
+    }
+    const prompt = genPrompt.trim();
+    if (prompt.length < 4) {
+      toast.error("Describe the music you want (at least a few words)");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-music", {
+        body: {
+          prompt,
+          duration_seconds: genDuration,
+          mood: genMood,
+          name: prompt.slice(0, 80),
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Track generated and added to your library");
+      if (data?.track && data?.url) {
+        urlCacheRef.current.set(data.track.storage_path, data.url);
+      }
+      setGenPrompt("");
+      await loadTracks();
+      if (data?.track && onSelect) onSelect(data.track as AudioTrack);
+    } catch (err: any) {
+      toast.error(err?.message || "Music generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const filtered = tracks.filter((t) => {
     if (moodFilter !== "all" && t.mood !== moodFilter) return false;
     if (search && !`${t.name} ${t.artist}`.toLowerCase().includes(search.toLowerCase())) return false;
