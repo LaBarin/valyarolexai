@@ -1415,9 +1415,18 @@ const VideoStudio = () => {
                 </div>
               </div>
             )}
-            {/* Generate all images button */}
+            {/* Generate all images + view gallery */}
             {scenes.length > 0 && (
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                {scenes.some((s, i) => sceneImages[`${p.id}-${s.scene_number || i + 1}`]) && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => { setGalleryFocusIndex(activeScene); setShowImageGallery(true); }}
+                  >
+                    <ImageIcon className="w-4 h-4 mr-1" /> View All Images
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="outline"
