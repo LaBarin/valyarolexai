@@ -30,6 +30,8 @@ import { useNarrator } from "@/hooks/use-narrator";
 import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
 import { RewriteMenu } from "./RewriteMenu";
 import { ThumbnailGenerator } from "./ThumbnailGenerator";
+import { TranslateMenu } from "./TranslateMenu";
+import { BulkAdCreator } from "./BulkAdCreator";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
 import { Palette, Volume2 } from "lucide-react";
