@@ -152,7 +152,12 @@ export const SchedulePublishDialog = ({ open, onOpenChange, campaignId }: Props)
           <TabsList>
             <TabsTrigger value="new"><Plus className="w-3.5 h-3.5 mr-1" />New</TabsTrigger>
             <TabsTrigger value="queue">Queue ({posts.length})</TabsTrigger>
+            <TabsTrigger value="connections"><ShieldCheck className="w-3.5 h-3.5 mr-1" />Connections</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="connections">
+            <PublishingSetup />
+          </TabsContent>
 
           <TabsContent value="new" className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
