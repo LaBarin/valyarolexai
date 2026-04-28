@@ -1842,25 +1842,19 @@ const VideoStudio = () => {
           </TabsList>
 
           <TabsContent value="storyboard" className="space-y-4">
-            {/* Auto-render progress */}
-            {autoRenderStage !== "idle" && autoRenderStage !== "done" && (
-              <div className="glass rounded-2xl p-6 space-y-3">
-                <div className="flex items-center gap-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                  <div>
-                    <h4 className="font-semibold text-sm">
-                      {autoRenderStage === "generating-images" ? "Generating scene visuals…" : "Rendering video…"}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {autoRenderStage === "generating-images"
-                        ? "AI is creating images for each scene"
-                        : "Stitching scenes into your final video"}
-                    </p>
-                  </div>
-                </div>
-                <Progress value={exportProgress ?? 0} className="h-2" />
-                <p className="text-[10px] text-muted-foreground text-right">{exportProgress ?? 0}%</p>
-              </div>
+            {/* 7-stage render pipeline tracker */}
+            {((autoRenderStage !== "idle" && autoRenderStage !== "done") || isMp4Exporting) && (
+              <RenderProgressTracker
+                stage={deriveRenderStage({
+                  autoStage: autoRenderStage,
+                  isMp4Exporting,
+                  mp4Status,
+                  mp4Progress,
+                  hasRenderedVideo: !!renderedVideoUrl,
+                })}
+                progress={isMp4Exporting ? mp4Progress ?? 0 : exportProgress ?? 0}
+                message={mp4Status || (autoRenderStage === "generating-images" ? "Generating scene visuals…" : autoRenderStage === "rendering-video" ? "Rendering video…" : undefined)}
+              />
             )}
 
             {/* Rendered video player */}
