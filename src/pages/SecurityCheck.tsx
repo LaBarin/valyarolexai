@@ -203,6 +203,47 @@ export default function SecurityCheck() {
       update("e2e_retry_cancel", { status: "fail", detail: e.message });
     }
 
+    // --- E2E: live publish round-trip (simulated publisher) ---
+    try {
+      const { data: created, error: insErr } = await supabase
+        .from("scheduled_posts")
+        .insert({
+          user_id: user.id,
+          channel: "security-probe",
+          caption: "[security-check] e2e probe — safe to ignore",
+          publisher: "simulated",
+          publisher_config: {},
+          scheduled_at: new Date(Date.now() - 5_000).toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insErr || !created) throw new Error(insErr?.message || "insert failed");
+
+      await fetch(publishUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${ANON}` },
+        body: "{}",
+      }).then((r) => r.text());
+
+      let final: any = null;
+      for (let i = 0; i < 6; i++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const { data } = await supabase.from("scheduled_posts").select("status,error,published_at").eq("id", created.id).maybeSingle();
+        if (data && (data.status === "published" || data.status === "failed")) { final = data; break; }
+      }
+
+      await supabase.from("scheduled_posts").delete().eq("id", created.id);
+
+      if (final?.status === "published") {
+        update("e2e_live_publish", { status: "pass", detail: `Published at ${final.published_at}` });
+      } else {
+        update("e2e_live_publish", { status: "fail", detail: `Final status: ${final?.status ?? "timeout"} ${final?.error ?? ""}` });
+      }
+    } catch (e: any) {
+      update("e2e_live_publish", { status: "fail", detail: e.message });
+    }
+
     setRunning(false);
   };
 
