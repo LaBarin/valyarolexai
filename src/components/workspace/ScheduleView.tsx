@@ -28,6 +28,17 @@ const eventColors: Record<string, string> = {
   focus: "hsl(150 70% 50%)",
   task: "hsl(35 95% 55%)",
   break: "hsl(280 70% 60%)",
+  scheduled_post: "hsl(320 90% 60%)",
+};
+
+type ScheduledPostEvent = {
+  id: string;
+  title: string;
+  start_time: string;
+  channel: string;
+  status: string;
+  publisher: string;
+  isPost: true;
 };
 
 
@@ -36,6 +47,7 @@ const ScheduleView = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPostEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [aiOptimizing, setAiOptimizing] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
@@ -51,13 +63,22 @@ const ScheduleView = () => {
   const fetchEvents = async () => {
     const dayStart = `${selectedDate}T00:00:00Z`;
     const dayEnd = `${selectedDate}T23:59:59Z`;
-    const { data, error } = await supabase
-      .from("schedule_events")
-      .select("*")
-      .gte("start_time", dayStart)
-      .lte("start_time", dayEnd)
-      .order("start_time", { ascending: true });
-    if (!error) setEvents(data || []);
+    const [evRes, postRes] = await Promise.all([
+      supabase.from("schedule_events").select("*").gte("start_time", dayStart).lte("start_time", dayEnd).order("start_time", { ascending: true }),
+      supabase.from("scheduled_posts").select("id, channel, caption, scheduled_at, status, publisher").gte("scheduled_at", dayStart).lte("scheduled_at", dayEnd).order("scheduled_at", { ascending: true }),
+    ]);
+    if (!evRes.error) setEvents(evRes.data || []);
+    if (!postRes.error) {
+      setScheduledPosts((postRes.data || []).map((p: any) => ({
+        id: p.id,
+        title: (p.caption || "").split("\n")[0]?.slice(0, 60) || `${p.channel} post`,
+        start_time: p.scheduled_at,
+        channel: p.channel,
+        status: p.status,
+        publisher: p.publisher,
+        isPost: true as const,
+      })));
+    }
     setLoading(false);
   };
 
@@ -244,13 +265,29 @@ const ScheduleView = () => {
       <div className="space-y-2 max-h-[400px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>
-        ) : events.length === 0 ? (
+        ) : events.length === 0 && scheduledPosts.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No events scheduled. Add one or let AI optimize your day.</p>
           </div>
         ) : (
-          events.map((event, i) => (
+          <>
+          {scheduledPosts.length > 0 && (
+            <div className="space-y-1.5 mb-3">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground px-1">Scheduled Posts</p>
+              {scheduledPosts.map((p) => (
+                <div key={p.id} className="glass rounded-lg p-2.5 flex items-center gap-2 border-l-[3px]" style={{ borderLeftColor: eventColors.scheduled_post }}>
+                  <Clock className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-xs font-medium flex-1 truncate">{p.title}</span>
+                  <span className="text-[10px] text-muted-foreground">{new Date(p.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/40">{p.channel}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/40">{p.publisher}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded ${p.status === "published" ? "bg-green-500/20 text-green-400" : p.status === "failed" ? "bg-destructive/20 text-destructive" : "bg-primary/20 text-primary"}`}>{p.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {events.map((event, i) => (
             <motion.div
               key={event.id}
               initial={{ opacity: 0, x: -10 }}
@@ -301,7 +338,8 @@ const ScheduleView = () => {
                 )}
               </div>
             </motion.div>
-          ))
+          ))}
+          </>
         )}
       </div>
     </div>
