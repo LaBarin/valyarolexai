@@ -2,7 +2,7 @@
 // Each row is independently sent to the same /functions/v1/chat endpoint the
 // VideoStudio uses, then persisted as a draft video_projects row. Concurrency
 // is capped to keep AI gateway rate limits predictable.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Plus, Trash2, Sparkles, Loader2, CheckCircle2, AlertCircle,
