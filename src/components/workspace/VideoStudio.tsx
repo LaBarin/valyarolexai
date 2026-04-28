@@ -740,7 +740,27 @@ const VideoStudio = () => {
     setProjects(prev => prev.map(p => p.id === activeProject.id ? persisted : p));
   };
 
-  const aiEditScene = async () => {
+  /** Replace the entire script (used by Translate). Also re-syncs storyboard scenes. */
+  const replaceScript = async (nextScript: any) => {
+    if (!activeProject) return;
+    const normalizedScenes = Array.isArray(nextScript?.scenes)
+      ? normalizeVideoScenes(nextScript.scenes)
+      : activeProject.storyboard;
+    const merged = { ...nextScript, scenes: normalizedScenes };
+    const { data, error } = await supabase
+      .from("video_projects")
+      .update({ script: merged as any, storyboard: normalizedScenes as any, title: merged.title || activeProject.title } as any)
+      .eq("id", activeProject.id)
+      .select("*")
+      .single();
+    if (error || !data) {
+      toast({ title: "Save Failed", description: error?.message || "Unable to save translation.", variant: "destructive" });
+      return;
+    }
+    const persisted = mapVideoProject(data);
+    setActiveProject(persisted);
+    setProjects(prev => prev.map(p => p.id === activeProject.id ? persisted : p));
+  };
     if (!aiEditPrompt.trim() || editingScene === null || !activeProject) return;
     setIsAiEditing(true);
     try {
