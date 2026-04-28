@@ -442,6 +442,7 @@ const VideoStudio = () => {
   const { kit: brandKit, logoUrl: brandLogoUrl } = useBrandKit();
   const [projects, setProjects] = useState<VideoProject[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [abOpen, setAbOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<VideoProject | null>(null);
   const [prompt, setPrompt] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("9:16");
@@ -1479,6 +1480,12 @@ const VideoStudio = () => {
           toast({
             title: "MP4 Ready",
             description: `Rendered ${(data.size_bytes / 1024 / 1024).toFixed(1)} MB. Saved to your library.`,
+          });
+          void notify({
+            title: "Video render complete",
+            message: `${activeProject?.title || "Your video"} is ready to download.`,
+            type: "success",
+            link: "tab:videos",
           });
           return;
         }
@@ -2910,6 +2917,9 @@ const VideoStudio = () => {
           </div>
           <Button onClick={generateVideo} disabled={isGenerating || !prompt.trim()} className="ml-auto">
             {isGenerating ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4 mr-1" /> Generate Video</>}
+          </Button>
+          <Button variant="outline" onClick={() => setAbOpen(true)} disabled={!prompt.trim()} title="Generate 3 creative angles to A/B test">
+            <FlaskConical className="w-4 h-4 mr-1" /> A/B Variants
           </Button>
           <Button variant="outline" onClick={() => setBulkOpen(true)} title="Generate up to 20 ads at once">
             <Layers className="w-4 h-4 mr-1" /> Bulk Create
