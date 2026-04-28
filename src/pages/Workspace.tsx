@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
   Plug, Presentation, Megaphone, MessageSquare, Menu, Video,
-  ArrowLeft, LogOut, Coins, Sparkles
+  ArrowLeft, LogOut, Coins, Sparkles, Palette
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
@@ -30,6 +30,7 @@ import CampaignManager from "@/components/workspace/CampaignManager";
 import VideoStudio from "@/components/workspace/VideoStudio";
 import CreditsManager from "@/components/workspace/CreditsManager";
 import CreativeAnalytics from "@/components/workspace/CreativeAnalytics";
+import BrandKitManager from "@/components/workspace/BrandKitManager";
 import { PaywallGate } from "@/components/PaywallGate";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,6 +47,7 @@ const navItems = [
   { id: "pitchdeck", label: "Pitch Deck", icon: Presentation, group: "tools" },
   { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
   { id: "videos", label: "Creative Studio", icon: Sparkles, group: "tools" },
+  { id: "brandkit", label: "Brand Kit", icon: Palette, group: "tools" },
   { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
   { id: "credits", label: "Credits", icon: Coins, group: "settings" },
 ] as const;
@@ -190,6 +192,7 @@ const WorkspaceContent = () => {
     campaigns: "Campaign Manager",
     videos: "Creative Studio",
     creative: "Creative Studio",
+    brandkit: "Brand Kit",
     integrations: "Integrations",
     credits: "Credits & Billing",
   };
@@ -282,6 +285,7 @@ const WorkspaceContent = () => {
                   </PaywallGate>
                 </div>
               )}
+              {activeTab === "brandkit" && <BrandKitManager />}
               {activeTab === "credits" && (
                 <div className="max-w-4xl">
                   <CreditsManager />
