@@ -603,7 +603,7 @@ const VideoStudio = () => {
   };
 
   // Determine which logo to use in overlays — client logo for third-party, default for Valyarolex
-  const overlayLogoSrc = clientLogo || logoImg;
+  const overlayLogoSrc = clientLogo || brandLogoUrl || logoImg;
 
   const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string, sceneRole?: "main" | "closing") => {
     const key = `${projectId}-${scene.scene_number}`;
@@ -623,7 +623,7 @@ const VideoStudio = () => {
       // Auto-include branding logo as base64
       if (includeBranding) {
         try {
-          const logoSrc = clientLogo || logoImg;
+          const logoSrc = clientLogo || brandLogoUrl || logoImg;
           const logoResp = await fetch(logoSrc);
           const logoBlob = await logoResp.blob();
           const logoBase64 = await new Promise<string>((resolve) => {
@@ -987,7 +987,7 @@ const VideoStudio = () => {
         if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
         if (includeBranding && sceneRole !== "closing") {
           try {
-            const logoSrc = clientLogo || logoImg;
+            const logoSrc = clientLogo || brandLogoUrl || logoImg;
             const logoResp = await fetch(logoSrc);
             const logoBlob = await logoResp.blob();
             const logoBase64 = await new Promise<string>((resolve) => {
