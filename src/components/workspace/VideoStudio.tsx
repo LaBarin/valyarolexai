@@ -636,6 +636,37 @@ const VideoStudio = () => {
     reader.readAsDataURL(file);
   };
 
+  /**
+   * Old-video upload for "Enhance" mode. Extracts a representative frame
+   * (~1s in) and stores it as `referenceImage` so the existing scene-image
+   * pipeline reuses the visual identity in the modernized ad.
+   */
+  const handleOldVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 50MB for source videos.", variant: "destructive" });
+      return;
+    }
+    setOldVideoFile(file);
+    const blobUrl = URL.createObjectURL(file);
+    setOldVideoUrl(blobUrl);
+
+    // Try to grab a frame at ~1s as a visual reference for the rebuild.
+    setExtractingFrame(true);
+    try {
+      const dataUri = await extractFrameDataUri(blobUrl, 1.0);
+      if (dataUri) {
+        setReferenceImage(dataUri);
+        toast({ title: "Source frame captured", description: "We'll use it as a visual reference for the new ad." });
+      }
+    } catch (err) {
+      console.warn("frame extraction failed", err);
+    } finally {
+      setExtractingFrame(false);
+    }
+  };
+
   // Determine which logo to use in overlays — client logo for third-party, default for Valyarolex
   const overlayLogoSrc = clientLogo || brandLogoUrl || logoImg;
 
