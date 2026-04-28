@@ -2689,12 +2689,83 @@ const VideoStudio = () => {
 
         <VerticalTemplatePicker selectedId={pickedVerticalId} onPick={applyVerticalTemplate} />
 
+        {/* Mode toggle: Text → Ad / Image → Ad / Enhance Old Video */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider mr-1">Mode</span>
+          {([
+            { id: "text", label: "Text → Ad", icon: Sparkles },
+            { id: "image", label: "Image → Ad", icon: ImageIcon },
+            { id: "enhance", label: "Enhance Old Video", icon: FileVideo },
+          ] as const).map((m) => {
+            const Icon = m.icon;
+            const active = creationMode === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setCreationMode(m.id)}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                  active
+                    ? "bg-primary/15 text-primary border-primary/40"
+                    : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+
         <Textarea
-          placeholder="Describe your video ad... e.g. 'Create a 15-second TikTok ad for a new AI productivity app targeting Gen Z professionals'"
+          placeholder={
+            creationMode === "image"
+              ? "Describe the ad you want around your uploaded image. e.g. 'A 15s Instagram ad showcasing this product as the hero, ending with a Shop Now CTA.'"
+              : creationMode === "enhance"
+              ? "Describe what you'd like to improve. e.g. 'Modernize my old TV spot into a punchy 30s YouTube pre-roll with stronger hook and a clearer CTA.'"
+              : "Describe your video ad... e.g. 'Create a 15-second TikTok ad for a new AI productivity app targeting Gen Z professionals'"
+          }
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-[80px] bg-background/50"
         />
+
+        {/* Enhance mode: source video upload */}
+        {creationMode === "enhance" && (
+          <div className="flex items-center gap-3 flex-wrap glass rounded-lg p-3 border border-dashed border-primary/20">
+            <label className="flex items-center gap-2 cursor-pointer text-xs hover:text-primary transition-colors">
+              <FileVideo className="w-4 h-4 text-primary" />
+              <span>{oldVideoFile ? "Change source video" : "Upload old video (max 50MB)"}</span>
+              <input type="file" accept="video/*" className="hidden" onChange={handleOldVideoUpload} />
+            </label>
+            {extractingFrame && (
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" /> Capturing reference frame…
+              </span>
+            )}
+            {oldVideoUrl && (
+              <div className="flex items-center gap-2">
+                <video src={oldVideoUrl} className="h-12 rounded border border-border/50" muted playsInline />
+                <span className="text-[10px] text-muted-foreground truncate max-w-[160px]">{oldVideoFile?.name}</span>
+                <button
+                  onClick={() => {
+                    if (oldVideoUrl) URL.revokeObjectURL(oldVideoUrl);
+                    setOldVideoFile(null);
+                    setOldVideoUrl(null);
+                  }}
+                  className="text-[10px] text-destructive hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+            {!oldVideoFile && (
+              <span className="text-[10px] text-muted-foreground italic">
+                We'll grab a frame to keep the brand identity consistent in the new ad.
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Reference image + Client logo upload + branding toggle */}
         <div className="flex items-center gap-3 flex-wrap">
