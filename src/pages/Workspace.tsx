@@ -32,6 +32,8 @@ import CreditsManager from "@/components/workspace/CreditsManager";
 import CreativeAnalytics from "@/components/workspace/CreativeAnalytics";
 import BrandKitManager from "@/components/workspace/BrandKitManager";
 import MediaLibrary from "@/components/workspace/MediaLibrary";
+import NotificationBell from "@/components/workspace/NotificationBell";
+import OnboardingWizard from "@/components/workspace/OnboardingWizard";
 import { PaywallGate } from "@/components/PaywallGate";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -218,6 +220,7 @@ const WorkspaceContent = () => {
             <h1 className="text-sm font-semibold text-muted-foreground">{titles[activeTab]}</h1>
           </div>
           <ManageSubscriptionButton />
+          <NotificationBell onNavigate={(t) => navigate(t as TabId)} />
           <button
             onClick={() => signOut()}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
