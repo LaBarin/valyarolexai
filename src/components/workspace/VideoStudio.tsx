@@ -906,10 +906,10 @@ const VideoStudio = () => {
    */
   const buildClosingCard = (project: VideoProject) => {
     const footer = extractBrandFooter(project);
-    const hasAnything = clientLogo || referenceImage || footer?.website || footer?.phone || footer?.address || footer?.companyName;
+    const hasAnything = clientLogo || brandLogoUrl || referenceImage || footer?.website || footer?.phone || footer?.address || footer?.companyName;
     if (!hasAnything) return null;
     return {
-      clientLogoUrl: clientLogo || logoImg,
+      clientLogoUrl: clientLogo || brandLogoUrl || logoImg,
       referenceLogoUrl: referenceImage || null,
       companyName: footer?.companyName,
       website: footer?.website,
