@@ -34,6 +34,7 @@ import BrandKitManager from "@/components/workspace/BrandKitManager";
 import MediaLibrary from "@/components/workspace/MediaLibrary";
 import NotificationBell from "@/components/workspace/NotificationBell";
 import OnboardingWizard from "@/components/workspace/OnboardingWizard";
+import { useNotifications } from "@/hooks/useNotifications";
 import { PaywallGate } from "@/components/PaywallGate";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,6 +157,7 @@ const WorkspaceContent = () => {
   const { user, loading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabId>((searchParams.get("tab") as TabId) || "command");
+  const { notifications, markAsRead } = useNotifications();
 
   useEffect(() => {
     const tab = searchParams.get("tab") as TabId;
@@ -167,6 +169,20 @@ const WorkspaceContent = () => {
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  // Auto-mark unread notifications as read when their target tab is opened.
+  useEffect(() => {
+    if (!activeTab || notifications.length === 0) return;
+    const matchTab = (link: string | null) => {
+      if (!link) return null;
+      return link.startsWith("tab:") ? link.slice(4) : link;
+    };
+    const aliases: Record<string, string[]> = { videos: ["videos", "creative"], creative: ["videos", "creative"] };
+    const targets = aliases[activeTab] ?? [activeTab];
+    notifications
+      .filter((n) => !n.read_at && targets.includes(matchTab(n.link) ?? ""))
+      .forEach((n) => { void markAsRead(n.id); });
+  }, [activeTab, notifications, markAsRead]);
 
   const navigate = (id: TabId | string) => {
     const validId = id as TabId;
