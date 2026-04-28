@@ -213,8 +213,12 @@ serve(async (req) => {
     const signed = await admin.storage.from("thumbnails").createSignedUrl(path, 60 * 60 * 24 * 7);
     const signedUrl = signed.data?.signedUrl ?? null;
 
-    // Save the storage path on the project so future reloads can re-sign it.
-    await supabase.from("video_projects").update({ thumbnail_url: path } as any).eq("id", videoId);
+    // Save the signed URL directly on the project so the existing <img src> path keeps working.
+    // (Same convention used elsewhere — exported_video_url stores a path while thumbnail_url
+    // stores a renderable URL.)
+    if (signedUrl) {
+      await supabase.from("video_projects").update({ thumbnail_url: signedUrl } as any).eq("id", videoId);
+    }
 
     return new Response(JSON.stringify({ path, signedUrl, style }), {
       status: 200,
