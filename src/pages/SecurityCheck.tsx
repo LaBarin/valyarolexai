@@ -28,6 +28,7 @@ const INITIAL: Check[] = [
   { id: "ef_verify_authorized", category: "Edge Function", name: "verify-publishing-connection authorizes user-owned connection", description: "Authenticated invoke returns 200 (or 404 if no connection).", status: "idle" },
   { id: "ef_publish_invokable", category: "Edge Function", name: "publish-scheduled-posts cron invokable", description: "Function returns processed envelope.", status: "idle" },
   { id: "e2e_retry_cancel", category: "E2E", name: "Retry/cancel restricted to owner", description: "User can only update/delete their own scheduled posts.", status: "idle" },
+  { id: "e2e_live_publish", category: "E2E", name: "Live publish round-trip (simulated)", description: "Schedules a post for ~now, invokes the worker, confirms it transitions to published, then cleans up.", status: "idle" },
 ];
 
 export default function SecurityCheck() {
@@ -200,6 +201,47 @@ export default function SecurityCheck() {
       });
     } catch (e: any) {
       update("e2e_retry_cancel", { status: "fail", detail: e.message });
+    }
+
+    // --- E2E: live publish round-trip (simulated publisher) ---
+    try {
+      const { data: created, error: insErr } = await supabase
+        .from("scheduled_posts")
+        .insert({
+          user_id: user.id,
+          channel: "security-probe",
+          caption: "[security-check] e2e probe — safe to ignore",
+          publisher: "simulated",
+          publisher_config: {},
+          scheduled_at: new Date(Date.now() - 5_000).toISOString(),
+        })
+        .select()
+        .single();
+
+      if (insErr || !created) throw new Error(insErr?.message || "insert failed");
+
+      await fetch(publishUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${ANON}` },
+        body: "{}",
+      }).then((r) => r.text());
+
+      let final: any = null;
+      for (let i = 0; i < 6; i++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        const { data } = await supabase.from("scheduled_posts").select("status,error,published_at").eq("id", created.id).maybeSingle();
+        if (data && (data.status === "published" || data.status === "failed")) { final = data; break; }
+      }
+
+      await supabase.from("scheduled_posts").delete().eq("id", created.id);
+
+      if (final?.status === "published") {
+        update("e2e_live_publish", { status: "pass", detail: `Published at ${final.published_at}` });
+      } else {
+        update("e2e_live_publish", { status: "fail", detail: `Final status: ${final?.status ?? "timeout"} ${final?.error ?? ""}` });
+      }
+    } catch (e: any) {
+      update("e2e_live_publish", { status: "fail", detail: e.message });
     }
 
     setRunning(false);
