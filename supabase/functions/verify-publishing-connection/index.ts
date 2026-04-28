@@ -1,5 +1,6 @@
 // Verifies a publishing connection by hitting each platform's "me" / introspection endpoint.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { safeFetch, validateOutboundUrl } from "../_shared/safe-fetch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,15 +75,22 @@ async function verifyBuffer(token: string): Promise<VerifyResult> {
 }
 
 async function verifyWebhook(url: string): Promise<VerifyResult> {
+  const validated = validateOutboundUrl(url);
+  if (!validated.ok) {
+    return { ok: false, granted_scopes: [], error: validated.error };
+  }
   try {
-    const r = await fetch(url, {
+    const { status } = await safeFetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ test: true, source: "valyarolex.ai", message: "Connection verification ping" }),
-      signal: AbortSignal.timeout(8000),
+      timeoutMs: 8000,
+      maxBodyBytes: 8 * 1024,
     });
-    if (!r.ok) return { ok: false, granted_scopes: [], error: `Webhook returned ${r.status}` };
-    return { ok: true, display_name: new URL(url).hostname, granted_scopes: ["webhook"] };
+    if (status < 200 || status >= 300) {
+      return { ok: false, granted_scopes: [], error: `Webhook returned ${status}` };
+    }
+    return { ok: true, display_name: validated.url.hostname, granted_scopes: ["webhook"] };
   } catch (e: any) {
     return { ok: false, granted_scopes: [], error: e.message || "Webhook unreachable" };
   }
