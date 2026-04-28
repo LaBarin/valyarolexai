@@ -737,7 +737,7 @@ const VideoStudio = () => {
     setProjects(prev => prev.map(p => p.id === activeProject.id ? persisted : p));
   };
 
-
+  const aiEditScene = async () => {
     if (!aiEditPrompt.trim() || editingScene === null || !activeProject) return;
     setIsAiEditing(true);
     try {
