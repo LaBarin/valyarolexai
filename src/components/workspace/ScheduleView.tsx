@@ -287,8 +287,7 @@ const ScheduleView = () => {
               ))}
             </div>
           )}
-          </>
-          events.map((event, i) => (
+          {events.map((event, i) => (
             <motion.div
               key={event.id}
               initial={{ opacity: 0, x: -10 }}
@@ -339,7 +338,8 @@ const ScheduleView = () => {
                 )}
               </div>
             </motion.div>
-          ))
+          ))}
+          </>
         )}
       </div>
     </div>
