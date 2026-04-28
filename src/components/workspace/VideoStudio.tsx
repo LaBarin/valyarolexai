@@ -37,6 +37,10 @@ import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
 import { useBrandKit } from "@/hooks/useBrandKit";
 import { brandContextBlock } from "@/lib/brand-context";
 import { Palette, Volume2 } from "lucide-react";
+import { RenderProgressTracker, deriveRenderStage } from "./RenderProgressTracker";
+import { VerticalTemplatePicker } from "./VerticalTemplatePicker";
+import { AD_PRESETS } from "./AdTemplateGallery";
+import type { VerticalTemplate } from "./verticalTemplates";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
@@ -436,6 +440,28 @@ const VideoStudio = () => {
 
   // Pre-generation creative selections (Style / Voice / Music)
   const [preGenStyle, setPreGenStyle] = useState<string>("kinetic");
+  const [pickedVerticalId, setPickedVerticalId] = useState<string | null>(null);
+
+  /**
+   * Apply an industry starter template: prefill the prompt with the brief,
+   * map the suggested preset → format/duration, and set the ad style.
+   * Brand kit values (if any) are appended via brandContextBlock at submit.
+   */
+  const applyVerticalTemplate = (t: VerticalTemplate) => {
+    setPickedVerticalId(t.id);
+    const cta = t.cta;
+    setPrompt(`${t.prompt}\n\nCTA: ${cta}`);
+    const preset = AD_PRESETS.find((p) => p.id === t.presetId);
+    if (preset) {
+      setSelectedFormat(preset.format);
+      setSelectedDuration(preset.duration <= 15 ? "short" : preset.duration <= 30 ? "medium" : "long");
+    }
+    setPreGenStyle(t.styleId);
+    toast({
+      title: `${t.name} starter applied`,
+      description: "Prompt, CTA, format and style are pre-filled. Edit anything you like, then Generate.",
+    });
+  };
   const [preGenVoiceId, setPreGenVoiceId] = useState<string>("JBFqnCBsd6RMkjVDRZzb");
   const [preGenTrackId, setPreGenTrackId] = useState<string | null>(null);
   const [availableTracks, setAvailableTracks] = useState<AudioTrack[]>([]);
@@ -1842,25 +1868,19 @@ const VideoStudio = () => {
           </TabsList>
 
           <TabsContent value="storyboard" className="space-y-4">
-            {/* Auto-render progress */}
-            {autoRenderStage !== "idle" && autoRenderStage !== "done" && (
-              <div className="glass rounded-2xl p-6 space-y-3">
-                <div className="flex items-center gap-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                  <div>
-                    <h4 className="font-semibold text-sm">
-                      {autoRenderStage === "generating-images" ? "Generating scene visuals…" : "Rendering video…"}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {autoRenderStage === "generating-images"
-                        ? "AI is creating images for each scene"
-                        : "Stitching scenes into your final video"}
-                    </p>
-                  </div>
-                </div>
-                <Progress value={exportProgress ?? 0} className="h-2" />
-                <p className="text-[10px] text-muted-foreground text-right">{exportProgress ?? 0}%</p>
-              </div>
+            {/* 7-stage render pipeline tracker */}
+            {((autoRenderStage !== "idle" && autoRenderStage !== "done") || isMp4Exporting) && (
+              <RenderProgressTracker
+                stage={deriveRenderStage({
+                  autoStage: autoRenderStage,
+                  isMp4Exporting,
+                  mp4Status,
+                  mp4Progress,
+                  hasRenderedVideo: !!renderedVideoUrl,
+                })}
+                progress={isMp4Exporting ? mp4Progress ?? 0 : exportProgress ?? 0}
+                message={mp4Status || (autoRenderStage === "generating-images" ? "Generating scene visuals…" : autoRenderStage === "rendering-video" ? "Rendering video…" : undefined)}
+              />
             )}
 
             {/* Rendered video player */}
@@ -2556,7 +2576,6 @@ const VideoStudio = () => {
     );
   }
 
-
   // List view
   return (
     <>
@@ -2572,6 +2591,8 @@ const VideoStudio = () => {
             <p className="text-xs text-muted-foreground">Generate video ads, shorts, and commercials with AI</p>
           </div>
         </div>
+
+        <VerticalTemplatePicker selectedId={pickedVerticalId} onPick={applyVerticalTemplate} />
 
         <Textarea
           placeholder="Describe your video ad... e.g. 'Create a 15-second TikTok ad for a new AI productivity app targeting Gen Z professionals'"
