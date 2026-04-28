@@ -295,6 +295,7 @@ const CampaignDetailView = ({ campaign: c, onBack, onUpdateStatus, copyShareLink
 const CampaignManager = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { kit: brandKit } = useBrandKit();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [activeCampaign, setActiveCampaign] = useState<Campaign | null>(null);
   const [prompt, setPrompt] = useState("");
@@ -353,7 +354,7 @@ const CampaignManager = () => {
           Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
+          messages: [{ role: "user", content: prompt + brandContextBlock(brandKit) }],
           mode: "campaign",
         }),
       });
