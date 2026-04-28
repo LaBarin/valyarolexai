@@ -46,6 +46,7 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
   const [generating, setGenerating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlCacheRef = useRef<Map<string, string>>(new Map());
+  const [unavailable, setUnavailable] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadTracks();
