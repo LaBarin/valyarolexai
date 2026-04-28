@@ -38,6 +38,9 @@ import { useBrandKit } from "@/hooks/useBrandKit";
 import { brandContextBlock } from "@/lib/brand-context";
 import { Palette, Volume2 } from "lucide-react";
 import { RenderProgressTracker, deriveRenderStage } from "./RenderProgressTracker";
+import { VerticalTemplatePicker } from "./VerticalTemplatePicker";
+import { AD_PRESETS } from "./AdTemplateGallery";
+import type { VerticalTemplate } from "./verticalTemplates";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
