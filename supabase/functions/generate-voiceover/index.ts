@@ -42,6 +42,15 @@ Deno.serve(async (req) => {
     const voiceId: string = body.voiceId || "JBFqnCBsd6RMkjVDRZzb"; // George
     const videoId: string | null = body.videoId ?? null;
 
+    // Validate voiceId format - ElevenLabs voice IDs are alphanumeric (prevents URL path injection)
+    const VOICE_ID_RE = /^[A-Za-z0-9]{1,64}$/;
+    if (!VOICE_ID_RE.test(voiceId)) {
+      return new Response(JSON.stringify({ error: "Invalid voiceId format" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!script || script.length < 3) {
       return new Response(JSON.stringify({ error: "Script too short" }), {
         status: 400,
