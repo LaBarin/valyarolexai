@@ -2576,6 +2576,8 @@ const VideoStudio = () => {
     );
   }
 
+        <VerticalTemplatePicker selectedId={pickedVerticalId} onPick={applyVerticalTemplate} />
+
 
   // List view
   return (
