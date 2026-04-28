@@ -1,6 +1,7 @@
 // Cron-invoked publisher. Picks up due scheduled_posts and dispatches them
 // to Buffer, a user-supplied webhook, or simulates the publish.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { safeFetch } from "../_shared/safe-fetch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
