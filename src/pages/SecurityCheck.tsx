@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Loader2, Shield, AlertCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SecurityLintDashboard } from "@/components/workspace/SecurityLintDashboard";
 
 type Status = "idle" | "running" | "pass" | "fail" | "skip";
 type Check = {
@@ -290,6 +291,10 @@ export default function SecurityCheck() {
           Runs end-to-end probes against scheduled-publishing flows: RLS isolation,
           JWT enforcement on edge functions, and authorization on retry/cancel paths.
         </p>
+
+        <div className="mb-6">
+          <SecurityLintDashboard />
+        </div>
 
         <Card className="p-6 mb-6 bg-card/50 backdrop-blur border-border/50">
           <div className="flex items-center justify-between gap-4 flex-wrap">
