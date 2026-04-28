@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Sparkles, Loader2, Clock, Calendar as CalendarIcon, Brain, X } from "lucide-react";
+import { Plus, Sparkles, Loader2, Clock, Calendar as CalendarIcon, Brain, X, RotateCw, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
