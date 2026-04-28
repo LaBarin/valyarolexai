@@ -412,6 +412,7 @@ function TrackList({
   loading,
   playingId,
   selectedId,
+  unavailable,
   onPlay,
   onSelect,
   emptyText = "No tracks match your filter.",
@@ -420,6 +421,7 @@ function TrackList({
   loading: boolean;
   playingId: string | null;
   selectedId?: string | null;
+  unavailable?: Set<string>;
   onPlay: (t: AudioTrack) => void;
   onSelect?: (t: AudioTrack | null) => void;
   emptyText?: string;
@@ -432,20 +434,30 @@ function TrackList({
     );
   }
   if (tracks.length === 0) {
-    return <p className="text-center text-xs text-muted-foreground py-8">{emptyText}</p>;
+    return (
+      <div className="text-center py-8 px-3 space-y-2">
+        <Music className="w-8 h-8 mx-auto opacity-30" />
+        <p className="text-xs text-muted-foreground">{emptyText}</p>
+      </div>
+    );
   }
   return (
     <div className="space-y-1.5">
       {tracks.map((track) => {
         const isSelected = selectedId === track.id;
         const isPlaying = playingId === track.id;
+        const isUnavailable = unavailable?.has(track.id) ?? false;
         return (
           <motion.div
             key={track.id}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
-              isSelected ? "border-primary/50 bg-primary/5" : "border-border/30 hover:border-border/60 bg-muted/20"
+              isUnavailable
+                ? "border-destructive/30 bg-destructive/5 opacity-70"
+                : isSelected
+                  ? "border-primary/50 bg-primary/5"
+                  : "border-border/30 hover:border-border/60 bg-muted/20"
             }`}
           >
             <Button
@@ -453,6 +465,8 @@ function TrackList({
               variant="ghost"
               className="w-8 h-8 flex-shrink-0"
               onClick={() => onPlay(track)}
+              disabled={isUnavailable}
+              title={isUnavailable ? "Audio file unavailable" : "Preview"}
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             </Button>
@@ -462,13 +476,21 @@ function TrackList({
                 {track.artist} · {track.duration_seconds ? `${Math.floor(track.duration_seconds / 60)}:${String(track.duration_seconds % 60).padStart(2, "0")}` : "--:--"}
               </p>
             </div>
-            <Badge variant="outline" className="text-[9px] capitalize">{track.mood}</Badge>
+            {isUnavailable ? (
+              <Badge variant="outline" className="text-[9px] gap-1 border-destructive/40 text-destructive">
+                <AlertTriangle className="w-2.5 h-2.5" /> Unavailable
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[9px] capitalize">{track.mood}</Badge>
+            )}
             {onSelect && (
               <Button
                 size="sm"
                 variant={isSelected ? "default" : "outline"}
                 className="h-7 text-[10px] px-2"
                 onClick={() => onSelect(isSelected ? null : track)}
+                disabled={isUnavailable}
+                title={isUnavailable ? "Cannot select an unavailable track" : undefined}
               >
                 {isSelected ? <><Check className="w-3 h-3 mr-1" />Selected</> : "Select"}
               </Button>
