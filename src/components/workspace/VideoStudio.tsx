@@ -805,7 +805,7 @@ const VideoStudio = () => {
     setIsGenerating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}`;
+      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}${brandContextBlock(brandKit)}`;
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
