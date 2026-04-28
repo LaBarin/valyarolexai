@@ -550,6 +550,63 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_posts: {
+        Row: {
+          attempts: number
+          campaign_id: string | null
+          caption: string | null
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          published_at: string | null
+          publisher: string
+          publisher_config: Json
+          result: Json | null
+          scheduled_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          video_id: string | null
+        }
+        Insert: {
+          attempts?: number
+          campaign_id?: string | null
+          caption?: string | null
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          published_at?: string | null
+          publisher?: string
+          publisher_config?: Json
+          result?: Json | null
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          video_id?: string | null
+        }
+        Update: {
+          attempts?: number
+          campaign_id?: string | null
+          caption?: string | null
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          published_at?: string | null
+          publisher?: string
+          publisher_config?: Json
+          result?: Json | null
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          video_id?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
