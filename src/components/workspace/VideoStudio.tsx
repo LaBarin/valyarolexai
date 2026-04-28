@@ -920,7 +920,13 @@ const VideoStudio = () => {
     setIsGenerating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}${brandContextBlock(brandKit)}`;
+      const modeBlock =
+        creationMode === "image"
+          ? `\n\nMode: IMAGE-TO-AD. The user uploaded a reference image that is the MAIN SUBJECT (product, person, place, or asset). Build the scene plan around this subject — every scene must feature it consistently. Open with a hero reveal of the subject and close with a clear CTA.`
+          : creationMode === "enhance"
+          ? `\n\nMode: VIDEO ENHANCE / REMAKE. The user uploaded an old/existing ad video. A still frame from it has been provided as a reference image so you can preserve the brand identity and key visuals. Rewrite the ad to feel modern, punchy, and platform-native: shorter scenes, stronger hook in the first 2 seconds, contemporary copy, and a sharp CTA. Do NOT copy the old script verbatim — modernize it.`
+          : "";
+      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}${modeBlock}${brandContextBlock(brandKit)}`;
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
