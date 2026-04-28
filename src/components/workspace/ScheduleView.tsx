@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Sparkles, Loader2, Clock, Calendar as CalendarIcon, Brain, X } from "lucide-react";
+import { Plus, Sparkles, Loader2, Clock, Calendar as CalendarIcon, Brain, X, RotateCw, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,6 +139,30 @@ const ScheduleView = () => {
     }
     setEditingId(null);
     setEditData(null);
+  };
+
+  const retryPost = async (id: string) => {
+    const { error } = await supabase
+      .from("scheduled_posts")
+      .update({ status: "pending", scheduled_at: new Date().toISOString(), error: null })
+      .eq("id", id);
+    if (error) {
+      toast({ title: "Retry failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setScheduledPosts((prev) => prev.map((p) => p.id === id ? { ...p, status: "pending" } : p));
+    toast({ title: "Retry queued", description: "Post will be published within a minute." });
+    supabase.functions.invoke("publish-scheduled-posts", { body: {} }).catch(() => {});
+  };
+
+  const cancelPost = async (id: string) => {
+    const { error } = await supabase.from("scheduled_posts").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Cancel failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setScheduledPosts((prev) => prev.filter((p) => p.id !== id));
+    toast({ title: "Post cancelled" });
   };
 
   const aiOptimizeSchedule = async () => {
@@ -283,6 +307,16 @@ const ScheduleView = () => {
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/40">{p.channel}</span>
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/40">{p.publisher}</span>
                   <span className={`text-[9px] px-1.5 py-0.5 rounded ${p.status === "published" ? "bg-green-500/20 text-green-400" : p.status === "failed" ? "bg-destructive/20 text-destructive" : "bg-primary/20 text-primary"}`}>{p.status}</span>
+                  {p.status === "failed" && (
+                    <button onClick={() => retryPost(p.id)} title="Retry" className="text-muted-foreground hover:text-primary transition-colors">
+                      <RotateCw className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {(p.status === "pending" || p.status === "failed") && (
+                    <button onClick={() => cancelPost(p.id)} title="Cancel" className="text-muted-foreground hover:text-destructive transition-colors">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
