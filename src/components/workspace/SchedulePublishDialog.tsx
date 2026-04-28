@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { CalendarClock, Send, Trash2, Loader2, ExternalLink, Plus, ShieldCheck } from "lucide-react";
+import { CalendarClock, Send, Trash2, Loader2, ExternalLink, Plus, ShieldCheck, Layers } from "lucide-react";
 import { PublishingSetup } from "./PublishingSetup";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -135,6 +135,68 @@ export const SchedulePublishDialog = ({ open, onOpenChange, campaignId }: Props)
     load();
   };
 
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const bulkScheduleFromCampaign = async () => {
+    if (!user || !campaignId) return;
+    setBulkLoading(true);
+    try {
+      const { data: campaign } = await supabase
+        .from("marketing_campaigns")
+        .select("name, content_plan")
+        .eq("id", campaignId)
+        .maybeSingle();
+
+      const items: any[] = (campaign?.content_plan as any[]) || [];
+      if (!items.length) {
+        toast({ title: "No content plan", description: "This campaign has no content items to schedule.", variant: "destructive" });
+        setBulkLoading(false);
+        return;
+      }
+
+      const { data: conns } = await supabase
+        .from("publishing_connections")
+        .select("platform, credentials, verification_status, is_active")
+        .eq("is_active", true)
+        .eq("verification_status", "verified");
+
+      const connByPlatform: Record<string, any> = {};
+      (conns || []).forEach((c: any) => {
+        const norm = c.platform === "meta" ? ["facebook", "instagram"] : [c.platform];
+        norm.forEach((n) => { if (!connByPlatform[n]) connByPlatform[n] = c; });
+      });
+
+      const base = new Date();
+      base.setHours(10, 0, 0, 0);
+      const rows = items.map((item, i) => {
+        const week = Math.max(1, Number(item.week) || 1);
+        const dayOffset = (week - 1) * 7 + (i % 7);
+        const when = new Date(base.getTime() + dayOffset * 86400000 + (i * 2 * 3600000));
+        const channel = (item.channel || "instagram").toLowerCase();
+        const conn = connByPlatform[channel];
+        const publisher = conn?.platform === "buffer" ? "buffer" : (conn ? conn.platform : "simulated");
+        const publisher_config = conn?.credentials || {};
+        return {
+          user_id: user.id,
+          campaign_id: campaignId,
+          channel,
+          caption: `${item.title}\n\n${item.description || ""}`.trim(),
+          scheduled_at: when.toISOString(),
+          publisher,
+          publisher_config,
+        };
+      });
+
+      const { error } = await supabase.from("scheduled_posts").insert(rows);
+      if (error) throw error;
+      toast({ title: "Bulk scheduled", description: `Queued ${rows.length} post(s) from "${campaign?.name}".` });
+      load();
+    } catch (e: any) {
+      toast({ title: "Bulk schedule failed", description: e.message, variant: "destructive" });
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -227,6 +289,13 @@ export const SchedulePublishDialog = ({ open, onOpenChange, campaignId }: Props)
               {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CalendarClock className="w-4 h-4 mr-2" />}
               Schedule Post
             </Button>
+
+            {campaignId && (
+              <Button variant="outline" className="w-full" onClick={bulkScheduleFromCampaign} disabled={bulkLoading}>
+                {bulkLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Layers className="w-4 h-4 mr-2" />}
+                Bulk Schedule From Campaign Plan
+              </Button>
+            )}
           </TabsContent>
 
           <TabsContent value="queue" className="space-y-2">
