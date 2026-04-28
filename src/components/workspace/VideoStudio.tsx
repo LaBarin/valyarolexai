@@ -2217,13 +2217,31 @@ const VideoStudio = () => {
                 <h4 className="font-semibold text-sm">Ad Copy</h4>
                 {script.ad_copy.headline && (
                   <div className="bg-background/50 rounded-lg p-3">
-                    <p className="text-[10px] text-muted-foreground mb-0.5">Headline</p>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[10px] text-muted-foreground">Headline</p>
+                      <RewriteMenu
+                        text={script.ad_copy.headline}
+                        fieldHint="ad headline, max 10 words"
+                        onRewritten={(next) =>
+                          applyScriptPatch({ ad_copy: { ...(script.ad_copy ?? {}), headline: next } })
+                        }
+                      />
+                    </div>
                     <p className="text-sm font-semibold">{script.ad_copy.headline}</p>
                   </div>
                 )}
                 {script.ad_copy.description && (
                   <div className="bg-background/50 rounded-lg p-3">
-                    <p className="text-[10px] text-muted-foreground mb-0.5">Description</p>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[10px] text-muted-foreground">Description</p>
+                      <RewriteMenu
+                        text={script.ad_copy.description}
+                        fieldHint="ad description / supporting copy"
+                        onRewritten={(next) =>
+                          applyScriptPatch({ ad_copy: { ...(script.ad_copy ?? {}), description: next } })
+                        }
+                      />
+                    </div>
                     <p className="text-sm">{script.ad_copy.description}</p>
                   </div>
                 )}
