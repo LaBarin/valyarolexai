@@ -83,6 +83,15 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
     return data.url;
   };
 
+  const markUnavailable = (id: string) => {
+    setUnavailable((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  };
+
   const togglePlay = async (track: AudioTrack) => {
     if (playingId === track.id) {
       audioRef.current?.pause();
@@ -92,20 +101,26 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
     audioRef.current?.pause();
     const url = await getSignedUrl(track.storage_path);
     if (!url) {
-      toast.error("Could not load track preview. The curated audio file may not be uploaded yet.");
+      markUnavailable(track.id);
+      toast.error(
+        track.is_curated
+          ? "This curated track isn't available right now. Try another one."
+          : "Could not load this track. The audio file may have been removed.",
+      );
       return;
     }
     const audio = new Audio(url);
     audio.volume = volume;
     audio.onended = () => setPlayingId(null);
     audio.onerror = () => {
-      toast.error("Playback failed");
+      markUnavailable(track.id);
+      toast.error("Playback failed — the audio file appears to be missing.");
       setPlayingId(null);
     };
     audioRef.current = audio;
     setPlayingId(track.id);
     audio.play().catch(() => {
-      toast.error("Browser blocked playback");
+      toast.error("Browser blocked playback. Click play again to retry.");
       setPlayingId(null);
     });
   };
