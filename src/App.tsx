@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import Refund from "./pages/Refund";
 import Privacy from "./pages/Privacy";
+import SecurityCheck from "./pages/SecurityCheck";
 
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/refund" element={<Refund />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/security-check" element={<SecurityCheck />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
