@@ -99,7 +99,7 @@ export const BulkAdCreator = ({ onDone }: Props) => {
       `Visual style: ${style}.`,
       `Required CTA: "${cta}".`,
       `Format: ${format}, duration ${duration}.`,
-    ].filter(Boolean).join(" ");
+    ].filter(Boolean).join(" ") + brandContextBlock(brandKit);
 
     const resp = await fetch(CHAT_URL, {
       method: "POST",
