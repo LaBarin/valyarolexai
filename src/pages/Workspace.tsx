@@ -29,6 +29,7 @@ import PitchDeckBuilder from "@/components/workspace/PitchDeckBuilder";
 import CampaignManager from "@/components/workspace/CampaignManager";
 import VideoStudio from "@/components/workspace/VideoStudio";
 import CreditsManager from "@/components/workspace/CreditsManager";
+import CreativeAnalytics from "@/components/workspace/CreativeAnalytics";
 import { PaywallGate } from "@/components/PaywallGate";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -253,7 +254,12 @@ const WorkspaceContent = () => {
                   </PaywallGate>
                 </div>
               )}
-              {activeTab === "analytics" && <AIInsights />}
+              {activeTab === "analytics" && (
+                <div className="space-y-6 max-w-6xl">
+                  <CreativeAnalytics />
+                  <AIInsights />
+                </div>
+              )}
               {activeTab === "pitchdeck" && (
                 <PaywallGate feature="Pitch Deck Builder" onUpgrade={() => window.location.href = "/landing#pricing"}>
                   <PitchDeckBuilder />
