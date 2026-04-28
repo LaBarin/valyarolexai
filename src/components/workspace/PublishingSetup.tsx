@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, CheckCircle2, XCircle, Loader2, Trash2, RefreshCw, ShieldCheck, ShieldAlert, ExternalLink, Facebook, Youtube } from "lucide-react";
+import { Plus, CheckCircle2, XCircle, Loader2, Trash2, RefreshCw, ShieldCheck, ShieldAlert, ExternalLink, Facebook, Youtube, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { ScopeTester } from "./ScopeTester";
+import { ConnectionHealthPanel } from "./ConnectionHealthPanel";
 
 type Connection = {
   id: string;
@@ -104,6 +106,8 @@ export const PublishingSetup = () => {
   const [newName, setNewName] = useState("");
   const [newCreds, setNewCreds] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [testerOpen, setTesterOpen] = useState(false);
+  const [testerConn, setTesterConn] = useState<Connection | null>(null);
 
   useEffect(() => { if (user) load(); }, [user]);
 
@@ -197,6 +201,9 @@ export const PublishingSetup = () => {
         </div>
       </div>
 
+      {/* Connection Health Panel */}
+      <ConnectionHealthPanel />
+
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : connections.length === 0 ? (
@@ -251,10 +258,13 @@ export const PublishingSetup = () => {
                   </div>
                 )}
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2 pt-1 flex-wrap">
                   <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => verify(c.id)} disabled={verifyingId === c.id}>
                     {verifyingId === c.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
                     Verify
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setTesterConn(c); setTesterOpen(true); }}>
+                    <FlaskConical className="w-3 h-3 mr-1" /> Test
                   </Button>
                   <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(c)}>
                     {c.is_active ? "Disable" : "Enable"}
@@ -322,6 +332,13 @@ export const PublishingSetup = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ScopeTester
+        open={testerOpen}
+        onOpenChange={setTesterOpen}
+        connection={testerConn}
+        onComplete={load}
+      />
     </div>
   );
 };
