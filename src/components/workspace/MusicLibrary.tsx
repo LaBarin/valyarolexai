@@ -294,8 +294,14 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
               loading={loading}
               playingId={playingId}
               selectedId={selectedTrackId}
+              unavailable={unavailable}
               onPlay={togglePlay}
               onSelect={onSelect}
+              emptyText={
+                tracks.some((t) => t.is_curated)
+                  ? "No tracks match the selected mood or search."
+                  : "The curated music library is being prepared. Try uploading your own track or generating one with AI."
+              }
             />
           </TabsContent>
           <TabsContent value="mine">
@@ -304,6 +310,7 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
               loading={loading}
               playingId={playingId}
               selectedId={selectedTrackId}
+              unavailable={unavailable}
               onPlay={togglePlay}
               onSelect={onSelect}
               emptyText="Upload your own MP3/WAV tracks or generate one with AI."
