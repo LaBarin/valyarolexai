@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, CheckCircle2, XCircle, Loader2, Trash2, RefreshCw, ShieldCheck, ShieldAlert, ExternalLink, Facebook, Youtube } from "lucide-react";
+import { Plus, CheckCircle2, XCircle, Loader2, Trash2, RefreshCw, ShieldCheck, ShieldAlert, ExternalLink, Facebook, Youtube, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { ScopeTester } from "./ScopeTester";
+import { ConnectionHealthPanel } from "./ConnectionHealthPanel";
 
 type Connection = {
   id: string;
@@ -104,6 +106,8 @@ export const PublishingSetup = () => {
   const [newName, setNewName] = useState("");
   const [newCreds, setNewCreds] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [testerOpen, setTesterOpen] = useState(false);
+  const [testerConn, setTesterConn] = useState<Connection | null>(null);
 
   useEffect(() => { if (user) load(); }, [user]);
 
