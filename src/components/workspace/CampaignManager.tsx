@@ -17,6 +17,8 @@ import { useBrandKit } from "@/hooks/useBrandKit";
 import { brandContextBlock } from "@/lib/brand-context";
 import { CampaignPreviewDialog } from "./AdPreviewDialog";
 import { NarratorControls } from "./NarratorControls";
+import { SchedulePublishDialog } from "./SchedulePublishDialog";
+import { CalendarClock } from "lucide-react";
 import { useNarrator } from "@/hooks/use-narrator";
 import logoImg from "@/assets/valyarolex-logo.png";
 
@@ -118,8 +120,11 @@ const CampaignDetailView = ({ campaign: c, onBack, onUpdateStatus, copyShareLink
 
   useEffect(() => () => { stopNarration(); }, [stopNarration]);
 
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+
   return (
     <div className="space-y-4">
+      <SchedulePublishDialog open={scheduleOpen} onOpenChange={setScheduleOpen} campaignId={c.id} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button size="sm" variant="ghost" onClick={onBack}>
@@ -153,6 +158,9 @@ const CampaignDetailView = ({ campaign: c, onBack, onUpdateStatus, copyShareLink
               </a>
             </>
           )}
+          <Button size="sm" variant="outline" onClick={() => setScheduleOpen(true)}>
+            <CalendarClock className="w-3.5 h-3.5 mr-1" /> Schedule
+          </Button>
           {c.status === "draft" && (
             <Button size="sm" onClick={() => onUpdateStatus(c.id, "active")}>
               <Zap className="w-4 h-4 mr-1" /> Launch
