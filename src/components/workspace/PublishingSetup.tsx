@@ -332,6 +332,13 @@ export const PublishingSetup = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ScopeTester
+        open={testerOpen}
+        onOpenChange={setTesterOpen}
+        connection={testerConn}
+        onComplete={load}
+      />
     </div>
   );
 };
