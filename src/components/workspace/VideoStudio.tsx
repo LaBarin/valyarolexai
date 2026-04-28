@@ -45,6 +45,56 @@ import type { VerticalTemplate } from "./verticalTemplates";
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
 
+/**
+ * Extract a single frame from a video URL (object URL or data URL) and return
+ * it as a JPEG data URI. Used by "Enhance Old Video" mode so the existing
+ * reference-image pipeline can preserve the original ad's visual identity.
+ */
+async function extractFrameDataUri(videoUrl: string, atSeconds = 1.0): Promise<string | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.crossOrigin = "anonymous";
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.src = videoUrl;
+
+    const cleanup = () => {
+      video.removeAttribute("src");
+      video.load();
+    };
+
+    video.addEventListener("loadedmetadata", () => {
+      const target = Math.min(atSeconds, Math.max(0, (video.duration || 1) - 0.1));
+      const onSeeked = () => {
+        try {
+          const w = video.videoWidth || 1280;
+          const h = video.videoHeight || 720;
+          const canvas = document.createElement("canvas");
+          // Cap to 1280px on the long side to keep the data URI well under 10MB
+          const scale = Math.min(1, 1280 / Math.max(w, h));
+          canvas.width = Math.round(w * scale);
+          canvas.height = Math.round(h * scale);
+          const ctx = canvas.getContext("2d");
+          if (!ctx) { cleanup(); return resolve(null); }
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const data = canvas.toDataURL("image/jpeg", 0.85);
+          cleanup();
+          resolve(data);
+        } catch (e) {
+          console.warn("frame capture failed", e);
+          cleanup();
+          resolve(null);
+        }
+      };
+      video.addEventListener("seeked", onSeeked, { once: true });
+      try { video.currentTime = target; } catch { cleanup(); resolve(null); }
+    }, { once: true });
+
+    video.addEventListener("error", () => { cleanup(); resolve(null); }, { once: true });
+  });
+}
+
 type Scene = {
   scene_number: number;
   duration_seconds: number;
