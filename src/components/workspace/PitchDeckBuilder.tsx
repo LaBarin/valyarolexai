@@ -111,6 +111,7 @@ function buildSalesNarration(slideType: string, title: string, c: SlideContent):
 const PitchDeckBuilder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { kit: brandKit } = useBrandKit();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -243,7 +244,7 @@ const PitchDeckBuilder = () => {
           Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
+          messages: [{ role: "user", content: prompt + brandContextBlock(brandKit) }],
           mode: "pitch_deck",
         }),
       });
