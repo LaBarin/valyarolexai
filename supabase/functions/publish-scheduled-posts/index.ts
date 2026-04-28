@@ -51,7 +51,7 @@ async function publishToBuffer(post: Post, mediaUrl: string | null) {
 async function publishToWebhook(post: Post, mediaUrl: string | null) {
   const url = post.publisher_config?.webhook_url;
   if (!url) throw new Error("webhook_url missing");
-  const r = await fetch(url, {
+  const { status, bodyText } = await safeFetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -63,10 +63,11 @@ async function publishToWebhook(post: Post, mediaUrl: string | null) {
       video_id: post.video_id,
       scheduled_for: new Date().toISOString(),
     }),
+    timeoutMs: 10000,
+    maxBodyBytes: 16 * 1024,
   });
-  const text = await r.text();
-  if (!r.ok) throw new Error(`Webhook ${r.status}: ${text}`);
-  return { status: r.status, body: text.slice(0, 500) };
+  if (status < 200 || status >= 300) throw new Error(`Webhook ${status}: ${bodyText}`);
+  return { status, body: bodyText.slice(0, 500) };
 }
 
 Deno.serve(async (req) => {
