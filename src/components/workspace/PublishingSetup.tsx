@@ -204,7 +204,7 @@ export const PublishingSetup = () => {
       {/* Connection Health Panel */}
       <ConnectionHealthPanel />
 
-
+      {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : connections.length === 0 ? (
         <div className="glass rounded-xl p-8 text-center text-muted-foreground">
