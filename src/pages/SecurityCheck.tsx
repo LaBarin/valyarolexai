@@ -28,6 +28,7 @@ const INITIAL: Check[] = [
   { id: "ef_verify_authorized", category: "Edge Function", name: "verify-publishing-connection authorizes user-owned connection", description: "Authenticated invoke returns 200 (or 404 if no connection).", status: "idle" },
   { id: "ef_publish_invokable", category: "Edge Function", name: "publish-scheduled-posts cron invokable", description: "Function returns processed envelope.", status: "idle" },
   { id: "e2e_retry_cancel", category: "E2E", name: "Retry/cancel restricted to owner", description: "User can only update/delete their own scheduled posts.", status: "idle" },
+  { id: "e2e_live_publish", category: "E2E", name: "Live publish round-trip (simulated)", description: "Schedules a post for ~now, invokes the worker, confirms it transitions to published, then cleans up.", status: "idle" },
 ];
 
 export default function SecurityCheck() {
