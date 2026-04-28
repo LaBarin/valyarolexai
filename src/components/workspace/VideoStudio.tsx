@@ -28,6 +28,7 @@ import { createShareToken, normalizeVideoOverlayText, normalizeVideoScenes } fro
 import { NarratorControls } from "./NarratorControls";
 import { useNarrator } from "@/hooks/use-narrator";
 import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
+import { RewriteMenu } from "./RewriteMenu";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
 import { Palette, Volume2 } from "lucide-react";
@@ -713,6 +714,27 @@ const VideoStudio = () => {
     toast({ title: "Scene Updated", description: `Re-rendering video with your changes…` });
     // Auto re-render so the final video reflects the edit immediately
     autoRenderPipeline(persistedProject);
+  };
+
+  // Generic patch+persist for script-level fields (hook, cta, ad_copy, etc.).
+  // Used by RewriteMenu and any other inline script edit. Does NOT touch
+  // storyboard scenes or trigger an auto re-render — pure copy edits.
+  const applyScriptPatch = async (patch: Partial<VideoData>) => {
+    if (!activeProject) return;
+    const updatedScript = mergeVideoScript(activeProject, activeProject.script, patch);
+    const { data, error } = await supabase
+      .from("video_projects")
+      .update({ script: updatedScript as any })
+      .eq("id", activeProject.id)
+      .select("*")
+      .single();
+    if (error || !data) {
+      toast({ title: "Save Failed", description: error?.message || "Unable to save changes.", variant: "destructive" });
+      return;
+    }
+    const persisted = mapVideoProject(data);
+    setActiveProject(persisted);
+    setProjects(prev => prev.map(p => p.id === activeProject.id ? persisted : p));
   };
 
   const aiEditScene = async () => {
@@ -2130,7 +2152,14 @@ const VideoStudio = () => {
               <>
                 {script.hook && (
                   <div className="glass rounded-xl p-4">
-                    <h4 className="font-semibold text-sm flex items-center gap-1.5 mb-2"><Camera className="w-3.5 h-3.5 text-primary" /> Hook (First 3s)</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm flex items-center gap-1.5"><Camera className="w-3.5 h-3.5 text-primary" /> Hook (First 3s)</h4>
+                      <RewriteMenu
+                        text={script.hook}
+                        fieldHint="hook line, max 12 words, attention-grabbing"
+                        onRewritten={(next) => applyScriptPatch({ hook: next })}
+                      />
+                    </div>
                     <p className="text-sm text-foreground/90">"{script.hook}"</p>
                   </div>
                 )}
@@ -2161,7 +2190,14 @@ const VideoStudio = () => {
                 </div>
                 {script.cta && (
                   <div className="glass rounded-xl p-4">
-                    <h4 className="font-semibold text-sm flex items-center gap-1.5 mb-2">Call to Action</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm flex items-center gap-1.5">Call to Action</h4>
+                      <RewriteMenu
+                        text={script.cta}
+                        fieldHint="short CTA, ideally under 6 words"
+                        onRewritten={(next) => applyScriptPatch({ cta: next })}
+                      />
+                    </div>
                     <p className="text-sm text-primary font-medium">"{script.cta}"</p>
                   </div>
                 )}
@@ -2181,13 +2217,31 @@ const VideoStudio = () => {
                 <h4 className="font-semibold text-sm">Ad Copy</h4>
                 {script.ad_copy.headline && (
                   <div className="bg-background/50 rounded-lg p-3">
-                    <p className="text-[10px] text-muted-foreground mb-0.5">Headline</p>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[10px] text-muted-foreground">Headline</p>
+                      <RewriteMenu
+                        text={script.ad_copy.headline}
+                        fieldHint="ad headline, max 10 words"
+                        onRewritten={(next) =>
+                          applyScriptPatch({ ad_copy: { ...(script.ad_copy ?? {}), headline: next } })
+                        }
+                      />
+                    </div>
                     <p className="text-sm font-semibold">{script.ad_copy.headline}</p>
                   </div>
                 )}
                 {script.ad_copy.description && (
                   <div className="bg-background/50 rounded-lg p-3">
-                    <p className="text-[10px] text-muted-foreground mb-0.5">Description</p>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[10px] text-muted-foreground">Description</p>
+                      <RewriteMenu
+                        text={script.ad_copy.description}
+                        fieldHint="ad description / supporting copy"
+                        onRewritten={(next) =>
+                          applyScriptPatch({ ad_copy: { ...(script.ad_copy ?? {}), description: next } })
+                        }
+                      />
+                    </div>
                     <p className="text-sm">{script.ad_copy.description}</p>
                   </div>
                 )}
