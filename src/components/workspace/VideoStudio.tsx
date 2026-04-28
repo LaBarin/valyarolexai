@@ -2190,7 +2190,14 @@ const VideoStudio = () => {
                 </div>
                 {script.cta && (
                   <div className="glass rounded-xl p-4">
-                    <h4 className="font-semibold text-sm flex items-center gap-1.5 mb-2">Call to Action</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm flex items-center gap-1.5">Call to Action</h4>
+                      <RewriteMenu
+                        text={script.cta}
+                        fieldHint="short CTA, ideally under 6 words"
+                        onRewritten={(next) => applyScriptPatch({ cta: next })}
+                      />
+                    </div>
                     <p className="text-sm text-primary font-medium">"{script.cta}"</p>
                   </div>
                 )}
