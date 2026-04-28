@@ -141,6 +141,30 @@ const ScheduleView = () => {
     setEditData(null);
   };
 
+  const retryPost = async (id: string) => {
+    const { error } = await supabase
+      .from("scheduled_posts")
+      .update({ status: "pending", scheduled_at: new Date().toISOString(), error: null })
+      .eq("id", id);
+    if (error) {
+      toast({ title: "Retry failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setScheduledPosts((prev) => prev.map((p) => p.id === id ? { ...p, status: "pending" } : p));
+    toast({ title: "Retry queued", description: "Post will be published within a minute." });
+    supabase.functions.invoke("publish-scheduled-posts", { body: {} }).catch(() => {});
+  };
+
+  const cancelPost = async (id: string) => {
+    const { error } = await supabase.from("scheduled_posts").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Cancel failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    setScheduledPosts((prev) => prev.filter((p) => p.id !== id));
+    toast({ title: "Post cancelled" });
+  };
+
   const aiOptimizeSchedule = async () => {
     if (!user || aiOptimizing) return;
     setAiOptimizing(true);
