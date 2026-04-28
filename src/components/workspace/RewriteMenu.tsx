@@ -62,15 +62,20 @@ export const RewriteMenu = ({
         body: { text, tone, fieldHint },
       });
       if (error) {
-        // Functions invoke surfaces non-2xx as error; try to read the JSON body.
-        const detail = (error as any)?.context?.body
-          ? await (error as any).context.json().catch(() => null)
-          : null;
-        const msg =
-          detail?.error ||
-          (error.message?.includes("non-2xx") ? "Rewrite failed" : error.message) ||
-          "Rewrite failed";
-        if (msg === "insufficient_credits") {
+        // supabase-js wraps non-2xx responses; the original Response is on error.context.
+        // Read its body once and parse the JSON error envelope our function returns.
+        let detailMsg: string | null = null;
+        const ctx: any = (error as any)?.context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const parsed = await ctx.json();
+            detailMsg = parsed?.error ?? null;
+          } catch {
+            try { detailMsg = (await ctx.text())?.slice(0, 200) ?? null; } catch { /* ignore */ }
+          }
+        }
+        const msg = detailMsg || error.message || "Rewrite failed";
+        if (detailMsg === "insufficient_credits") {
           toast({
             title: "Out of credits",
             description: "Subscribe or top up to keep rewriting.",
