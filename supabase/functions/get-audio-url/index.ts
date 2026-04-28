@@ -43,9 +43,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Authorization: allow curated/* or files in user's own folder
+    // Authorization: allow curated catalogs or files in the user's own folder
     const firstSeg = path.split("/")[0];
-    if (firstSeg !== "curated" && firstSeg !== userId) {
+    const isCurated = firstSeg === "curated" || firstSeg === "curated-eleven";
+    if (!isCurated && firstSeg !== userId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
