@@ -34,6 +34,8 @@ import { TranslateMenu } from "./TranslateMenu";
 import { BulkAdCreator } from "./BulkAdCreator";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
+import { useBrandKit } from "@/hooks/useBrandKit";
+import { brandContextBlock } from "@/lib/brand-context";
 import { Palette, Volume2 } from "lucide-react";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
