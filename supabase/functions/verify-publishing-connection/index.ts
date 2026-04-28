@@ -1,5 +1,6 @@
 // Verifies a publishing connection by hitting each platform's "me" / introspection endpoint.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { safeFetch, validateOutboundUrl } from "../_shared/safe-fetch.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
