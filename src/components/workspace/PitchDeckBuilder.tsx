@@ -279,9 +279,17 @@ const PitchDeckBuilder = () => {
     if (!previewData || !user) return;
     setIsSavingPreview(true);
     try {
+      const brandTheme = brandKit
+        ? {
+            bgStyle: "dark",
+            fontFamily: brandKit.heading_font || "Space Grotesk",
+            primaryColor: brandKit.primary_color || "#00d4ff",
+            accentColor: brandKit.accent_color || "#f59e0b",
+          }
+        : undefined;
       const { data: newDeck, error: deckErr } = await supabase
         .from("pitch_decks")
-        .insert({ user_id: user.id, title: previewData.deck_title, description: previewData.deck_description })
+        .insert({ user_id: user.id, title: previewData.deck_title, description: previewData.deck_description, ...(brandTheme ? { theme: brandTheme } : {}) })
         .select()
         .single();
       if (deckErr) throw deckErr;
