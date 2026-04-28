@@ -296,10 +296,25 @@ export const SchedulePublishDialog = ({ open, onOpenChange, campaignId }: Props)
               </div>
             )}
 
-            <Button className="w-full" onClick={createPost} disabled={creating}>
-              {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CalendarClock className="w-4 h-4 mr-2" />}
-              Schedule Post
-            </Button>
+            {(() => {
+              const needsConn = publisher !== "simulated" && publisher !== "webhook";
+              const channelKey = channel === "facebook" || channel === "instagram" ? "meta" : channel;
+              const hasMatch = verifiedConns.some((c) => c.platform === channelKey || c.platform === publisher);
+              const blocked = needsConn && !hasMatch;
+              return (
+                <>
+                  {blocked && (
+                    <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-xs text-yellow-400">
+                      No verified <span className="font-mono">{channelKey}</span> connection. Open the Connections tab and run the Scope Tester before scheduling.
+                    </div>
+                  )}
+                  <Button className="w-full" onClick={createPost} disabled={creating || blocked}>
+                    {creating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CalendarClock className="w-4 h-4 mr-2" />}
+                    Schedule Post
+                  </Button>
+                </>
+              );
+            })()}
 
             {campaignId && (
               <Button variant="outline" className="w-full" onClick={bulkScheduleFromCampaign} disabled={bulkLoading}>
