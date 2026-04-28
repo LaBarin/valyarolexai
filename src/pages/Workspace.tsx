@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
   Plug, Presentation, Megaphone, MessageSquare, Menu, Video,
-  ArrowLeft, LogOut, Coins, Sparkles, Palette
+  ArrowLeft, LogOut, Coins, Sparkles, Palette, FolderOpen
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
@@ -31,6 +31,7 @@ import VideoStudio from "@/components/workspace/VideoStudio";
 import CreditsManager from "@/components/workspace/CreditsManager";
 import CreativeAnalytics from "@/components/workspace/CreativeAnalytics";
 import BrandKitManager from "@/components/workspace/BrandKitManager";
+import MediaLibrary from "@/components/workspace/MediaLibrary";
 import { PaywallGate } from "@/components/PaywallGate";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ const navItems = [
   { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
   { id: "videos", label: "Creative Studio", icon: Sparkles, group: "tools" },
   { id: "brandkit", label: "Brand Kit", icon: Palette, group: "tools" },
+  { id: "media", label: "Media Library", icon: FolderOpen, group: "tools" },
   { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
   { id: "credits", label: "Credits", icon: Coins, group: "settings" },
 ] as const;
@@ -193,6 +195,7 @@ const WorkspaceContent = () => {
     videos: "Creative Studio",
     creative: "Creative Studio",
     brandkit: "Brand Kit",
+    media: "Media Library",
     integrations: "Integrations",
     credits: "Credits & Billing",
   };
@@ -286,6 +289,7 @@ const WorkspaceContent = () => {
                 </div>
               )}
               {activeTab === "brandkit" && <BrandKitManager />}
+              {activeTab === "media" && <MediaLibrary />}
               {activeTab === "credits" && (
                 <div className="max-w-4xl">
                   <CreditsManager />
