@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Music, Play, Pause, Upload, Loader2, Check, Search, Sparkles, Wand2 } from "lucide-react";
+import { Music, Play, Pause, Upload, Loader2, Check, Search, Sparkles, Wand2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +46,7 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
   const [generating, setGenerating] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlCacheRef = useRef<Map<string, string>>(new Map());
+  const [unavailable, setUnavailable] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadTracks();
@@ -82,6 +83,15 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
     return data.url;
   };
 
+  const markUnavailable = (id: string) => {
+    setUnavailable((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  };
+
   const togglePlay = async (track: AudioTrack) => {
     if (playingId === track.id) {
       audioRef.current?.pause();
@@ -91,20 +101,26 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
     audioRef.current?.pause();
     const url = await getSignedUrl(track.storage_path);
     if (!url) {
-      toast.error("Could not load track preview. The curated audio file may not be uploaded yet.");
+      markUnavailable(track.id);
+      toast.error(
+        track.is_curated
+          ? "This curated track isn't available right now. Try another one."
+          : "Could not load this track. The audio file may have been removed.",
+      );
       return;
     }
     const audio = new Audio(url);
     audio.volume = volume;
     audio.onended = () => setPlayingId(null);
     audio.onerror = () => {
-      toast.error("Playback failed");
+      markUnavailable(track.id);
+      toast.error("Playback failed — the audio file appears to be missing.");
       setPlayingId(null);
     };
     audioRef.current = audio;
     setPlayingId(track.id);
     audio.play().catch(() => {
-      toast.error("Browser blocked playback");
+      toast.error("Browser blocked playback. Click play again to retry.");
       setPlayingId(null);
     });
   };
@@ -278,8 +294,14 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
               loading={loading}
               playingId={playingId}
               selectedId={selectedTrackId}
+              unavailable={unavailable}
               onPlay={togglePlay}
               onSelect={onSelect}
+              emptyText={
+                tracks.some((t) => t.is_curated)
+                  ? "No tracks match the selected mood or search."
+                  : "The curated music library is being prepared. Try uploading your own track or generating one with AI."
+              }
             />
           </TabsContent>
           <TabsContent value="mine">
@@ -288,6 +310,7 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
               loading={loading}
               playingId={playingId}
               selectedId={selectedTrackId}
+              unavailable={unavailable}
               onPlay={togglePlay}
               onSelect={onSelect}
               emptyText="Upload your own MP3/WAV tracks or generate one with AI."
@@ -389,6 +412,7 @@ function TrackList({
   loading,
   playingId,
   selectedId,
+  unavailable,
   onPlay,
   onSelect,
   emptyText = "No tracks match your filter.",
@@ -397,6 +421,7 @@ function TrackList({
   loading: boolean;
   playingId: string | null;
   selectedId?: string | null;
+  unavailable?: Set<string>;
   onPlay: (t: AudioTrack) => void;
   onSelect?: (t: AudioTrack | null) => void;
   emptyText?: string;
@@ -409,20 +434,30 @@ function TrackList({
     );
   }
   if (tracks.length === 0) {
-    return <p className="text-center text-xs text-muted-foreground py-8">{emptyText}</p>;
+    return (
+      <div className="text-center py-8 px-3 space-y-2">
+        <Music className="w-8 h-8 mx-auto opacity-30" />
+        <p className="text-xs text-muted-foreground">{emptyText}</p>
+      </div>
+    );
   }
   return (
     <div className="space-y-1.5">
       {tracks.map((track) => {
         const isSelected = selectedId === track.id;
         const isPlaying = playingId === track.id;
+        const isUnavailable = unavailable?.has(track.id) ?? false;
         return (
           <motion.div
             key={track.id}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
-              isSelected ? "border-primary/50 bg-primary/5" : "border-border/30 hover:border-border/60 bg-muted/20"
+              isUnavailable
+                ? "border-destructive/30 bg-destructive/5 opacity-70"
+                : isSelected
+                  ? "border-primary/50 bg-primary/5"
+                  : "border-border/30 hover:border-border/60 bg-muted/20"
             }`}
           >
             <Button
@@ -430,6 +465,8 @@ function TrackList({
               variant="ghost"
               className="w-8 h-8 flex-shrink-0"
               onClick={() => onPlay(track)}
+              disabled={isUnavailable}
+              title={isUnavailable ? "Audio file unavailable" : "Preview"}
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             </Button>
@@ -439,13 +476,21 @@ function TrackList({
                 {track.artist} · {track.duration_seconds ? `${Math.floor(track.duration_seconds / 60)}:${String(track.duration_seconds % 60).padStart(2, "0")}` : "--:--"}
               </p>
             </div>
-            <Badge variant="outline" className="text-[9px] capitalize">{track.mood}</Badge>
+            {isUnavailable ? (
+              <Badge variant="outline" className="text-[9px] gap-1 border-destructive/40 text-destructive">
+                <AlertTriangle className="w-2.5 h-2.5" /> Unavailable
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-[9px] capitalize">{track.mood}</Badge>
+            )}
             {onSelect && (
               <Button
                 size="sm"
                 variant={isSelected ? "default" : "outline"}
                 className="h-7 text-[10px] px-2"
                 onClick={() => onSelect(isSelected ? null : track)}
+                disabled={isUnavailable}
+                title={isUnavailable ? "Cannot select an unavailable track" : undefined}
               >
                 {isSelected ? <><Check className="w-3 h-3 mr-1" />Selected</> : "Select"}
               </Button>
