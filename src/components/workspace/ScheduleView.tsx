@@ -265,12 +265,29 @@ const ScheduleView = () => {
       <div className="space-y-2 max-h-[400px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 text-primary animate-spin" /></div>
-        ) : events.length === 0 ? (
+        ) : events.length === 0 && scheduledPosts.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">No events scheduled. Add one or let AI optimize your day.</p>
           </div>
         ) : (
+          <>
+          {scheduledPosts.length > 0 && (
+            <div className="space-y-1.5 mb-3">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground px-1">Scheduled Posts</p>
+              {scheduledPosts.map((p) => (
+                <div key={p.id} className="glass rounded-lg p-2.5 flex items-center gap-2 border-l-[3px]" style={{ borderLeftColor: eventColors.scheduled_post }}>
+                  <Clock className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-xs font-medium flex-1 truncate">{p.title}</span>
+                  <span className="text-[10px] text-muted-foreground">{new Date(p.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/40">{p.channel}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted/40">{p.publisher}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded ${p.status === "published" ? "bg-green-500/20 text-green-400" : p.status === "failed" ? "bg-destructive/20 text-destructive" : "bg-primary/20 text-primary"}`}>{p.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          </>
           events.map((event, i) => (
             <motion.div
               key={event.id}
