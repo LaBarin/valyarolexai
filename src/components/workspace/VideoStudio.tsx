@@ -2576,9 +2576,6 @@ const VideoStudio = () => {
     );
   }
 
-        <VerticalTemplatePicker selectedId={pickedVerticalId} onPick={applyVerticalTemplate} />
-
-
   // List view
   return (
     <>
@@ -2594,6 +2591,8 @@ const VideoStudio = () => {
             <p className="text-xs text-muted-foreground">Generate video ads, shorts, and commercials with AI</p>
           </div>
         </div>
+
+        <VerticalTemplatePicker selectedId={pickedVerticalId} onPick={applyVerticalTemplate} />
 
         <Textarea
           placeholder="Describe your video ad... e.g. 'Create a 15-second TikTok ad for a new AI productivity app targeting Gen Z professionals'"
