@@ -381,6 +381,7 @@ const VideoStudio = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [projects, setProjects] = useState<VideoProject[]>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<VideoProject | null>(null);
   const [prompt, setPrompt] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("9:16");
