@@ -28,6 +28,7 @@ import { createShareToken, normalizeVideoOverlayText, normalizeVideoScenes } fro
 import { NarratorControls } from "./NarratorControls";
 import { useNarrator } from "@/hooks/use-narrator";
 import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
+import { RewriteMenu } from "./RewriteMenu";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
 import { Palette, Volume2 } from "lucide-react";
