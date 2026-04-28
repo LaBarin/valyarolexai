@@ -463,6 +463,57 @@ export type Database = {
         }
         Relationships: []
       }
+      publishing_connections: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          credentials: Json
+          display_name: string
+          granted_scopes: string[]
+          id: string
+          is_active: boolean
+          last_verified_at: string | null
+          platform: string
+          required_scopes: string[]
+          updated_at: string
+          user_id: string
+          verification_error: string | null
+          verification_status: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          credentials?: Json
+          display_name: string
+          granted_scopes?: string[]
+          id?: string
+          is_active?: boolean
+          last_verified_at?: string | null
+          platform: string
+          required_scopes?: string[]
+          updated_at?: string
+          user_id: string
+          verification_error?: string | null
+          verification_status?: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          credentials?: Json
+          display_name?: string
+          granted_scopes?: string[]
+          id?: string
+          is_active?: boolean
+          last_verified_at?: string | null
+          platform?: string
+          required_scopes?: string[]
+          updated_at?: string
+          user_id?: string
+          verification_error?: string | null
+          verification_status?: string
+        }
+        Relationships: []
+      }
       saved_workflows: {
         Row: {
           created_at: string
