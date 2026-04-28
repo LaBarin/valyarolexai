@@ -302,6 +302,7 @@ const WorkspaceContent = () => {
           </div>
         </main>
       </div>
+      <OnboardingWizard onNavigate={(t) => navigate(t as TabId)} />
     </>
   );
 };
