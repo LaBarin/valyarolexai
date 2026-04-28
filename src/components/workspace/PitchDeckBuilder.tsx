@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNarrator } from "@/hooks/use-narrator";
+import { useBrandKit } from "@/hooks/useBrandKit";
+import { brandContextBlock } from "@/lib/brand-context";
 import type { PitchDeckPreviewData } from "./AdPreviewDialog";
 import logoImg from "@/assets/valyarolex-logo.png";
 
