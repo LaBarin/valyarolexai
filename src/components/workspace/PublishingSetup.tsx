@@ -179,6 +179,24 @@ export const PublishingSetup = () => {
         <Button onClick={() => setAddOpen(true)} size="sm"><Plus className="w-4 h-4 mr-1" /> Add Connection</Button>
       </div>
 
+      {/* Recommended path callout */}
+      <div className="glass rounded-xl p-4 border border-primary/30 bg-primary/5">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+            <RefreshCw className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold mb-1">Recommended: connect via Buffer</p>
+            <p className="text-xs text-muted-foreground">
+              Buffer's app is already approved by Meta, TikTok, YouTube, LinkedIn, and X — one OAuth login covers everything. Building our own OAuth would require separate App Review approvals (weeks-to-months per platform) and Business Verification with Meta. Direct tokens still work below for advanced users with approved apps.
+            </p>
+            <a href="https://buffer.com/developers/apps" target="_blank" rel="noreferrer" className="text-xs text-primary inline-flex items-center gap-1 mt-2">
+              Get a Buffer access token <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       ) : connections.length === 0 ? (
