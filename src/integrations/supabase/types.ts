@@ -53,6 +53,72 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_kits: {
+        Row: {
+          accent_color: string | null
+          address: string | null
+          body_font: string | null
+          business_name: string | null
+          created_at: string
+          default_cta: string | null
+          default_music_mood: string | null
+          default_voice_id: string | null
+          email: string | null
+          heading_font: string | null
+          id: string
+          logo_path: string | null
+          phone: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          slogan: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          address?: string | null
+          body_font?: string | null
+          business_name?: string | null
+          created_at?: string
+          default_cta?: string | null
+          default_music_mood?: string | null
+          default_voice_id?: string | null
+          email?: string | null
+          heading_font?: string | null
+          id?: string
+          logo_path?: string | null
+          phone?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slogan?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          address?: string | null
+          body_font?: string | null
+          business_name?: string | null
+          created_at?: string
+          default_cta?: string | null
+          default_music_mood?: string | null
+          default_voice_id?: string | null
+          email?: string | null
+          heading_font?: string | null
+          id?: string
+          logo_path?: string | null
+          phone?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slogan?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       connected_integrations: {
         Row: {
           config: Json | null
