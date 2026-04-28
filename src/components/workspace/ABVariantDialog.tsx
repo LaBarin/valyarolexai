@@ -31,7 +31,7 @@ const ABVariantDialog = ({ open, onOpenChange, basePrompt, platform, duration, o
   const [editablePrompt, setEditablePrompt] = useState(basePrompt);
   const [loading, setLoading] = useState(false);
   const [variants, setVariants] = useState<AdVariant[]>([]);
-  const { brand } = useBrandKit();
+  const { kit: brand } = useBrandKit();
 
   const generateVariants = async () => {
     if (!editablePrompt.trim()) {

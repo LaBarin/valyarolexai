@@ -41,6 +41,9 @@ import { RenderProgressTracker, deriveRenderStage } from "./RenderProgressTracke
 import { VerticalTemplatePicker } from "./VerticalTemplatePicker";
 import { AD_PRESETS } from "./AdTemplateGallery";
 import type { VerticalTemplate } from "./verticalTemplates";
+import ABVariantDialog, { type AdVariant } from "./ABVariantDialog";
+import { notify } from "@/lib/notify";
+import { FlaskConical } from "lucide-react";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
