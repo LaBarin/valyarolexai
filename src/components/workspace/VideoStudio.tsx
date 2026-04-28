@@ -4,7 +4,7 @@ import {
   Video, Sparkles, Plus, Loader2, ChevronLeft, Trash2, Play, Pause,
   Clock, Film, Monitor, Smartphone, Square, Eye, Check, X, Music,
   Type, Camera, Mic, ImageIcon, Pencil, Send, RotateCcw, Save, Link, ExternalLink, Download,
-  FileVideo, Upload, CheckCircle2, AlertCircle, VolumeX
+  FileVideo, Upload, CheckCircle2, AlertCircle, VolumeX, Layers
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -30,6 +30,8 @@ import { useNarrator } from "@/hooks/use-narrator";
 import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
 import { RewriteMenu } from "./RewriteMenu";
 import { ThumbnailGenerator } from "./ThumbnailGenerator";
+import { TranslateMenu } from "./TranslateMenu";
+import { BulkAdCreator } from "./BulkAdCreator";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
 import { Palette, Volume2 } from "lucide-react";
@@ -379,6 +381,7 @@ const VideoStudio = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [projects, setProjects] = useState<VideoProject[]>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<VideoProject | null>(null);
   const [prompt, setPrompt] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("9:16");
@@ -731,6 +734,28 @@ const VideoStudio = () => {
       .single();
     if (error || !data) {
       toast({ title: "Save Failed", description: error?.message || "Unable to save changes.", variant: "destructive" });
+      return;
+    }
+    const persisted = mapVideoProject(data);
+    setActiveProject(persisted);
+    setProjects(prev => prev.map(p => p.id === activeProject.id ? persisted : p));
+  };
+
+  /** Replace the entire script (used by Translate). Also re-syncs storyboard scenes. */
+  const replaceScript = async (nextScript: any) => {
+    if (!activeProject) return;
+    const normalizedScenes = Array.isArray(nextScript?.scenes)
+      ? normalizeVideoScenes(nextScript.scenes)
+      : activeProject.storyboard;
+    const merged = { ...nextScript, scenes: normalizedScenes };
+    const { data, error } = await supabase
+      .from("video_projects")
+      .update({ script: merged as any, storyboard: normalizedScenes as any, title: merged.title || activeProject.title } as any)
+      .eq("id", activeProject.id)
+      .select("*")
+      .single();
+    if (error || !data) {
+      toast({ title: "Save Failed", description: error?.message || "Unable to save translation.", variant: "destructive" });
       return;
     }
     const persisted = mapVideoProject(data);
@@ -2151,6 +2176,14 @@ const VideoStudio = () => {
 
           <TabsContent value="script" className="space-y-4">
             {script && (
+              <div className="flex justify-end">
+                <TranslateMenu
+                  script={script}
+                  onTranslated={(next, lang) => { void replaceScript(next); }}
+                />
+              </div>
+            )}
+            {script && (
               <>
                 {script.hook && (
                   <div className="glass rounded-xl p-4">
@@ -2416,6 +2449,16 @@ const VideoStudio = () => {
           Powered by <span className="text-primary font-semibold">Valyarolex.AI</span>
         </div>
 
+        <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2"><Layers className="w-4 h-4 text-primary" /> Bulk Ad Creator</DialogTitle>
+              <DialogDescription>Create up to 20 ads at once. Each becomes its own draft project.</DialogDescription>
+            </DialogHeader>
+            <BulkAdCreator onDone={() => { void loadProjects(); setBulkOpen(false); }} />
+          </DialogContent>
+        </Dialog>
+
         {sceneEditDialogJsx}
 
         {/* All Scene Images Gallery */}
@@ -2665,6 +2708,9 @@ const VideoStudio = () => {
           </div>
           <Button onClick={generateVideo} disabled={isGenerating || !prompt.trim()} className="ml-auto">
             {isGenerating ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4 mr-1" /> Generate Video</>}
+          </Button>
+          <Button variant="outline" onClick={() => setBulkOpen(true)} title="Generate up to 20 ads at once">
+            <Layers className="w-4 h-4 mr-1" /> Bulk Create
           </Button>
         </div>
       </div>
