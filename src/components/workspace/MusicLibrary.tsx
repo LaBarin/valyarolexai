@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Music, Play, Pause, Upload, Loader2, Check, Search, Sparkles, Wand2 } from "lucide-react";
+import { Music, Play, Pause, Upload, Loader2, Check, Search, Sparkles, Wand2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
