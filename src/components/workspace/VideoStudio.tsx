@@ -29,6 +29,7 @@ import { NarratorControls } from "./NarratorControls";
 import { useNarrator } from "@/hooks/use-narrator";
 import { AdTemplateGallery, type AdTemplate, type AdPreset } from "./AdTemplateGallery";
 import { RewriteMenu } from "./RewriteMenu";
+import { ThumbnailGenerator } from "./ThumbnailGenerator";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
 import { Palette, Volume2 } from "lucide-react";
@@ -1799,6 +1800,7 @@ const VideoStudio = () => {
             <TabsTrigger value="style"><Palette className="w-3.5 h-3.5 mr-1.5" />Style</TabsTrigger>
             <TabsTrigger value="voice"><Mic className="w-3.5 h-3.5 mr-1.5" />Voice</TabsTrigger>
             <TabsTrigger value="music"><Music className="w-3.5 h-3.5 mr-1.5" />Music</TabsTrigger>
+            <TabsTrigger value="thumbnail"><ImageIcon className="w-3.5 h-3.5 mr-1.5" />Thumbnail</TabsTrigger>
             <TabsTrigger value="details">Ad Details</TabsTrigger>
           </TabsList>
 
@@ -2384,6 +2386,24 @@ const VideoStudio = () => {
                     toast({ title: "Music attached", description: `${track.name} — re-rendering video…` });
                     autoRenderPipeline(updated);
                   }
+                }}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="thumbnail" className="space-y-4">
+            <div className="glass rounded-2xl p-5">
+              <ThumbnailGenerator
+                videoId={p.id}
+                title={script?.title || p.title}
+                description={script?.description || p.description}
+                brand={script?.ad_copy?.headline}
+                cta={script?.cta}
+                format={p.format}
+                currentThumbnail={p.thumbnail_url}
+                onThumbnailUpdated={(signedUrl) => {
+                  setProjects((prev) => prev.map((proj) => proj.id === p.id ? { ...proj, thumbnail_url: signedUrl } : proj));
+                  setActiveProject((prev) => prev && prev.id === p.id ? { ...prev, thumbnail_url: signedUrl } : prev);
                 }}
               />
             </div>
