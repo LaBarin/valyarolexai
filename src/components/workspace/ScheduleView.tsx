@@ -28,6 +28,17 @@ const eventColors: Record<string, string> = {
   focus: "hsl(150 70% 50%)",
   task: "hsl(35 95% 55%)",
   break: "hsl(280 70% 60%)",
+  scheduled_post: "hsl(320 90% 60%)",
+};
+
+type ScheduledPostEvent = {
+  id: string;
+  title: string;
+  start_time: string;
+  channel: string;
+  status: string;
+  publisher: string;
+  isPost: true;
 };
 
 
