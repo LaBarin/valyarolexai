@@ -13,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import {
   renderMediaOnLambda,
   getRenderProgress,
-} from "npm:@remotion/lambda-client@4.0.250";
+} from "npm:@remotion/lambda-client@4.0.298";
 import { isOwnerUser } from "../_shared/owner.ts";
 import { chargeOrSubscribe, refundCredits, envFromRequest } from "../_shared/entitlement.ts";
 
