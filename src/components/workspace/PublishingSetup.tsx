@@ -255,10 +255,13 @@ export const PublishingSetup = () => {
                   </div>
                 )}
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-2 pt-1 flex-wrap">
                   <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => verify(c.id)} disabled={verifyingId === c.id}>
                     {verifyingId === c.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
                     Verify
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setTesterConn(c); setTesterOpen(true); }}>
+                    <FlaskConical className="w-3 h-3 mr-1" /> Test
                   </Button>
                   <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggleActive(c)}>
                     {c.is_active ? "Disable" : "Enable"}
