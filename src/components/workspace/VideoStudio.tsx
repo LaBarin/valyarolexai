@@ -2152,7 +2152,14 @@ const VideoStudio = () => {
               <>
                 {script.hook && (
                   <div className="glass rounded-xl p-4">
-                    <h4 className="font-semibold text-sm flex items-center gap-1.5 mb-2"><Camera className="w-3.5 h-3.5 text-primary" /> Hook (First 3s)</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-sm flex items-center gap-1.5"><Camera className="w-3.5 h-3.5 text-primary" /> Hook (First 3s)</h4>
+                      <RewriteMenu
+                        text={script.hook}
+                        fieldHint="hook line, max 12 words, attention-grabbing"
+                        onRewritten={(next) => applyScriptPatch({ hook: next })}
+                      />
+                    </div>
                     <p className="text-sm text-foreground/90">"{script.hook}"</p>
                   </div>
                 )}
