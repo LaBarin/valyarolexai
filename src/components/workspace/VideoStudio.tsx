@@ -45,6 +45,56 @@ import type { VerticalTemplate } from "./verticalTemplates";
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const SCENE_IMAGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-scene-image`;
 
+/**
+ * Extract a single frame from a video URL (object URL or data URL) and return
+ * it as a JPEG data URI. Used by "Enhance Old Video" mode so the existing
+ * reference-image pipeline can preserve the original ad's visual identity.
+ */
+async function extractFrameDataUri(videoUrl: string, atSeconds = 1.0): Promise<string | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.crossOrigin = "anonymous";
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.src = videoUrl;
+
+    const cleanup = () => {
+      video.removeAttribute("src");
+      video.load();
+    };
+
+    video.addEventListener("loadedmetadata", () => {
+      const target = Math.min(atSeconds, Math.max(0, (video.duration || 1) - 0.1));
+      const onSeeked = () => {
+        try {
+          const w = video.videoWidth || 1280;
+          const h = video.videoHeight || 720;
+          const canvas = document.createElement("canvas");
+          // Cap to 1280px on the long side to keep the data URI well under 10MB
+          const scale = Math.min(1, 1280 / Math.max(w, h));
+          canvas.width = Math.round(w * scale);
+          canvas.height = Math.round(h * scale);
+          const ctx = canvas.getContext("2d");
+          if (!ctx) { cleanup(); return resolve(null); }
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const data = canvas.toDataURL("image/jpeg", 0.85);
+          cleanup();
+          resolve(data);
+        } catch (e) {
+          console.warn("frame capture failed", e);
+          cleanup();
+          resolve(null);
+        }
+      };
+      video.addEventListener("seeked", onSeeked, { once: true });
+      try { video.currentTime = target; } catch { cleanup(); resolve(null); }
+    }, { once: true });
+
+    video.addEventListener("error", () => { cleanup(); resolve(null); }, { once: true });
+  });
+}
+
 type Scene = {
   scene_number: number;
   duration_seconds: number;
@@ -442,6 +492,14 @@ const VideoStudio = () => {
   const [preGenStyle, setPreGenStyle] = useState<string>("kinetic");
   const [pickedVerticalId, setPickedVerticalId] = useState<string | null>(null);
 
+  // Creation mode: text prompt, image-to-ad (uses reference image as subject),
+  // or enhance-old-video (extract a frame + ask AI to modernize the script).
+  type CreationMode = "text" | "image" | "enhance";
+  const [creationMode, setCreationMode] = useState<CreationMode>("text");
+  const [oldVideoFile, setOldVideoFile] = useState<File | null>(null);
+  const [oldVideoUrl, setOldVideoUrl] = useState<string | null>(null);
+  const [extractingFrame, setExtractingFrame] = useState(false);
+
   /**
    * Apply an industry starter template: prefill the prompt with the brief,
    * map the suggested preset → format/duration, and set the ad style.
@@ -626,6 +684,37 @@ const VideoStudio = () => {
     const reader = new FileReader();
     reader.onload = () => setClientLogo(reader.result as string);
     reader.readAsDataURL(file);
+  };
+
+  /**
+   * Old-video upload for "Enhance" mode. Extracts a representative frame
+   * (~1s in) and stores it as `referenceImage` so the existing scene-image
+   * pipeline reuses the visual identity in the modernized ad.
+   */
+  const handleOldVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 50MB for source videos.", variant: "destructive" });
+      return;
+    }
+    setOldVideoFile(file);
+    const blobUrl = URL.createObjectURL(file);
+    setOldVideoUrl(blobUrl);
+
+    // Try to grab a frame at ~1s as a visual reference for the rebuild.
+    setExtractingFrame(true);
+    try {
+      const dataUri = await extractFrameDataUri(blobUrl, 1.0);
+      if (dataUri) {
+        setReferenceImage(dataUri);
+        toast({ title: "Source frame captured", description: "We'll use it as a visual reference for the new ad." });
+      }
+    } catch (err) {
+      console.warn("frame extraction failed", err);
+    } finally {
+      setExtractingFrame(false);
+    }
   };
 
   // Determine which logo to use in overlays — client logo for third-party, default for Valyarolex
@@ -831,7 +920,13 @@ const VideoStudio = () => {
     setIsGenerating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}${brandContextBlock(brandKit)}`;
+      const modeBlock =
+        creationMode === "image"
+          ? `\n\nMode: IMAGE-TO-AD. The user uploaded a reference image that is the MAIN SUBJECT (product, person, place, or asset). Build the scene plan around this subject — every scene must feature it consistently. Open with a hero reveal of the subject and close with a clear CTA.`
+          : creationMode === "enhance"
+          ? `\n\nMode: VIDEO ENHANCE / REMAKE. The user uploaded an old/existing ad video. A still frame from it has been provided as a reference image so you can preserve the brand identity and key visuals. Rewrite the ad to feel modern, punchy, and platform-native: shorter scenes, stronger hook in the first 2 seconds, contemporary copy, and a sharp CTA. Do NOT copy the old script verbatim — modernize it.`
+          : "";
+      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}${modeBlock}${brandContextBlock(brandKit)}`;
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
@@ -2594,12 +2689,83 @@ const VideoStudio = () => {
 
         <VerticalTemplatePicker selectedId={pickedVerticalId} onPick={applyVerticalTemplate} />
 
+        {/* Mode toggle: Text → Ad / Image → Ad / Enhance Old Video */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider mr-1">Mode</span>
+          {([
+            { id: "text", label: "Text → Ad", icon: Sparkles },
+            { id: "image", label: "Image → Ad", icon: ImageIcon },
+            { id: "enhance", label: "Enhance Old Video", icon: FileVideo },
+          ] as const).map((m) => {
+            const Icon = m.icon;
+            const active = creationMode === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setCreationMode(m.id)}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                  active
+                    ? "bg-primary/15 text-primary border-primary/40"
+                    : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+
         <Textarea
-          placeholder="Describe your video ad... e.g. 'Create a 15-second TikTok ad for a new AI productivity app targeting Gen Z professionals'"
+          placeholder={
+            creationMode === "image"
+              ? "Describe the ad you want around your uploaded image. e.g. 'A 15s Instagram ad showcasing this product as the hero, ending with a Shop Now CTA.'"
+              : creationMode === "enhance"
+              ? "Describe what you'd like to improve. e.g. 'Modernize my old TV spot into a punchy 30s YouTube pre-roll with stronger hook and a clearer CTA.'"
+              : "Describe your video ad... e.g. 'Create a 15-second TikTok ad for a new AI productivity app targeting Gen Z professionals'"
+          }
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-[80px] bg-background/50"
         />
+
+        {/* Enhance mode: source video upload */}
+        {creationMode === "enhance" && (
+          <div className="flex items-center gap-3 flex-wrap glass rounded-lg p-3 border border-dashed border-primary/20">
+            <label className="flex items-center gap-2 cursor-pointer text-xs hover:text-primary transition-colors">
+              <FileVideo className="w-4 h-4 text-primary" />
+              <span>{oldVideoFile ? "Change source video" : "Upload old video (max 50MB)"}</span>
+              <input type="file" accept="video/*" className="hidden" onChange={handleOldVideoUpload} />
+            </label>
+            {extractingFrame && (
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" /> Capturing reference frame…
+              </span>
+            )}
+            {oldVideoUrl && (
+              <div className="flex items-center gap-2">
+                <video src={oldVideoUrl} className="h-12 rounded border border-border/50" muted playsInline />
+                <span className="text-[10px] text-muted-foreground truncate max-w-[160px]">{oldVideoFile?.name}</span>
+                <button
+                  onClick={() => {
+                    if (oldVideoUrl) URL.revokeObjectURL(oldVideoUrl);
+                    setOldVideoFile(null);
+                    setOldVideoUrl(null);
+                  }}
+                  className="text-[10px] text-destructive hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+            {!oldVideoFile && (
+              <span className="text-[10px] text-muted-foreground italic">
+                We'll grab a frame to keep the brand identity consistent in the new ad.
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Reference image + Client logo upload + branding toggle */}
         <div className="flex items-center gap-3 flex-wrap">
