@@ -2175,6 +2175,14 @@ const VideoStudio = () => {
 
           <TabsContent value="script" className="space-y-4">
             {script && (
+              <div className="flex justify-end">
+                <TranslateMenu
+                  script={script}
+                  onTranslated={(next, lang) => { void replaceScript(next); }}
+                />
+              </div>
+            )}
+            {script && (
               <>
                 {script.hook && (
                   <div className="glass rounded-xl p-4">
@@ -2689,6 +2697,9 @@ const VideoStudio = () => {
           </div>
           <Button onClick={generateVideo} disabled={isGenerating || !prompt.trim()} className="ml-auto">
             {isGenerating ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Generating…</> : <><Sparkles className="w-4 h-4 mr-1" /> Generate Video</>}
+          </Button>
+          <Button variant="outline" onClick={() => setBulkOpen(true)} title="Generate up to 20 ads at once">
+            <Layers className="w-4 h-4 mr-1" /> Bulk Create
           </Button>
         </div>
       </div>
