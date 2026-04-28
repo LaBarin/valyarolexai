@@ -716,7 +716,28 @@ const VideoStudio = () => {
     autoRenderPipeline(persistedProject);
   };
 
-  const aiEditScene = async () => {
+  // Generic patch+persist for script-level fields (hook, cta, ad_copy, etc.).
+  // Used by RewriteMenu and any other inline script edit. Does NOT touch
+  // storyboard scenes or trigger an auto re-render — pure copy edits.
+  const applyScriptPatch = async (patch: Partial<VideoData>) => {
+    if (!activeProject) return;
+    const updatedScript = mergeVideoScript(activeProject, activeProject.script, patch);
+    const { data, error } = await supabase
+      .from("video_projects")
+      .update({ script: updatedScript as any })
+      .eq("id", activeProject.id)
+      .select("*")
+      .single();
+    if (error || !data) {
+      toast({ title: "Save Failed", description: error?.message || "Unable to save changes.", variant: "destructive" });
+      return;
+    }
+    const persisted = mapVideoProject(data);
+    setActiveProject(persisted);
+    setProjects(prev => prev.map(p => p.id === activeProject.id ? persisted : p));
+  };
+
+
     if (!aiEditPrompt.trim() || editingScene === null || !activeProject) return;
     setIsAiEditing(true);
     try {
