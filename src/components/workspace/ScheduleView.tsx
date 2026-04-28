@@ -47,6 +47,7 @@ const ScheduleView = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPostEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [aiOptimizing, setAiOptimizing] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
@@ -62,13 +63,22 @@ const ScheduleView = () => {
   const fetchEvents = async () => {
     const dayStart = `${selectedDate}T00:00:00Z`;
     const dayEnd = `${selectedDate}T23:59:59Z`;
-    const { data, error } = await supabase
-      .from("schedule_events")
-      .select("*")
-      .gte("start_time", dayStart)
-      .lte("start_time", dayEnd)
-      .order("start_time", { ascending: true });
-    if (!error) setEvents(data || []);
+    const [evRes, postRes] = await Promise.all([
+      supabase.from("schedule_events").select("*").gte("start_time", dayStart).lte("start_time", dayEnd).order("start_time", { ascending: true }),
+      supabase.from("scheduled_posts").select("id, channel, caption, scheduled_at, status, publisher").gte("scheduled_at", dayStart).lte("scheduled_at", dayEnd).order("scheduled_at", { ascending: true }),
+    ]);
+    if (!evRes.error) setEvents(evRes.data || []);
+    if (!postRes.error) {
+      setScheduledPosts((postRes.data || []).map((p: any) => ({
+        id: p.id,
+        title: (p.caption || "").split("\n")[0]?.slice(0, 60) || `${p.channel} post`,
+        start_time: p.scheduled_at,
+        channel: p.channel,
+        status: p.status,
+        publisher: p.publisher,
+        isPost: true as const,
+      })));
+    }
     setLoading(false);
   };
 
