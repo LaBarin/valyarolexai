@@ -440,6 +440,28 @@ const VideoStudio = () => {
 
   // Pre-generation creative selections (Style / Voice / Music)
   const [preGenStyle, setPreGenStyle] = useState<string>("kinetic");
+  const [pickedVerticalId, setPickedVerticalId] = useState<string | null>(null);
+
+  /**
+   * Apply an industry starter template: prefill the prompt with the brief,
+   * map the suggested preset → format/duration, and set the ad style.
+   * Brand kit values (if any) are appended via brandContextBlock at submit.
+   */
+  const applyVerticalTemplate = (t: VerticalTemplate) => {
+    setPickedVerticalId(t.id);
+    const cta = t.cta;
+    setPrompt(`${t.prompt}\n\nCTA: ${cta}`);
+    const preset = AD_PRESETS.find((p) => p.id === t.presetId);
+    if (preset) {
+      setSelectedFormat(preset.format);
+      setSelectedDuration(preset.duration <= 15 ? "short" : preset.duration <= 30 ? "medium" : "long");
+    }
+    setPreGenStyle(t.styleId);
+    toast({
+      title: `${t.name} starter applied`,
+      description: "Prompt, CTA, format and style are pre-filled. Edit anything you like, then Generate.",
+    });
+  };
   const [preGenVoiceId, setPreGenVoiceId] = useState<string>("JBFqnCBsd6RMkjVDRZzb");
   const [preGenTrackId, setPreGenTrackId] = useState<string | null>(null);
   const [availableTracks, setAvailableTracks] = useState<AudioTrack[]>([]);
