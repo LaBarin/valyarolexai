@@ -442,6 +442,14 @@ const VideoStudio = () => {
   const [preGenStyle, setPreGenStyle] = useState<string>("kinetic");
   const [pickedVerticalId, setPickedVerticalId] = useState<string | null>(null);
 
+  // Creation mode: text prompt, image-to-ad (uses reference image as subject),
+  // or enhance-old-video (extract a frame + ask AI to modernize the script).
+  type CreationMode = "text" | "image" | "enhance";
+  const [creationMode, setCreationMode] = useState<CreationMode>("text");
+  const [oldVideoFile, setOldVideoFile] = useState<File | null>(null);
+  const [oldVideoUrl, setOldVideoUrl] = useState<string | null>(null);
+  const [extractingFrame, setExtractingFrame] = useState(false);
+
   /**
    * Apply an industry starter template: prefill the prompt with the brief,
    * map the suggested preset → format/duration, and set the ad style.
