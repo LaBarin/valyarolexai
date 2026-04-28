@@ -34,6 +34,8 @@ import { TranslateMenu } from "./TranslateMenu";
 import { BulkAdCreator } from "./BulkAdCreator";
 import { MusicLibrary, type AudioTrack } from "./MusicLibrary";
 import { VoiceoverStudio, VOICES } from "./VoiceoverStudio";
+import { useBrandKit } from "@/hooks/useBrandKit";
+import { brandContextBlock } from "@/lib/brand-context";
 import { Palette, Volume2 } from "lucide-react";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -380,6 +382,7 @@ PublishingLinks.displayName = "PublishingLinks";
 const VideoStudio = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { kit: brandKit, logoUrl: brandLogoUrl } = useBrandKit();
   const [projects, setProjects] = useState<VideoProject[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<VideoProject | null>(null);
@@ -600,7 +603,7 @@ const VideoStudio = () => {
   };
 
   // Determine which logo to use in overlays — client logo for third-party, default for Valyarolex
-  const overlayLogoSrc = clientLogo || logoImg;
+  const overlayLogoSrc = clientLogo || brandLogoUrl || logoImg;
 
   const generateSceneImage = async (scene: Scene, projectId: string, format: string, platform: string, sceneRole?: "main" | "closing") => {
     const key = `${projectId}-${scene.scene_number}`;
@@ -620,7 +623,7 @@ const VideoStudio = () => {
       // Auto-include branding logo as base64
       if (includeBranding) {
         try {
-          const logoSrc = clientLogo || logoImg;
+          const logoSrc = clientLogo || brandLogoUrl || logoImg;
           const logoResp = await fetch(logoSrc);
           const logoBlob = await logoResp.blob();
           const logoBase64 = await new Promise<string>((resolve) => {
@@ -802,7 +805,7 @@ const VideoStudio = () => {
     setIsGenerating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}`;
+      const enhancedPrompt = `${prompt}\n\nFormat: ${selectedFormat} (${selectedDuration})\nPlatform: ${selectedPlatform}\nDuration type: ${selectedDuration}${brandContextBlock(brandKit)}`;
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
@@ -892,6 +895,15 @@ const VideoStudio = () => {
         address: addressMatch?.[0]?.trim(),
       };
     }
+    // Fall back to the user's saved Brand Kit so every video carries their identity
+    if (brandKit?.business_name || brandKit?.website || brandKit?.phone || brandKit?.address) {
+      return {
+        companyName: brandKit.business_name || undefined,
+        website: brandKit.website?.replace(/^https?:\/\//, "") || undefined,
+        phone: brandKit.phone || undefined,
+        address: brandKit.address || undefined,
+      };
+    }
     return null;
   };
 
@@ -903,10 +915,10 @@ const VideoStudio = () => {
    */
   const buildClosingCard = (project: VideoProject) => {
     const footer = extractBrandFooter(project);
-    const hasAnything = clientLogo || referenceImage || footer?.website || footer?.phone || footer?.address || footer?.companyName;
+    const hasAnything = clientLogo || brandLogoUrl || referenceImage || footer?.website || footer?.phone || footer?.address || footer?.companyName;
     if (!hasAnything) return null;
     return {
-      clientLogoUrl: clientLogo || logoImg,
+      clientLogoUrl: clientLogo || brandLogoUrl || logoImg,
       referenceLogoUrl: referenceImage || null,
       companyName: footer?.companyName,
       website: footer?.website,
@@ -984,7 +996,7 @@ const VideoStudio = () => {
         if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
         if (includeBranding && sceneRole !== "closing") {
           try {
-            const logoSrc = clientLogo || logoImg;
+            const logoSrc = clientLogo || brandLogoUrl || logoImg;
             const logoResp = await fetch(logoSrc);
             const logoBlob = await logoResp.blob();
             const logoBase64 = await new Promise<string>((resolve) => {

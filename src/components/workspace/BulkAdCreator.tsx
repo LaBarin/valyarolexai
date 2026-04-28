@@ -2,7 +2,7 @@
 // Each row is independently sent to the same /functions/v1/chat endpoint the
 // VideoStudio uses, then persisted as a draft video_projects row. Concurrency
 // is capped to keep AI gateway rate limits predictable.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Plus, Trash2, Sparkles, Loader2, CheckCircle2, AlertCircle,
@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBrandKit } from "@/hooks/useBrandKit";
+import { brandContextBlock } from "@/lib/brand-context";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const CONCURRENCY = 3;
@@ -54,6 +56,7 @@ interface Props {
 export const BulkAdCreator = ({ onDone }: Props) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { kit: brandKit } = useBrandKit();
 
   const [brand, setBrand] = useState("");
   const [industry, setIndustry] = useState("");
@@ -65,6 +68,13 @@ export const BulkAdCreator = ({ onDone }: Props) => {
   const [bulkInput, setBulkInput] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [running, setRunning] = useState(false);
+
+  // Auto-apply brand kit defaults the first time it loads
+  useEffect(() => {
+    if (!brandKit) return;
+    setBrand((b) => b || brandKit.business_name || "");
+    setCta((c) => (c === "Learn more" && brandKit.default_cta ? brandKit.default_cta : c));
+  }, [brandKit]);
 
   const parsedTitles = bulkInput
     .split("\n")
@@ -89,7 +99,7 @@ export const BulkAdCreator = ({ onDone }: Props) => {
       `Visual style: ${style}.`,
       `Required CTA: "${cta}".`,
       `Format: ${format}, duration ${duration}.`,
-    ].filter(Boolean).join(" ");
+    ].filter(Boolean).join(" ") + brandContextBlock(brandKit);
 
     const resp = await fetch(CHAT_URL, {
       method: "POST",

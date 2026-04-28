@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNarrator } from "@/hooks/use-narrator";
+import { useBrandKit } from "@/hooks/useBrandKit";
+import { brandContextBlock } from "@/lib/brand-context";
 import type { PitchDeckPreviewData } from "./AdPreviewDialog";
 import logoImg from "@/assets/valyarolex-logo.png";
 
@@ -109,6 +111,7 @@ function buildSalesNarration(slideType: string, title: string, c: SlideContent):
 const PitchDeckBuilder = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { kit: brandKit } = useBrandKit();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -241,7 +244,7 @@ const PitchDeckBuilder = () => {
           Authorization: `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
+          messages: [{ role: "user", content: prompt + brandContextBlock(brandKit) }],
           mode: "pitch_deck",
         }),
       });
@@ -276,9 +279,17 @@ const PitchDeckBuilder = () => {
     if (!previewData || !user) return;
     setIsSavingPreview(true);
     try {
+      const brandTheme = brandKit
+        ? {
+            bgStyle: "dark",
+            fontFamily: brandKit.heading_font || "Space Grotesk",
+            primaryColor: brandKit.primary_color || "#00d4ff",
+            accentColor: brandKit.accent_color || "#f59e0b",
+          }
+        : undefined;
       const { data: newDeck, error: deckErr } = await supabase
         .from("pitch_decks")
-        .insert({ user_id: user.id, title: previewData.deck_title, description: previewData.deck_description })
+        .insert({ user_id: user.id, title: previewData.deck_title, description: previewData.deck_description, ...(brandTheme ? { theme: brandTheme } : {}) })
         .select()
         .single();
       if (deckErr) throw deckErr;
