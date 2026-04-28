@@ -2449,6 +2449,16 @@ const VideoStudio = () => {
           Powered by <span className="text-primary font-semibold">Valyarolex.AI</span>
         </div>
 
+        <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2"><Layers className="w-4 h-4 text-primary" /> Bulk Ad Creator</DialogTitle>
+              <DialogDescription>Create up to 20 ads at once. Each becomes its own draft project.</DialogDescription>
+            </DialogHeader>
+            <BulkAdCreator onDone={() => { void loadProjects(); setBulkOpen(false); }} />
+          </DialogContent>
+        </Dialog>
+
         {sceneEditDialogJsx}
 
         {/* All Scene Images Gallery */}
