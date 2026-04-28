@@ -382,6 +382,7 @@ PublishingLinks.displayName = "PublishingLinks";
 const VideoStudio = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { kit: brandKit, logoUrl: brandLogoUrl } = useBrandKit();
   const [projects, setProjects] = useState<VideoProject[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<VideoProject | null>(null);
