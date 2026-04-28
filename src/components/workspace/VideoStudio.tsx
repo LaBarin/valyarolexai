@@ -895,6 +895,15 @@ const VideoStudio = () => {
         address: addressMatch?.[0]?.trim(),
       };
     }
+    // Fall back to the user's saved Brand Kit so every video carries their identity
+    if (brandKit?.business_name || brandKit?.website || brandKit?.phone || brandKit?.address) {
+      return {
+        companyName: brandKit.business_name || undefined,
+        website: brandKit.website?.replace(/^https?:\/\//, "") || undefined,
+        phone: brandKit.phone || undefined,
+        address: brandKit.address || undefined,
+      };
+    }
     return null;
   };
 
