@@ -1,10 +1,4 @@
 project_id = "uatrrlsczuidltwbfcxt"
 
-[functions.process-email-queue]
-verify_jwt = false
-
-[functions.get-shared-video-url]
-verify_jwt = false
-
-[functions.generate-scene-image]
+[functions.publish-scheduled-posts]
 verify_jwt = false
