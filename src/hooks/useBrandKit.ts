@@ -25,11 +25,13 @@ export type BrandKit = {
 export function useBrandKit() {
   const { user } = useAuth();
   const [kit, setKit] = useState<BrandKit | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     if (!user) {
       setKit(null);
+      setLogoUrl(null);
       setLoading(false);
       return;
     }
@@ -40,16 +42,22 @@ export function useBrandKit() {
       .eq("user_id", user.id)
       .maybeSingle();
     setKit(data ?? null);
+
+    if (data?.logo_path) {
+      const { data: signed } = await supabase.storage
+        .from("brand-assets")
+        .createSignedUrl(data.logo_path, 60 * 60);
+      setLogoUrl(signed?.signedUrl ?? null);
+    } else {
+      setLogoUrl(null);
+    }
+
     setLoading(false);
   }, [user]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
-
-  const logoUrl = kit?.logo_path
-    ? supabase.storage.from("brand-assets").getPublicUrl(kit.logo_path).data.publicUrl
-    : null;
 
   return { kit, logoUrl, loading, refresh };
 }

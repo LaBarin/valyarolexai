@@ -68,26 +68,29 @@ export default function MediaLibrary() {
     if (!user) return;
     const collected: MediaItem[] = [];
 
-    // 1) Logos in public brand-assets bucket — list user's folder
+    // 1) Logos in private brand-assets bucket — list user's folder, sign URLs
     try {
       const { data: files } = await supabase.storage
         .from("brand-assets")
         .list(user.id, { limit: 100, sortBy: { column: "created_at", order: "desc" } });
-      (files ?? []).forEach((f) => {
-        if (f.name.startsWith(".")) return;
+      for (const f of files ?? []) {
+        if (f.name.startsWith(".")) continue;
         const path = `${user.id}/${f.name}`;
-        const { data: pub } = supabase.storage.from("brand-assets").getPublicUrl(path);
+        const { data: signed } = await supabase.storage
+          .from("brand-assets")
+          .createSignedUrl(path, 60 * 60);
+        if (!signed?.signedUrl) continue;
         collected.push({
           id: `logo:${path}`,
           kind: "image",
           category: "logo",
           name: f.name,
           subtitle: "Brand asset",
-          url: pub.publicUrl,
-          downloadUrl: pub.publicUrl,
+          url: signed.signedUrl,
+          downloadUrl: signed.signedUrl,
           createdAt: (f as any).created_at,
         });
-      });
+      }
     } catch (e) {
       console.warn("media-library: logo listing failed", e);
     }
