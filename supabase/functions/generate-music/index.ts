@@ -160,8 +160,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
+    console.error("generate-music error:", e);
     return new Response(
-      JSON.stringify({ error: "Server error", detail: String(e) }),
+      JSON.stringify({ error: "Server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }

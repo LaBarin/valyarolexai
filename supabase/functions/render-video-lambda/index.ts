@@ -380,7 +380,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("render-video-lambda error:", e);
-    return new Response(JSON.stringify({ error: String((e as Error)?.message || e) }), {
+    return new Response(JSON.stringify({ error: "Server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
