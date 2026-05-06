@@ -177,7 +177,8 @@ Deno.serve(async (req) => {
   try {
     const cfgError = lambdaConfigured();
     if (cfgError) {
-      return new Response(JSON.stringify({ error: `Remotion Lambda not configured: ${cfgError}` }), {
+      console.error("render-video-lambda config error:", cfgError);
+      return new Response(JSON.stringify({ error: "Render service not configured" }), {
         status: 503,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -301,12 +302,13 @@ Deno.serve(async (req) => {
       });
 
       if (progress.fatalErrorEncountered) {
+        console.error("Remotion render fatal error:", progress.errors);
         return new Response(
           JSON.stringify({
             ok: false,
             done: true,
             failed: true,
-            error: progress.errors?.[0]?.message || "Render failed",
+            error: "Render failed",
           }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
@@ -346,8 +348,9 @@ Deno.serve(async (req) => {
         .from("video-exports")
         .upload(filePath, mp4Bytes, { upsert: true, contentType: "video/mp4" });
       if (upErr) {
+        console.error("video-exports upload failed:", upErr);
         return new Response(
-          JSON.stringify({ ok: false, done: true, failed: true, error: `Upload failed: ${upErr.message}` }),
+          JSON.stringify({ ok: false, done: true, failed: true, error: "Upload failed" }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
