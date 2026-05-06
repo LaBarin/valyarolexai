@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
         p_description: "Voice-over failed - refund",
       });
       return new Response(
-        JSON.stringify({ error: "TTS failed", detail: errText.slice(0, 200) }),
+        JSON.stringify({ error: "TTS failed"}),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       });
     if (upErr) {
       return new Response(
-        JSON.stringify({ error: "Storage upload failed", detail: upErr.message }),
+        JSON.stringify({ error: "Storage upload failed"}),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
 
     if (insErr) {
       return new Response(
-        JSON.stringify({ error: "DB insert failed", detail: insErr.message }),
+        JSON.stringify({ error: "DB insert failed"}),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
         if (!isOwner) await refundCredits(userId, credits, "Refund: Remotion Lambda submit failed").catch(() => {});
         console.error("renderMediaOnLambda failed:", e);
         return new Response(
-          JSON.stringify({ error: "Remotion Lambda submission failed", detail: String((e as Error)?.message || e) }),
+          JSON.stringify({ error: "Remotion Lambda submission failed"}),
           { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
