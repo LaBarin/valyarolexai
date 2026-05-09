@@ -486,6 +486,9 @@ const VideoStudio = () => {
   const [sceneAnimations, setSceneAnimations] = useState<Record<number, SceneAnimation | "auto">>({});
   // Auto-render pipeline state
   const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
+  // Indices of scenes whose image generation failed in the last run (per active project).
+  const [failedSceneIndices, setFailedSceneIndices] = useState<number[]>([]);
+  const [regeneratingFailed, setRegeneratingFailed] = useState(false);
   const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
   const [showImageGallery, setShowImageGallery] = useState(false);
