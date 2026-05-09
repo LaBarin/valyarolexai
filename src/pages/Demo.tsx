@@ -245,11 +245,86 @@ const steps = [
     ],
   },
   {
+    id: "creative-studio",
+    title: "Creative Studio",
+    subtitle: "Every creative tool in one canvas.",
+    description:
+      "Creative Studio brings together the AI Video Creator, ad templates, voiceover studio, music library, and thumbnail generator. Pick from 27 industry templates including Product Ads, AI Shorts, Use My Script, and Make an Explainer Video — and ship branded creative in minutes.",
+    image: null,
+    badge: "Feature 15 of 19",
+    highlights: [
+      "27 industry video templates with one-click setup",
+      "Product Ads, AI Shorts, custom scripts, explainers",
+      "Integrated voiceover studio with ElevenLabs voices",
+      "Music library and AI thumbnail generator",
+    ],
+  },
+  {
+    id: "analytics",
+    title: "Creative Analytics",
+    subtitle: "Know what's working — instantly.",
+    description:
+      "Track performance across every video, ad, and campaign with AI-driven insights. See which templates convert, which voices resonate, and which channels deliver — all in real time with actionable recommendations.",
+    image: null,
+    badge: "Feature 16 of 19",
+    highlights: [
+      "Real-time performance across videos, ads, and campaigns",
+      "AI insights with concrete next-step recommendations",
+      "A/B variant performance tracking",
+      "Channel-level ROI and engagement breakdowns",
+    ],
+  },
+  {
+    id: "brand-kit",
+    title: "Brand Kit",
+    subtitle: "Stay on-brand, automatically.",
+    description:
+      "Upload logos, set brand colors, fonts, and tone of voice once — every video, deck, and campaign automatically adopts your brand identity. Switch between client brands in a single click.",
+    image: null,
+    badge: "Feature 17 of 19",
+    highlights: [
+      "Centralized logo, color, and typography management",
+      "Per-client brand profiles with one-click switching",
+      "Auto-applied to videos, decks, and ads",
+      "Tone-of-voice presets for AI-generated copy",
+    ],
+  },
+  {
+    id: "media-library",
+    title: "Media Library",
+    subtitle: "All your assets, one secure home.",
+    description:
+      "Every generated video, voiceover, image, and uploaded asset is organized in your Media Library — searchable, taggable, and reusable across projects with secure signed URLs.",
+    image: null,
+    badge: "Feature 18 of 19",
+    highlights: [
+      "Centralized library for videos, audio, and images",
+      "Tag, search, and reuse assets across projects",
+      "Private storage with short-lived signed URLs",
+      "One-click reuse in Creative Studio and decks",
+    ],
+  },
+  {
+    id: "credits",
+    title: "Credits & Billing",
+    subtitle: "Transparent, flexible usage.",
+    description:
+      "Manage credits, view usage history, and upgrade your plan from one place. Credits power video generation, voiceovers, images, and AI runs — with clear pricing and no surprises.",
+    image: null,
+    badge: "Feature 19 of 19",
+    highlights: [
+      "Real-time credit balance and usage history",
+      "Transparent pricing for every AI action",
+      "Flexible top-ups and subscription tiers",
+      "Owner accounts get unlimited platform access",
+    ],
+  },
+  {
     id: "conclusion",
     title: "Ready to Transform?",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "That concludes our tour. Valyarolex.AI gives you an AI Assistant, Workflow Builder, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Task Manager, smart scheduling, unified inbox, deep integrations, and natural language control — all in one workspace. Sign up today.",
+      "That concludes our tour. Valyarolex.AI gives you a Command Center, AI Assistant, Creative Studio, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Tasks, Calendar, Analytics, Brand Kit, Media Library, deep Integrations, and natural language control — all in one workspace. Sign up today.",
     image: null,
     badge: "Get Started",
   },
