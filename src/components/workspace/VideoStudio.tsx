@@ -3007,6 +3007,17 @@ const VideoStudio = () => {
     </div>
 
     <PreviewDialogComponent />
+    <ABVariantDialog
+      open={abOpen}
+      onOpenChange={setAbOpen}
+      basePrompt={prompt}
+      platform={selectedPlatform}
+      duration={selectedDuration}
+      onSelect={(v) => {
+        setPrompt(`${v.prompt}\n\nHook: "${v.hook}"\nCTA: ${v.cta}`);
+        toast.success(`Loaded variant: ${v.angle}`);
+      }}
+    />
     </>
   );
 };
