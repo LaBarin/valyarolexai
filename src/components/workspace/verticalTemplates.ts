@@ -366,4 +366,43 @@ export const VERTICAL_TEMPLATES: VerticalTemplate[] = [
     presetId: "youtube-30",
     mood: "energetic",
   },
+  {
+    id: "vert-ai-shorts",
+    name: "Create AI Shorts",
+    industry: "AI Shorts",
+    icon: Zap,
+    accent: "from-yellow-500/20 to-amber-500/10",
+    prompt:
+      "Create a 15-second AI-generated short. Hook viewer in the first 2 seconds, fast-paced AI-imagined visuals with bold captions, trending sound feel, end with a punchy CTA optimized for TikTok / Reels / Shorts.",
+    cta: "Watch & Share",
+    styleId: "ugc-selfie",
+    presetId: "tiktok-15",
+    mood: "energetic",
+  },
+  {
+    id: "vert-my-script",
+    name: "Use My Script",
+    industry: "Custom Script",
+    icon: FileText,
+    accent: "from-emerald-500/20 to-cyan-500/10",
+    prompt:
+      "Use the script below as the spoken voice-over. Generate matching b-roll scene-by-scene, add clean kinetic captions for every line, time visuals to the narration, and end on a clear logo lockup.\n\n[PASTE YOUR SCRIPT HERE]",
+    cta: "Generate from Script",
+    styleId: "minimal-luxe",
+    presetId: "youtube-30",
+    mood: "calm",
+  },
+  {
+    id: "vert-explainer-video",
+    name: "Make an Explainer Video",
+    industry: "Explainer",
+    icon: BookOpen,
+    accent: "from-indigo-500/20 to-blue-500/10",
+    prompt:
+      "Create a 30-second explainer video. Open with the problem, walk through a 3-step solution with simple diagrams or UI shots and on-screen captions, friendly voice-over, end with a clear 'Get started' CTA and logo.",
+    cta: "Get Started",
+    styleId: "explainer-screen",
+    presetId: "youtube-30",
+    mood: "calm",
+  },
 ];
