@@ -86,7 +86,7 @@ const FINDINGS: LintFinding[] = [
     remediationUrl:
       "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable",
     note:
-      "Revoked anon execute on enqueue/delete/move/read email helpers, generate_*_share_token, has_active_subscription. get_shared_* intentionally anon for share-link pages.",
+      "Only get_shared_campaign, get_shared_deck, get_shared_video are anon-executable SECURITY DEFINER. All internal helpers (enqueue/delete/move/read email, generate_*_share_token, has_active_subscription) have anon revoked.",
   },
   {
     id: "secdef_auth_executable",
@@ -99,7 +99,7 @@ const FINDINGS: LintFinding[] = [
     remediationUrl:
       "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
     note:
-      "spend_credits/grant_credits restricted to service_role; owner-scoped helpers validate auth.uid() inside the function body.",
+      "Only get_shared_campaign, get_shared_deck, get_shared_video are authenticated-executable SECURITY DEFINER. spend_credits / grant_credits restricted to service_role.",
   },
   {
     id: "rls_enabled_no_policy",
