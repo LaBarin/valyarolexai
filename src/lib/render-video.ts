@@ -719,7 +719,11 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
           50 + Math.round((framesDone / totalFrames) * 50),
         );
 
-        requestAnimationFrame(drawFrame);
+        // Pace each frame to wall-clock so MediaRecorder + audio stay in sync.
+        const targetMs = framesDone * FRAME_MS;
+        const elapsed = performance.now() - renderStartMs;
+        const delay = Math.max(0, targetMs - elapsed);
+        setTimeout(drawFrame, delay);
       };
 
       drawFrame();
