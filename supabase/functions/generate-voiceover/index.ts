@@ -157,10 +157,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate signed URL valid for 1 year for playback
+    // Generate short-lived signed URL (6h); clients should refresh via get-audio-url
     const { data: signed } = await admin.storage
       .from("audio-assets")
-      .createSignedUrl(filename, 60 * 60 * 24 * 365);
+      .createSignedUrl(filename, 60 * 60 * 6);
 
     return new Response(
       JSON.stringify({ voiceover: vo, url: signed?.signedUrl }),
