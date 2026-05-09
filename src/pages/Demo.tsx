@@ -55,7 +55,7 @@ const steps = [
     description:
       "The Valyarolex.AI Assistant is a real-time, streaming AI chat interface built directly into your workspace. It can draft emails, summarize meeting notes, create task lists, brainstorm ideas, and execute commands — all through natural conversation.",
     image: null,
-    badge: "Feature 1 of 13",
+    badge: "Feature 2 of ${TOTAL_FEATURES}",
     highlights: [
       "Streaming AI responses with real-time token rendering",
       "Rich markdown output with code blocks and formatting",
@@ -70,7 +70,7 @@ const steps = [
     description:
       "Transform plain English descriptions into visual, executable automation sequences. Type what you want automated and the AI generates a structured workflow with triggers and sequential steps.",
     image: null,
-    badge: "Feature 2 of 13",
+    badge: "Feature 3 of ${TOTAL_FEATURES}",
     highlights: [
       "Natural language to structured workflow generation",
       "Visual step-by-step execution animation",
@@ -85,7 +85,7 @@ const steps = [
     description:
       "The Workspace is your dedicated productivity command center with AI Assistant and Workflow Builder in a side-by-side layout — chat with your AI co-pilot while simultaneously building automated workflows.",
     image: null,
-    badge: "Feature 3 of 13",
+    badge: "Feature 4 of ${TOTAL_FEATURES}",
     highlights: [
       "Side-by-side AI chat and workflow builder",
       "Authenticated access with protected routes",
@@ -100,7 +100,7 @@ const steps = [
     description:
       "Create professional video ads with AI-generated scripts, scene-by-scene storyboards, and customizable animation presets. Choose from Cinematic, Energetic, or Minimal animation styles, or override effects per-scene for total creative control.",
     image: null,
-    badge: "Feature 4 of 13",
+    badge: "Feature 5 of ${TOTAL_FEATURES}",
     highlights: [
       "AI-generated video scripts from a single prompt",
       "Scene-by-scene storyboard with image generation",
@@ -116,7 +116,7 @@ const steps = [
     description:
       "Build stunning pitch decks with AI-generated slides. Simply describe your company and the AI creates a full deck with cover, problem, solution, market, traction, team, and ask slides — all with professional themes and shareable links.",
     image: null,
-    badge: "Feature 5 of 13",
+    badge: "Feature 6 of ${TOTAL_FEATURES}",
     highlights: [
       "AI-generated slide content from a description",
       "Multiple professional themes and layouts",
@@ -131,7 +131,7 @@ const steps = [
     description:
       "The Campaign Manager lets you plan multi-channel marketing campaigns with AI-generated content plans, audience targeting, scheduling, and performance goals — all from a single dashboard. Share campaigns with stakeholders via secure links.",
     image: null,
-    badge: "Feature 6 of 13",
+    badge: "Feature 7 of ${TOTAL_FEATURES}",
     highlights: [
       "AI-generated campaign strategy and content plans",
       "Multi-channel support (email, social, ads, PR)",
@@ -146,7 +146,7 @@ const steps = [
     description:
       "Deploy specialized AI agents that handle recurring tasks autonomously — from monitoring your inbox and drafting responses, to researching competitors, generating reports, and managing follow-ups. Each agent has configurable goals and guardrails.",
     image: null,
-    badge: "Feature 7 of 13",
+    badge: "Feature 8 of ${TOTAL_FEATURES}",
     highlights: [
       "Pre-built agent templates for common workflows",
       "Configurable goals, triggers, and guardrails",
@@ -161,7 +161,7 @@ const steps = [
     description:
       "Manage all your tasks in one place with AI-powered prioritization, due date tracking, tags, and status workflows. Convert emails to tasks instantly, get AI suggestions for task ordering, and never miss a deadline.",
     image: null,
-    badge: "Feature 8 of 13",
+    badge: "Feature 9 of ${TOTAL_FEATURES}",
     highlights: [
       "AI-powered task prioritization and scheduling",
       "Tags, due dates, and customizable status workflows",
@@ -176,7 +176,7 @@ const steps = [
     description:
       "The Unified Inbox aggregates emails from Gmail and Outlook, messages from Slack and Teams, and notifications from project tools — all into a single, AI-prioritized feed with smart categorization and auto-drafted replies.",
     image: demoInbox,
-    badge: "Feature 9 of 13",
+    badge: "Feature 10 of ${TOTAL_FEATURES}",
     highlights: [
       "AI-drafted replies for routine emails",
       "Smart priority categorization with urgency scoring",
@@ -191,7 +191,7 @@ const steps = [
     description:
       "The Smart Scheduling engine scans participants' calendars across time zones and proposes optimal meeting times based on availability, workload balance, and energy levels. Focus blocks are automatically protected.",
     image: demoCalendar,
-    badge: "Feature 10 of 13",
+    badge: "Feature 11 of ${TOTAL_FEATURES}",
     highlights: [
       "Cross-timezone availability scanning for all participants",
       "Energy-based focus block protection during peak hours",
@@ -206,7 +206,7 @@ const steps = [
     description:
       "The Visual Automation Engine provides a full drag-and-drop interface for creating complex, multi-step automations that chain actions across email, calendar, CRM, document tools, and messaging platforms.",
     image: demoAutomation,
-    badge: "Feature 11 of 13",
+    badge: "Feature 12 of ${TOTAL_FEATURES}",
     highlights: [
       "Visual drag-and-drop flow builder",
       "Natural language workflow creation with AI",
@@ -221,7 +221,7 @@ const steps = [
     description:
       "Type or speak commands like \"Move all non-urgent meetings to next week\" or \"Summarize all unread Slack messages.\" The AI understands context, handles batch operations, and executes instantly.",
     image: demoCommands,
-    badge: "Feature 12 of 13",
+    badge: "Feature 13 of ${TOTAL_FEATURES}",
     highlights: [
       "Voice and text command support with natural language",
       "Instant schedule reorganization with smart reasoning",
@@ -236,7 +236,7 @@ const steps = [
     description:
       "Valyarolex.AI integrates with over 50 enterprise tools including Gmail, Outlook, Slack, Teams, Zoom, Salesforce, HubSpot, Notion, Asana, Jira, and more — all with secure OAuth and real-time bidirectional sync.",
     image: demoIntegrations,
-    badge: "Feature 13 of 13",
+    badge: "Feature 14 of ${TOTAL_FEATURES}",
     highlights: [
       "50+ enterprise tool integrations out of the box",
       "Real-time bidirectional sync across all platforms",
