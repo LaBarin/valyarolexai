@@ -1095,6 +1095,7 @@ const VideoStudio = () => {
     setAutoRenderStage("generating-images");
     setExportProgress(0);
     const imageMap: Record<string, string> = {};
+    const failedScenes: number[] = [];
     for (let i = 0; i < scenes.length; i++) {
       const scene = scenes[i];
       const key = `${project.id}-${scene.scene_number || i + 1}`;
@@ -1108,44 +1109,74 @@ const VideoStudio = () => {
         continue;
       }
 
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const isLast = i === scenes.length - 1;
-        const sceneRole: "main" | "closing" = isLast ? "closing" : "main";
-        const body: Record<string, any> = {
-          visual: scene.visual,
-          text_overlay: scene.text_overlay,
-          format: project.format,
-          platform: project.platform,
-          scene_role: sceneRole,
-        };
-        if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
-        if (includeBranding && sceneRole !== "closing") {
-          try {
-            const logoSrc = clientLogo || brandLogoUrl || logoImg;
-            const logoResp = await fetch(logoSrc);
-            const logoBlob = await logoResp.blob();
-            const logoBase64 = await new Promise<string>((resolve) => {
-              const r = new FileReader();
-              r.onload = () => resolve(r.result as string);
-              r.readAsDataURL(logoBlob);
-            });
-            body.brand_logo_url = logoBase64;
-          } catch { /* skip */ }
-        }
-        const resp = await fetch(SCENE_IMAGE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
-          body: JSON.stringify(body),
-        });
-        if (resp.ok) {
-          const { image_url } = await resp.json();
-          if (image_url) {
-            imageMap[key] = image_url;
-            await persistSceneImage(project.id, scene.scene_number || i + 1, image_url);
+      // Retry up to 3 times with exponential backoff so transient failures
+      // (rate limits, timeouts) don't drop scenes out of the slideshow.
+      let generated = false;
+      for (let attempt = 0; attempt < 3 && !generated; attempt++) {
+        try {
+          if (attempt > 0) {
+            await new Promise((r) => setTimeout(r, 1500 * attempt));
           }
+          const { data: { session } } = await supabase.auth.getSession();
+          const isLast = i === scenes.length - 1;
+          const sceneRole: "main" | "closing" = isLast ? "closing" : "main";
+          const body: Record<string, any> = {
+            visual: scene.visual,
+            text_overlay: scene.text_overlay,
+            format: project.format,
+            platform: project.platform,
+            scene_role: sceneRole,
+          };
+          if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
+          if (includeBranding && sceneRole !== "closing") {
+            try {
+              const logoSrc = clientLogo || brandLogoUrl || logoImg;
+              const logoResp = await fetch(logoSrc);
+              const logoBlob = await logoResp.blob();
+              const logoBase64 = await new Promise<string>((resolve) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result as string);
+                r.readAsDataURL(logoBlob);
+              });
+              body.brand_logo_url = logoBase64;
+            } catch { /* skip */ }
+          }
+          const resp = await fetch(SCENE_IMAGE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+            body: JSON.stringify(body),
+          });
+          if (resp.ok) {
+            const { image_url } = await resp.json();
+            if (image_url) {
+              imageMap[key] = image_url;
+              await persistSceneImage(project.id, scene.scene_number || i + 1, image_url);
+              generated = true;
+              break;
+            }
+          } else {
+            console.warn(`Scene ${i + 1} image gen returned ${resp.status} (attempt ${attempt + 1}/3)`);
+          }
+        } catch (err) {
+          console.warn(`Scene ${i + 1} image gen failed (attempt ${attempt + 1}/3)`, err);
         }
-      } catch { /* continue with remaining scenes */ }
+      }
+
+      if (!generated) {
+        failedScenes.push(i);
+        // Fallback: reuse the previous scene's image so the slideshow stays complete.
+        const prevKey = i > 0 ? `${project.id}-${scenes[i - 1].scene_number || i}` : null;
+        if (prevKey && imageMap[prevKey]) {
+          imageMap[key] = imageMap[prevKey];
+        }
+      }
+    }
+
+    if (failedScenes.length > 0) {
+      toast({
+        title: "Some scenes used a fallback",
+        description: `${failedScenes.length} of ${scenes.length} scenes couldn't generate a fresh image and reused the previous scene's visual. You can regenerate them individually.`,
+      });
     }
 
     // Stage 2: Render video from images
