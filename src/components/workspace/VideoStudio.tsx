@@ -3016,7 +3016,7 @@ const VideoStudio = () => {
       duration={selectedDuration}
       onSelect={(v) => {
         setPrompt(`${v.prompt}\n\nHook: "${v.hook}"\nCTA: ${v.cta}`);
-        toast.success(`Loaded variant: ${v.angle}`);
+        sonnerToast.success(`Loaded variant: ${v.angle}`);
       }}
     />
     </>
