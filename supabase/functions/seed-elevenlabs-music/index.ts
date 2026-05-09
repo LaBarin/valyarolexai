@@ -23,23 +23,52 @@ type SeedTrack = {
 };
 
 const TRACKS: SeedTrack[] = [
-  { name: "Acoustic Morning",   mood: "acoustic",  duration: 45, prompt: "Warm acoustic guitar, soft hand percussion, gentle morning vibe, optimistic and intimate, no vocals" },
-  { name: "Action Beat",        mood: "dramatic",  duration: 30, prompt: "High-energy cinematic action drums, big toms, driving synth bass, blockbuster trailer feel, no vocals" },
-  { name: "Ambient Dream",      mood: "chill",     duration: 60, prompt: "Slow ambient pads, ethereal piano, gentle reverb, dreamy and reflective, instrumental" },
-  { name: "Cinematic Rise",     mood: "cinematic", duration: 45, prompt: "Cinematic orchestral build, swelling strings, soft piano, hopeful crescendo, no vocals" },
-  { name: "Cinematic Trailer",  mood: "cinematic", duration: 45, prompt: "Epic orchestral trailer, dramatic strings, heroic brass, pulsing percussion, instrumental" },
-  { name: "Corporate Inspire",  mood: "corporate", duration: 45, prompt: "Uplifting corporate background, soft piano, warm strings, subtle four-on-the-floor beat, motivational, no vocals" },
-  { name: "Dance Floor",        mood: "upbeat",    duration: 30, prompt: "Energetic electronic dance, four-on-the-floor kick, bright synths, festival vibe, instrumental" },
-  { name: "Epic Drama",         mood: "dramatic",  duration: 45, prompt: "Powerful cinematic drama, full orchestra, taiko drums, emotional and grand, no vocals" },
-  { name: "Future Bass",        mood: "upbeat",    duration: 30, prompt: "Modern future bass, bright supersaw chords, snappy drums, feel-good and uplifting, instrumental" },
-  { name: "Lofi Chill",         mood: "chill",     duration: 60, prompt: "Lofi hip-hop beat, mellow electric piano, vinyl crackle, relaxing and warm, instrumental" },
-  { name: "Meditation Calm",    mood: "chill",     duration: 60, prompt: "Calm meditation soundscape, soft pads, gentle bells, tranquil and spacious, no vocals" },
-  { name: "Modern Tech",        mood: "tech",      duration: 30, prompt: "Modern tech house background, clean synth pluck, smooth bassline, sleek and minimal, instrumental" },
-  { name: "Power Anthem",       mood: "dramatic",  duration: 30, prompt: "Powerful sport rock anthem, distorted electric guitars, big drums, energetic and triumphant, no vocals" },
-  { name: "Soft Piano",         mood: "cinematic", duration: 60, prompt: "Solo piano, slow and emotive, gentle reverb, intimate and reflective, instrumental" },
-  { name: "Startup Vibes",      mood: "corporate", duration: 30, prompt: "Modern startup background music, bright plucks, soft beat, optimistic and clean, instrumental" },
-  { name: "Sunset Drive",       mood: "upbeat",    duration: 45, prompt: "Synthwave sunset drive, warm analog synths, steady drum machine, nostalgic and cinematic, instrumental" },
-  { name: "Tech Pulse",         mood: "tech",      duration: 30, prompt: "Pulsing electronic tech track, arpeggiated synths, driving beat, futuristic and focused, instrumental" },
+  // Acoustic
+  { name: "Acoustic Morning",     mood: "acoustic",  duration: 45, prompt: "Warm acoustic guitar, soft hand percussion, gentle morning vibe, optimistic and intimate, no vocals" },
+  { name: "Acoustic Sunrise",     mood: "acoustic",  duration: 45, prompt: "Fingerpicked acoustic guitar, soft ukulele, light shaker, hopeful sunrise feel, instrumental" },
+  { name: "Folk Campfire",        mood: "acoustic",  duration: 45, prompt: "Folk acoustic guitar with banjo and stomps, friendly and rustic, indie folk style, no vocals" },
+  { name: "Coffee Shop Strum",    mood: "acoustic",  duration: 45, prompt: "Mellow acoustic guitar strumming, light brushes on snare, warm cafe ambience, instrumental" },
+  // Cinematic
+  { name: "Cinematic Rise",       mood: "cinematic", duration: 45, prompt: "Cinematic orchestral build, swelling strings, soft piano, hopeful crescendo, no vocals" },
+  { name: "Cinematic Trailer",    mood: "cinematic", duration: 45, prompt: "Epic orchestral trailer, dramatic strings, heroic brass, pulsing percussion, instrumental" },
+  { name: "Soft Piano",           mood: "cinematic", duration: 60, prompt: "Solo piano, slow and emotive, gentle reverb, intimate and reflective, instrumental" },
+  { name: "Hybrid Score",         mood: "cinematic", duration: 45, prompt: "Hybrid cinematic score, orchestral strings layered with synth pads, modern blockbuster feel, no vocals" },
+  { name: "Heroic Journey",       mood: "cinematic", duration: 45, prompt: "Sweeping orchestral adventure, soaring strings, French horns, triumphant and emotive, instrumental" },
+  { name: "Mystery Reveal",       mood: "cinematic", duration: 45, prompt: "Cinematic mystery cue, pizzicato strings, soft piano, suspenseful build, instrumental" },
+  // Corporate
+  { name: "Corporate Inspire",    mood: "corporate", duration: 45, prompt: "Uplifting corporate background, soft piano, warm strings, subtle four-on-the-floor beat, motivational, no vocals" },
+  { name: "Startup Vibes",        mood: "corporate", duration: 30, prompt: "Modern startup background music, bright plucks, soft beat, optimistic and clean, instrumental" },
+  { name: "Boardroom Confidence", mood: "corporate", duration: 45, prompt: "Confident corporate track, smooth piano chords, light electronic beat, professional and modern, instrumental" },
+  { name: "Innovation Day",       mood: "corporate", duration: 30, prompt: "Bright corporate motivational, marimba pluck, claps, uplifting tech-startup feel, no vocals" },
+  { name: "Productivity Flow",    mood: "corporate", duration: 45, prompt: "Steady corporate groove, soft synth pads, focused beat, productive office vibe, instrumental" },
+  // Chill
+  { name: "Ambient Dream",        mood: "chill",     duration: 60, prompt: "Slow ambient pads, ethereal piano, gentle reverb, dreamy and reflective, instrumental" },
+  { name: "Lofi Chill",           mood: "chill",     duration: 60, prompt: "Lofi hip-hop beat, mellow electric piano, vinyl crackle, relaxing and warm, instrumental" },
+  { name: "Meditation Calm",      mood: "chill",     duration: 60, prompt: "Calm meditation soundscape, soft pads, gentle bells, tranquil and spacious, no vocals" },
+  { name: "Lofi Study",           mood: "chill",     duration: 60, prompt: "Chill lofi study beat, jazzy keys, mellow boom-bap drums, cozy and focused, instrumental" },
+  { name: "Sunday Morning",       mood: "chill",     duration: 45, prompt: "Slow chill groove, soft Rhodes, brushed drums, lazy weekend feel, instrumental" },
+  { name: "Beach Sunset",         mood: "chill",     duration: 45, prompt: "Tropical chill house, soft marimba, mellow beat, sunset beach vibe, instrumental" },
+  // Upbeat
+  { name: "Dance Floor",          mood: "upbeat",    duration: 30, prompt: "Energetic electronic dance, four-on-the-floor kick, bright synths, festival vibe, instrumental" },
+  { name: "Future Bass",          mood: "upbeat",    duration: 30, prompt: "Modern future bass, bright supersaw chords, snappy drums, feel-good and uplifting, instrumental" },
+  { name: "Sunset Drive",         mood: "upbeat",    duration: 45, prompt: "Synthwave sunset drive, warm analog synths, steady drum machine, nostalgic and cinematic, instrumental" },
+  { name: "Pop Anthem",           mood: "upbeat",    duration: 30, prompt: "Catchy pop anthem instrumental, big drums, bright synth lead, stadium energy, no vocals" },
+  { name: "Tropical House",       mood: "upbeat",    duration: 45, prompt: "Tropical house, plucky synths, light percussion, summer party vibe, instrumental" },
+  { name: "Indie Pop Drive",      mood: "upbeat",    duration: 30, prompt: "Indie pop with claps, bright guitar, driving beat, optimistic and feel-good, instrumental" },
+  { name: "Funky Groove",         mood: "upbeat",    duration: 30, prompt: "Funky bassline, tight drums, rhythm guitar stabs, dance-floor ready, instrumental" },
+  // Dramatic
+  { name: "Action Beat",          mood: "dramatic",  duration: 30, prompt: "High-energy cinematic action drums, big toms, driving synth bass, blockbuster trailer feel, no vocals" },
+  { name: "Epic Drama",           mood: "dramatic",  duration: 45, prompt: "Powerful cinematic drama, full orchestra, taiko drums, emotional and grand, no vocals" },
+  { name: "Power Anthem",         mood: "dramatic",  duration: 30, prompt: "Powerful sport rock anthem, distorted electric guitars, big drums, energetic and triumphant, no vocals" },
+  { name: "Battle March",         mood: "dramatic",  duration: 45, prompt: "Heavy cinematic battle march, taiko drums, brass swells, intense and heroic, instrumental" },
+  { name: "Dark Tension",         mood: "dramatic",  duration: 45, prompt: "Dark suspense underscore, low pulses, dissonant strings, building tension, instrumental" },
+  // Tech
+  { name: "Modern Tech",          mood: "tech",      duration: 30, prompt: "Modern tech house background, clean synth pluck, smooth bassline, sleek and minimal, instrumental" },
+  { name: "Tech Pulse",           mood: "tech",      duration: 30, prompt: "Pulsing electronic tech track, arpeggiated synths, driving beat, futuristic and focused, instrumental" },
+  { name: "Cyber Grid",           mood: "tech",      duration: 45, prompt: "Futuristic cyber grid soundtrack, digital arps, clean four-on-the-floor, sci-fi mood, instrumental" },
+  { name: "AI Lab",               mood: "tech",      duration: 45, prompt: "Minimal tech score, glitchy percussion, modular synth bleeps, cerebral and modern, instrumental" },
+  { name: "Data Stream",          mood: "tech",      duration: 30, prompt: "Driving electronic tech, pulsing bass, crisp hi-hats, data-center innovation feel, instrumental" },
+  { name: "Neon Circuit",         mood: "tech",      duration: 45, prompt: "Synthwave-tinged tech, neon lead synth, electronic drums, sleek modern product feel, instrumental" },
 ];
 
 function slug(name: string): string {
