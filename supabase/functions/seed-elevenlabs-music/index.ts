@@ -213,16 +213,49 @@ Deno.serve(async (req) => {
 
   let only: string[] | null = null;
   let replace = true;
+  let mode: "seed" | "fill" = "seed";
+  const PER_MOOD_TARGET = 20;
   try {
     const body = await req.json();
     if (Array.isArray(body?.only)) only = body.only;
     if (typeof body?.replace === "boolean") replace = body.replace;
+    if (body?.mode === "fill") mode = "fill";
   } catch { /* no body */ }
 
   const admin = createClient(supabaseUrl, serviceKey);
-  const targets = only
-    ? TRACKS.filter((t) => only!.includes(t.name))
-    : TRACKS;
+
+  // "fill" mode: for each mood, ensure at least PER_MOOD_TARGET curated tracks
+  // exist by adding only the missing ones from TRACKS. Never deletes anything.
+  let targets: SeedTrack[];
+  if (mode === "fill") {
+    replace = false;
+    const { data: existing } = await admin
+      .from("audio_tracks")
+      .select("name, mood")
+      .eq("is_curated", true);
+    const existingNames = new Set((existing ?? []).map((r: any) => r.name));
+    const countsByMood: Record<string, number> = {};
+    for (const r of existing ?? []) {
+      countsByMood[r.mood] = (countsByMood[r.mood] ?? 0) + 1;
+    }
+    const moods = Array.from(new Set(TRACKS.map((t) => t.mood)));
+    const picks: SeedTrack[] = [];
+    for (const m of moods) {
+      const have = countsByMood[m] ?? 0;
+      let need = Math.max(0, PER_MOOD_TARGET - have);
+      if (need === 0) continue;
+      for (const t of TRACKS) {
+        if (need === 0) break;
+        if (t.mood !== m) continue;
+        if (existingNames.has(t.name)) continue;
+        picks.push(t);
+        need--;
+      }
+    }
+    targets = picks;
+  } else {
+    targets = only ? TRACKS.filter((t) => only!.includes(t.name)) : TRACKS;
+  }
 
   // Optionally clear previous curated rows so the library reflects the new set
   if (replace && !only) {
