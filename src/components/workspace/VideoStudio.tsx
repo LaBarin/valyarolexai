@@ -486,6 +486,9 @@ const VideoStudio = () => {
   const [sceneAnimations, setSceneAnimations] = useState<Record<number, SceneAnimation | "auto">>({});
   // Auto-render pipeline state
   const [autoRenderStage, setAutoRenderStage] = useState<"idle" | "generating-images" | "rendering-video" | "done">("idle");
+  // Indices of scenes whose image generation failed in the last run (per active project).
+  const [failedSceneIndices, setFailedSceneIndices] = useState<number[]>([]);
+  const [regeneratingFailed, setRegeneratingFailed] = useState(false);
   const [renderedVideoUrl, setRenderedVideoUrl] = useState<string | null>(null);
   const [showVideoPreview, setShowVideoPreview] = useState(false);
   const [showImageGallery, setShowImageGallery] = useState(false);
@@ -1094,6 +1097,7 @@ const VideoStudio = () => {
     // Stage 1: Generate all scene images
     setAutoRenderStage("generating-images");
     setExportProgress(0);
+    setFailedSceneIndices([]);
     const imageMap: Record<string, string> = {};
     const failedScenes: number[] = [];
     for (let i = 0; i < scenes.length; i++) {
@@ -1173,10 +1177,13 @@ const VideoStudio = () => {
     }
 
     if (failedScenes.length > 0) {
+      setFailedSceneIndices(failedScenes);
       toast({
         title: "Some scenes used a fallback",
-        description: `${failedScenes.length} of ${scenes.length} scenes couldn't generate a fresh image and reused the previous scene's visual. You can regenerate them individually.`,
+        description: `${failedScenes.length} of ${scenes.length} scenes couldn't generate a fresh image and reused the previous scene's visual. You can regenerate just those scenes.`,
       });
+    } else {
+      setFailedSceneIndices([]);
     }
 
     // Stage 2: Render video from images
@@ -1238,6 +1245,96 @@ const VideoStudio = () => {
       setAutoRenderStage("idle");
       setExportProgress(null);
       toast({ title: "Rendering Failed", description: e.message, variant: "destructive" });
+    }
+  };
+
+  /**
+   * Regenerate images only for the scenes that previously failed image generation,
+   * without re-rendering the rest of the slideshow. Updates `sceneImages` so the
+   * next render uses the fresh images.
+   */
+  const regenerateFailedScenes = async () => {
+    const project = activeProject;
+    if (!project || failedSceneIndices.length === 0 || regeneratingFailed) return;
+    const scenes = project.storyboard || project.script?.scenes || [];
+    if (scenes.length === 0) return;
+
+    setRegeneratingFailed(true);
+    const stillFailed: number[] = [];
+    let recovered = 0;
+
+    for (const i of failedSceneIndices) {
+      const scene = scenes[i];
+      if (!scene) continue;
+      const key = `${project.id}-${scene.scene_number || i + 1}`;
+      let generated = false;
+      for (let attempt = 0; attempt < 3 && !generated; attempt++) {
+        try {
+          if (attempt > 0) await new Promise((r) => setTimeout(r, 1500 * attempt));
+          const { data: { session } } = await supabase.auth.getSession();
+          const isLast = i === scenes.length - 1;
+          const sceneRole: "main" | "closing" = isLast ? "closing" : "main";
+          const body: Record<string, any> = {
+            visual: scene.visual,
+            text_overlay: scene.text_overlay,
+            format: project.format,
+            platform: project.platform,
+            scene_role: sceneRole,
+          };
+          if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
+          if (includeBranding && sceneRole !== "closing") {
+            try {
+              const logoSrc = clientLogo || brandLogoUrl || logoImg;
+              const logoResp = await fetch(logoSrc);
+              const logoBlob = await logoResp.blob();
+              const logoBase64 = await new Promise<string>((resolve) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result as string);
+                r.readAsDataURL(logoBlob);
+              });
+              body.brand_logo_url = logoBase64;
+            } catch { /* skip */ }
+          }
+          const resp = await fetch(SCENE_IMAGE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+            body: JSON.stringify(body),
+          });
+          if (resp.ok) {
+            const { image_url } = await resp.json();
+            if (image_url) {
+              await persistSceneImage(project.id, scene.scene_number || i + 1, image_url);
+              generated = true;
+              recovered++;
+              break;
+            }
+          }
+        } catch (err) {
+          console.warn(`Retry scene ${i + 1} failed (attempt ${attempt + 1}/3)`, err);
+        }
+      }
+      if (!generated) stillFailed.push(i);
+    }
+
+    setFailedSceneIndices(stillFailed);
+    setRegeneratingFailed(false);
+
+    if (recovered > 0 && stillFailed.length === 0) {
+      toast({
+        title: "Scenes regenerated",
+        description: `Refreshed ${recovered} scene${recovered === 1 ? "" : "s"}. Re-render the video to apply the new visuals.`,
+      });
+    } else if (recovered > 0) {
+      toast({
+        title: "Partially regenerated",
+        description: `Refreshed ${recovered}, ${stillFailed.length} still failed. Try again in a moment.`,
+      });
+    } else {
+      toast({
+        title: "Regeneration failed",
+        description: "None of the scenes could be regenerated. Try again shortly.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -2018,6 +2115,34 @@ const VideoStudio = () => {
                 progress={isMp4Exporting ? mp4Progress ?? 0 : exportProgress ?? 0}
                 message={mp4Status || (autoRenderStage === "generating-images" ? "Generating scene visuals…" : autoRenderStage === "rendering-video" ? "Rendering video…" : undefined)}
               />
+            )}
+
+            {/* Failed-scene recovery: regenerate only the scenes that failed image gen */}
+            {failedSceneIndices.length > 0 && autoRenderStage !== "generating-images" && (
+              <div className="glass rounded-2xl p-4 flex items-start gap-3 border border-amber-500/30">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm">
+                    {failedSceneIndices.length} scene{failedSceneIndices.length === 1 ? "" : "s"} used a fallback image
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Scene{failedSceneIndices.length === 1 ? "" : "s"} {failedSceneIndices.map((i) => i + 1).join(", ")} reused a previous visual. Regenerate just those without re-rendering the whole slideshow.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={regenerateFailedScenes}
+                  disabled={regeneratingFailed}
+                  className="shrink-0"
+                >
+                  {regeneratingFailed ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Regenerating…</>
+                  ) : (
+                    <><RotateCcw className="w-4 h-4" /> Regenerate failed</>
+                  )}
+                </Button>
+              </div>
             )}
 
             {/* Rendered video player */}
