@@ -22,15 +22,31 @@ import demoCommands from "@/assets/demo-commands.jpg";
 import demoTeam from "@/assets/demo-team.jpg";
 import demoIntegrations from "@/assets/demo-integrations.jpg";
 
+const TOTAL_FEATURES = 19;
 const steps = [
   {
     id: "welcome",
     title: "Welcome to Valyarolex.AI",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Welcome to the Valyarolex.AI interactive product tour. We'll walk you through every major feature — AI Assistant, Workflow Builder, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Task Manager, and more. Let's get started.",
+      "Welcome to the Valyarolex.AI interactive product tour. We'll walk you through every major feature — Command Center, AI Assistant, Creative Studio, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Tasks, Calendar, Analytics, Brand Kit, Media Library, Integrations, and more. Let's get started.",
     image: null,
     badge: "Getting Started",
+  },
+  {
+    id: "command-center",
+    title: "Command Center",
+    subtitle: "Your unified mission control.",
+    description:
+      "The Command Center is the hub of your workspace — surfacing priority tasks, upcoming events, unread messages, agent activity, and quick actions in one focused view so you can start every day with clarity.",
+    image: null,
+    badge: `Feature 1 of ${TOTAL_FEATURES}`,
+    highlights: [
+      "Priority feed of tasks, messages, and meetings",
+      "Quick-launch shortcuts to every workspace tool",
+      "Live agent and automation activity at a glance",
+      "Daily AI briefing with smart recommendations",
+    ],
   },
   {
     id: "ai-assistant",
