@@ -212,6 +212,36 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
     }
   };
 
+  const handleTopUp = async () => {
+    if (!isOwner) return;
+    if (totalMissing === 0) {
+      toast.success("Every mood already has 20+ tracks");
+      return;
+    }
+    setTopUpLoading(true);
+    const t = toast.loading(
+      `Composing ${totalMissing} missing track${totalMissing === 1 ? "" : "s"}…`,
+    );
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-elevenlabs-music", {
+        body: { mode: "fill" },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const uploaded = data?.summary?.uploaded ?? 0;
+      const failed = data?.summary?.failed ?? 0;
+      toast.success(
+        `Added ${uploaded} track${uploaded === 1 ? "" : "s"}${failed ? ` · ${failed} failed` : ""}`,
+        { id: t },
+      );
+      await loadTracks();
+    } catch (err: any) {
+      toast.error(err?.message || "Top-up failed", { id: t });
+    } finally {
+      setTopUpLoading(false);
+    }
+  };
+
   const filtered = tracks.filter((t) => {
     if (moodFilter !== "all" && t.mood !== moodFilter) return false;
     if (search && !`${t.name} ${t.artist}`.toLowerCase().includes(search.toLowerCase())) return false;
