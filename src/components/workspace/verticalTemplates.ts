@@ -9,6 +9,8 @@ import {
   Smile,
   Scale,
   ShoppingBag,
+  Megaphone,
+  Briefcase,
   type LucideIcon,
 } from "lucide-react";
 
