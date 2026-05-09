@@ -262,6 +262,26 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
           <p className="text-xs text-muted-foreground">ElevenLabs AI music · royalty-free</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {isOwner && (
+            <Button
+              size="sm"
+              variant={totalMissing > 0 ? "default" : "outline"}
+              onClick={handleTopUp}
+              disabled={topUpLoading}
+              title={
+                totalMissing > 0
+                  ? `Compose ${totalMissing} missing track${totalMissing === 1 ? "" : "s"} across ${moodsBelowTarget.length} mood${moodsBelowTarget.length === 1 ? "" : "s"}`
+                  : "All moods have 20+ tracks"
+              }
+            >
+              {topUpLoading ? (
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <Sparkles className="w-3 h-3 mr-1" />
+              )}
+              {totalMissing > 0 ? `Top up music (${totalMissing})` : "Library full"}
+            </Button>
+          )}
           <input
             type="file"
             id="track-upload"
