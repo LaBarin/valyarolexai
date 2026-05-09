@@ -1248,7 +1248,96 @@ const VideoStudio = () => {
     }
   };
 
-  const rejectVideo = () => {
+  /**
+   * Regenerate images only for the scenes that previously failed image generation,
+   * without re-rendering the rest of the slideshow. Updates `sceneImages` so the
+   * next render uses the fresh images.
+   */
+  const regenerateFailedScenes = async () => {
+    const project = activeProject;
+    if (!project || failedSceneIndices.length === 0 || regeneratingFailed) return;
+    const scenes = project.storyboard || project.script?.scenes || [];
+    if (scenes.length === 0) return;
+
+    setRegeneratingFailed(true);
+    const stillFailed: number[] = [];
+    let recovered = 0;
+
+    for (const i of failedSceneIndices) {
+      const scene = scenes[i];
+      if (!scene) continue;
+      const key = `${project.id}-${scene.scene_number || i + 1}`;
+      let generated = false;
+      for (let attempt = 0; attempt < 3 && !generated; attempt++) {
+        try {
+          if (attempt > 0) await new Promise((r) => setTimeout(r, 1500 * attempt));
+          const { data: { session } } = await supabase.auth.getSession();
+          const isLast = i === scenes.length - 1;
+          const sceneRole: "main" | "closing" = isLast ? "closing" : "main";
+          const body: Record<string, any> = {
+            visual: scene.visual,
+            text_overlay: scene.text_overlay,
+            format: project.format,
+            platform: project.platform,
+            scene_role: sceneRole,
+          };
+          if (referenceImage && sceneRole !== "closing") body.reference_image_url = referenceImage;
+          if (includeBranding && sceneRole !== "closing") {
+            try {
+              const logoSrc = clientLogo || brandLogoUrl || logoImg;
+              const logoResp = await fetch(logoSrc);
+              const logoBlob = await logoResp.blob();
+              const logoBase64 = await new Promise<string>((resolve) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result as string);
+                r.readAsDataURL(logoBlob);
+              });
+              body.brand_logo_url = logoBase64;
+            } catch { /* skip */ }
+          }
+          const resp = await fetch(SCENE_IMAGE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+            body: JSON.stringify(body),
+          });
+          if (resp.ok) {
+            const { image_url } = await resp.json();
+            if (image_url) {
+              await persistSceneImage(project.id, scene.scene_number || i + 1, image_url);
+              generated = true;
+              recovered++;
+              break;
+            }
+          }
+        } catch (err) {
+          console.warn(`Retry scene ${i + 1} failed (attempt ${attempt + 1}/3)`, err);
+        }
+      }
+      if (!generated) stillFailed.push(i);
+    }
+
+    setFailedSceneIndices(stillFailed);
+    setRegeneratingFailed(false);
+
+    if (recovered > 0 && stillFailed.length === 0) {
+      toast({
+        title: "Scenes regenerated",
+        description: `Refreshed ${recovered} scene${recovered === 1 ? "" : "s"}. Re-render the video to apply the new visuals.`,
+      });
+    } else if (recovered > 0) {
+      toast({
+        title: "Partially regenerated",
+        description: `Refreshed ${recovered}, ${stillFailed.length} still failed. Try again in a moment.`,
+      });
+    } else {
+      toast({
+        title: "Regeneration failed",
+        description: "None of the scenes could be regenerated. Try again shortly.",
+        variant: "destructive",
+      });
+    }
+  };
+
     setPreviewData(null);
     setPreviewImages({});
     setGeneratingPreviewImages({});
