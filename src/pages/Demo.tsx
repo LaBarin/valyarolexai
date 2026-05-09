@@ -22,15 +22,31 @@ import demoCommands from "@/assets/demo-commands.jpg";
 import demoTeam from "@/assets/demo-team.jpg";
 import demoIntegrations from "@/assets/demo-integrations.jpg";
 
+const TOTAL_FEATURES = 19;
 const steps = [
   {
     id: "welcome",
     title: "Welcome to Valyarolex.AI",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "Welcome to the Valyarolex.AI interactive product tour. We'll walk you through every major feature — AI Assistant, Workflow Builder, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Task Manager, and more. Let's get started.",
+      "Welcome to the Valyarolex.AI interactive product tour. We'll walk you through every major feature — Command Center, AI Assistant, Creative Studio, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Tasks, Calendar, Analytics, Brand Kit, Media Library, Integrations, and more. Let's get started.",
     image: null,
     badge: "Getting Started",
+  },
+  {
+    id: "command-center",
+    title: "Command Center",
+    subtitle: "Your unified mission control.",
+    description:
+      "The Command Center is the hub of your workspace — surfacing priority tasks, upcoming events, unread messages, agent activity, and quick actions in one focused view so you can start every day with clarity.",
+    image: null,
+    badge: `Feature 1 of 19`,
+    highlights: [
+      "Priority feed of tasks, messages, and meetings",
+      "Quick-launch shortcuts to every workspace tool",
+      "Live agent and automation activity at a glance",
+      "Daily AI briefing with smart recommendations",
+    ],
   },
   {
     id: "ai-assistant",
@@ -39,7 +55,7 @@ const steps = [
     description:
       "The Valyarolex.AI Assistant is a real-time, streaming AI chat interface built directly into your workspace. It can draft emails, summarize meeting notes, create task lists, brainstorm ideas, and execute commands — all through natural conversation.",
     image: null,
-    badge: "Feature 1 of 13",
+    badge: "Feature 2 of 19",
     highlights: [
       "Streaming AI responses with real-time token rendering",
       "Rich markdown output with code blocks and formatting",
@@ -54,7 +70,7 @@ const steps = [
     description:
       "Transform plain English descriptions into visual, executable automation sequences. Type what you want automated and the AI generates a structured workflow with triggers and sequential steps.",
     image: null,
-    badge: "Feature 2 of 13",
+    badge: "Feature 3 of 19",
     highlights: [
       "Natural language to structured workflow generation",
       "Visual step-by-step execution animation",
@@ -69,7 +85,7 @@ const steps = [
     description:
       "The Workspace is your dedicated productivity command center with AI Assistant and Workflow Builder in a side-by-side layout — chat with your AI co-pilot while simultaneously building automated workflows.",
     image: null,
-    badge: "Feature 3 of 13",
+    badge: "Feature 4 of 19",
     highlights: [
       "Side-by-side AI chat and workflow builder",
       "Authenticated access with protected routes",
@@ -84,7 +100,7 @@ const steps = [
     description:
       "Create professional video ads with AI-generated scripts, scene-by-scene storyboards, and customizable animation presets. Choose from Cinematic, Energetic, or Minimal animation styles, or override effects per-scene for total creative control.",
     image: null,
-    badge: "Feature 4 of 13",
+    badge: "Feature 5 of 19",
     highlights: [
       "AI-generated video scripts from a single prompt",
       "Scene-by-scene storyboard with image generation",
@@ -100,7 +116,7 @@ const steps = [
     description:
       "Build stunning pitch decks with AI-generated slides. Simply describe your company and the AI creates a full deck with cover, problem, solution, market, traction, team, and ask slides — all with professional themes and shareable links.",
     image: null,
-    badge: "Feature 5 of 13",
+    badge: "Feature 6 of 19",
     highlights: [
       "AI-generated slide content from a description",
       "Multiple professional themes and layouts",
@@ -115,7 +131,7 @@ const steps = [
     description:
       "The Campaign Manager lets you plan multi-channel marketing campaigns with AI-generated content plans, audience targeting, scheduling, and performance goals — all from a single dashboard. Share campaigns with stakeholders via secure links.",
     image: null,
-    badge: "Feature 6 of 13",
+    badge: "Feature 7 of 19",
     highlights: [
       "AI-generated campaign strategy and content plans",
       "Multi-channel support (email, social, ads, PR)",
@@ -130,7 +146,7 @@ const steps = [
     description:
       "Deploy specialized AI agents that handle recurring tasks autonomously — from monitoring your inbox and drafting responses, to researching competitors, generating reports, and managing follow-ups. Each agent has configurable goals and guardrails.",
     image: null,
-    badge: "Feature 7 of 13",
+    badge: "Feature 8 of 19",
     highlights: [
       "Pre-built agent templates for common workflows",
       "Configurable goals, triggers, and guardrails",
@@ -145,7 +161,7 @@ const steps = [
     description:
       "Manage all your tasks in one place with AI-powered prioritization, due date tracking, tags, and status workflows. Convert emails to tasks instantly, get AI suggestions for task ordering, and never miss a deadline.",
     image: null,
-    badge: "Feature 8 of 13",
+    badge: "Feature 9 of 19",
     highlights: [
       "AI-powered task prioritization and scheduling",
       "Tags, due dates, and customizable status workflows",
@@ -160,7 +176,7 @@ const steps = [
     description:
       "The Unified Inbox aggregates emails from Gmail and Outlook, messages from Slack and Teams, and notifications from project tools — all into a single, AI-prioritized feed with smart categorization and auto-drafted replies.",
     image: demoInbox,
-    badge: "Feature 9 of 13",
+    badge: "Feature 10 of 19",
     highlights: [
       "AI-drafted replies for routine emails",
       "Smart priority categorization with urgency scoring",
@@ -175,7 +191,7 @@ const steps = [
     description:
       "The Smart Scheduling engine scans participants' calendars across time zones and proposes optimal meeting times based on availability, workload balance, and energy levels. Focus blocks are automatically protected.",
     image: demoCalendar,
-    badge: "Feature 10 of 13",
+    badge: "Feature 11 of 19",
     highlights: [
       "Cross-timezone availability scanning for all participants",
       "Energy-based focus block protection during peak hours",
@@ -190,7 +206,7 @@ const steps = [
     description:
       "The Visual Automation Engine provides a full drag-and-drop interface for creating complex, multi-step automations that chain actions across email, calendar, CRM, document tools, and messaging platforms.",
     image: demoAutomation,
-    badge: "Feature 11 of 13",
+    badge: "Feature 12 of 19",
     highlights: [
       "Visual drag-and-drop flow builder",
       "Natural language workflow creation with AI",
@@ -205,7 +221,7 @@ const steps = [
     description:
       "Type or speak commands like \"Move all non-urgent meetings to next week\" or \"Summarize all unread Slack messages.\" The AI understands context, handles batch operations, and executes instantly.",
     image: demoCommands,
-    badge: "Feature 12 of 13",
+    badge: "Feature 13 of 19",
     highlights: [
       "Voice and text command support with natural language",
       "Instant schedule reorganization with smart reasoning",
@@ -220,7 +236,7 @@ const steps = [
     description:
       "Valyarolex.AI integrates with over 50 enterprise tools including Gmail, Outlook, Slack, Teams, Zoom, Salesforce, HubSpot, Notion, Asana, Jira, and more — all with secure OAuth and real-time bidirectional sync.",
     image: demoIntegrations,
-    badge: "Feature 13 of 13",
+    badge: "Feature 14 of 19",
     highlights: [
       "50+ enterprise tool integrations out of the box",
       "Real-time bidirectional sync across all platforms",
@@ -229,11 +245,86 @@ const steps = [
     ],
   },
   {
+    id: "creative-studio",
+    title: "Creative Studio",
+    subtitle: "Every creative tool in one canvas.",
+    description:
+      "Creative Studio brings together the AI Video Creator, ad templates, voiceover studio, music library, and thumbnail generator. Pick from 27 industry templates including Product Ads, AI Shorts, Use My Script, and Make an Explainer Video — and ship branded creative in minutes.",
+    image: null,
+    badge: "Feature 15 of 19",
+    highlights: [
+      "27 industry video templates with one-click setup",
+      "Product Ads, AI Shorts, custom scripts, explainers",
+      "Integrated voiceover studio with ElevenLabs voices",
+      "Music library and AI thumbnail generator",
+    ],
+  },
+  {
+    id: "analytics",
+    title: "Creative Analytics",
+    subtitle: "Know what's working — instantly.",
+    description:
+      "Track performance across every video, ad, and campaign with AI-driven insights. See which templates convert, which voices resonate, and which channels deliver — all in real time with actionable recommendations.",
+    image: null,
+    badge: "Feature 16 of 19",
+    highlights: [
+      "Real-time performance across videos, ads, and campaigns",
+      "AI insights with concrete next-step recommendations",
+      "A/B variant performance tracking",
+      "Channel-level ROI and engagement breakdowns",
+    ],
+  },
+  {
+    id: "brand-kit",
+    title: "Brand Kit",
+    subtitle: "Stay on-brand, automatically.",
+    description:
+      "Upload logos, set brand colors, fonts, and tone of voice once — every video, deck, and campaign automatically adopts your brand identity. Switch between client brands in a single click.",
+    image: null,
+    badge: "Feature 17 of 19",
+    highlights: [
+      "Centralized logo, color, and typography management",
+      "Per-client brand profiles with one-click switching",
+      "Auto-applied to videos, decks, and ads",
+      "Tone-of-voice presets for AI-generated copy",
+    ],
+  },
+  {
+    id: "media-library",
+    title: "Media Library",
+    subtitle: "All your assets, one secure home.",
+    description:
+      "Every generated video, voiceover, image, and uploaded asset is organized in your Media Library — searchable, taggable, and reusable across projects with secure signed URLs.",
+    image: null,
+    badge: "Feature 18 of 19",
+    highlights: [
+      "Centralized library for videos, audio, and images",
+      "Tag, search, and reuse assets across projects",
+      "Private storage with short-lived signed URLs",
+      "One-click reuse in Creative Studio and decks",
+    ],
+  },
+  {
+    id: "credits",
+    title: "Credits & Billing",
+    subtitle: "Transparent, flexible usage.",
+    description:
+      "Manage credits, view usage history, and upgrade your plan from one place. Credits power video generation, voiceovers, images, and AI runs — with clear pricing and no surprises.",
+    image: null,
+    badge: "Feature 19 of 19",
+    highlights: [
+      "Real-time credit balance and usage history",
+      "Transparent pricing for every AI action",
+      "Flexible top-ups and subscription tiers",
+      "Owner accounts get unlimited platform access",
+    ],
+  },
+  {
     id: "conclusion",
     title: "Ready to Transform?",
     subtitle: "One Workspace. Infinite Intelligence.",
     description:
-      "That concludes our tour. Valyarolex.AI gives you an AI Assistant, Workflow Builder, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Task Manager, smart scheduling, unified inbox, deep integrations, and natural language control — all in one workspace. Sign up today.",
+      "That concludes our tour. Valyarolex.AI gives you a Command Center, AI Assistant, Creative Studio, Video Studio, Pitch Deck Builder, Campaign Manager, AI Agents, Tasks, Calendar, Analytics, Brand Kit, Media Library, deep Integrations, and natural language control — all in one workspace. Sign up today.",
     image: null,
     badge: "Get Started",
   },
