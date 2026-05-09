@@ -1177,10 +1177,13 @@ const VideoStudio = () => {
     }
 
     if (failedScenes.length > 0) {
+      setFailedSceneIndices(failedScenes);
       toast({
         title: "Some scenes used a fallback",
-        description: `${failedScenes.length} of ${scenes.length} scenes couldn't generate a fresh image and reused the previous scene's visual. You can regenerate them individually.`,
+        description: `${failedScenes.length} of ${scenes.length} scenes couldn't generate a fresh image and reused the previous scene's visual. You can regenerate just those scenes.`,
       });
+    } else {
+      setFailedSceneIndices([]);
     }
 
     // Stage 2: Render video from images
