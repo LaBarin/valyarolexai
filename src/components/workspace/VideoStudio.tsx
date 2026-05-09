@@ -2117,6 +2117,34 @@ const VideoStudio = () => {
               />
             )}
 
+            {/* Failed-scene recovery: regenerate only the scenes that failed image gen */}
+            {failedSceneIndices.length > 0 && autoRenderStage !== "generating-images" && (
+              <div className="glass rounded-2xl p-4 flex items-start gap-3 border border-amber-500/30">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm">
+                    {failedSceneIndices.length} scene{failedSceneIndices.length === 1 ? "" : "s"} used a fallback image
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Scene{failedSceneIndices.length === 1 ? "" : "s"} {failedSceneIndices.map((i) => i + 1).join(", ")} reused a previous visual. Regenerate just those without re-rendering the whole slideshow.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={regenerateFailedScenes}
+                  disabled={regeneratingFailed}
+                  className="shrink-0"
+                >
+                  {regeneratingFailed ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Regenerating…</>
+                  ) : (
+                    <><RotateCcw className="w-4 h-4" /> Regenerate failed</>
+                  )}
+                </Button>
+              </div>
+            )}
+
             {/* Rendered video player */}
             {(renderedVideoUrl || autoRenderStage === "done") && (
               <div className="glass rounded-2xl p-4 space-y-3">
