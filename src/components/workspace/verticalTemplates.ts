@@ -23,6 +23,9 @@ import {
   Aperture,
   Clapperboard,
   Music2,
+  Zap,
+  FileText,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
