@@ -45,9 +45,24 @@ export function MusicLibrary({ selectedTrackId, onSelect, volume = 0.25, onVolum
   const [genDuration, setGenDuration] = useState(30);
   const [genMood, setGenMood] = useState("cinematic");
   const [generating, setGenerating] = useState(false);
+  const [topUpLoading, setTopUpLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlCacheRef = useRef<Map<string, string>>(new Map());
   const [unavailable, setUnavailable] = useState<Set<string>>(new Set());
+  const isOwner = isOwnerEmail(user?.email);
+
+  const MOOD_TARGET = 20;
+  const curatedMoodCounts = tracks.reduce<Record<string, number>>((acc, t) => {
+    if (t.is_curated) acc[t.mood] = (acc[t.mood] ?? 0) + 1;
+    return acc;
+  }, {});
+  const moodsBelowTarget = MOODS.filter((m) => m !== "all").filter(
+    (m) => (curatedMoodCounts[m] ?? 0) < MOOD_TARGET,
+  );
+  const totalMissing = moodsBelowTarget.reduce(
+    (sum, m) => sum + (MOOD_TARGET - (curatedMoodCounts[m] ?? 0)),
+    0,
+  );
 
   useEffect(() => {
     loadTracks();
