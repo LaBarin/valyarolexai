@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
 
     const { data: signed } = await admin.storage
       .from("audio-assets")
-      .createSignedUrl(filename, 60 * 60 * 24 * 365);
+      .createSignedUrl(filename, 60 * 60 * 6);
 
     return new Response(
       JSON.stringify({ track, url: signed?.signedUrl }),
