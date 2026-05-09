@@ -11,6 +11,18 @@ import {
   ShoppingBag,
   Megaphone,
   Briefcase,
+  Camera,
+  Tv,
+  Pizza,
+  Film,
+  Package,
+  Plane,
+  GraduationCap,
+  Palette,
+  Sparkles,
+  Aperture,
+  Clapperboard,
+  Music2,
   type LucideIcon,
 } from "lucide-react";
 
