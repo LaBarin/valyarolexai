@@ -1097,6 +1097,7 @@ const VideoStudio = () => {
     // Stage 1: Generate all scene images
     setAutoRenderStage("generating-images");
     setExportProgress(0);
+    setFailedSceneIndices([]);
     const imageMap: Record<string, string> = {};
     const failedScenes: number[] = [];
     for (let i = 0; i < scenes.length; i++) {
