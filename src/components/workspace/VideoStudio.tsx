@@ -1338,6 +1338,7 @@ const VideoStudio = () => {
     }
   };
 
+  const rejectVideo = () => {
     setPreviewData(null);
     setPreviewImages({});
     setGeneratingPreviewImages({});
