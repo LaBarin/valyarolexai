@@ -610,10 +610,24 @@ export async function renderVideo(options: RenderOptions): Promise<Blob> {
       0,
     );
     let framesDone = 0;
+    const FRAME_MS = 1000 / FPS;
+    // Anchor frame pacing to wall-clock so recorded video length === storyboard length === audio length.
+    const renderStartMs = performance.now();
 
     const renderScene = (sceneIdx: number) => {
       if (sceneIdx >= scenes.length) {
-        recorder.stop();
+        // Hold the last frame until real-time has caught up to the intended duration,
+        // so the music tail and closing card fade-in actually make it into the recording.
+        const finishAndStop = () => {
+          const elapsed = performance.now() - renderStartMs;
+          const targetMs = totalDurationSec * 1000;
+          if (elapsed >= targetMs) {
+            try { recorder.stop(); } catch { /* noop */ }
+          } else {
+            setTimeout(finishAndStop, Math.max(20, targetMs - elapsed));
+          }
+        };
+        finishAndStop();
         return;
       }
       const scene = scenes[sceneIdx];
