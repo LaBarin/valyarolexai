@@ -42,74 +42,114 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const navItems = [
-  { id: "command", label: "Command Center", icon: LayoutDashboard, group: "core" },
-  { id: "inbox", label: "Inbox", icon: Inbox, group: "core", badge: "3" },
-  { id: "chat", label: "AI Assistant", icon: MessageSquare, group: "core" },
-  { id: "tasks", label: "Tasks", icon: ListTodo, group: "productivity" },
-  { id: "schedule", label: "Calendar", icon: Calendar, group: "productivity" },
-  { id: "agents", label: "AI Agents", icon: Bot, group: "automation" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, group: "automation" },
-  { id: "pitchdeck", label: "Pitch Deck", icon: Presentation, group: "tools" },
-  { id: "campaigns", label: "Campaigns", icon: Megaphone, group: "tools" },
-  { id: "videos", label: "Creative Studio", icon: Sparkles, group: "tools" },
-  { id: "brandkit", label: "Brand Kit", icon: Palette, group: "tools" },
-  { id: "media", label: "Media Library", icon: FolderOpen, group: "tools" },
-  { id: "integrations", label: "Integrations", icon: Plug, group: "settings" },
-  { id: "credits", label: "Credits", icon: Coins, group: "settings" },
+  // Top 8 (always visible)
+  { id: "command", label: "Command Center", icon: LayoutDashboard },
+  { id: "inbox", label: "Inbox", icon: Inbox, badge: "3" },
+  { id: "chat", label: "AI Assistant", icon: MessageSquare },
+  { id: "tasks", label: "Tasks", icon: ListTodo },
+  { id: "schedule", label: "Calendar", icon: Calendar },
+  { id: "agents", label: "AI Agents", icon: Bot },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "videos", label: "Creative Studio", icon: Sparkles },
+  // Remainder (in "More" dropdown)
+  { id: "pitchdeck", label: "Pitch Deck", icon: Presentation },
+  { id: "campaigns", label: "Campaigns", icon: Megaphone },
+  { id: "brandkit", label: "Brand Kit", icon: Palette },
+  { id: "media", label: "Media Library", icon: FolderOpen },
+  { id: "integrations", label: "Integrations", icon: Plug },
+  { id: "credits", label: "Credits", icon: Coins },
 ] as const;
 
-type TabId = typeof navItems[number]["id"];
+const TOP_NAV_COUNT = 8;
 
-const groups = [
-  { key: "core", label: "Command" },
-  { key: "productivity", label: "Productivity" },
-  { key: "automation", label: "Automation" },
-  { key: "tools", label: "Tools" },
-  { key: "settings", label: "Settings" },
-];
+type TabId = typeof navItems[number]["id"];
 
 const WorkspaceSidebar = ({ activeTab, onNavigate }: { activeTab: TabId; onNavigate: (id: TabId) => void }) => {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
+  const topItems = navItems.slice(0, TOP_NAV_COUNT);
+  const moreItems = navItems.slice(TOP_NAV_COUNT);
+  const activeInMore = moreItems.some((i) => i.id === activeTab);
+  const [moreOpen, setMoreOpen] = useState(activeInMore);
+
+  // Auto-open the "More" group whenever the active tab lives inside it.
+  useEffect(() => {
+    if (activeInMore) setMoreOpen(true);
+  }, [activeInMore]);
+
+  const renderItem = (item: typeof navItems[number]) => (
+    <SidebarMenuItem key={item.id}>
+      <SidebarMenuButton
+        onClick={() => onNavigate(item.id)}
+        className={`transition-all ${
+          activeTab === item.id
+            ? "bg-primary/10 text-primary font-medium"
+            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+        }`}
+      >
+        <item.icon className="w-4 h-4 flex-shrink-0" />
+        {!collapsed && (
+          <span className="flex-1 flex items-center justify-between">
+            <span>{item.label}</span>
+            {"badge" in item && item.badge && (
+              <Badge className="bg-primary/20 text-primary text-[9px] px-1.5 py-0 ml-auto">{item.badge}</Badge>
+            )}
+          </span>
+        )}
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border/30">
       <SidebarContent className="pt-20">
-        {groups.map((group) => {
-          const items = navItems.filter((i) => i.group === group.key);
-          if (items.length === 0) return null;
-          return (
-            <SidebarGroup key={group.key}>
-              {!collapsed && <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">{group.label}</SidebarGroupLabel>}
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {items.map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        onClick={() => onNavigate(item.id)}
-                        className={`transition-all ${
-                          activeTab === item.id
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                        }`}
-                      >
-                        <item.icon className="w-4 h-4 flex-shrink-0" />
-                        {!collapsed && (
-                          <span className="flex-1 flex items-center justify-between">
-                            <span>{item.label}</span>
-                            {"badge" in item && item.badge && (
-                              <Badge className="bg-primary/20 text-primary text-[9px] px-1.5 py-0 ml-auto">{item.badge}</Badge>
-                            )}
-                          </span>
-                        )}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          );
-        })}
+        <SidebarGroup>
+          {!collapsed && (
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60">
+              Workspace
+            </SidebarGroupLabel>
+          )}
+          <SidebarGroupContent>
+            <SidebarMenu>{topItems.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {moreItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {/* "More" toggle */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setMoreOpen((v) => !v)}
+                    aria-expanded={moreOpen}
+                    className={`transition-all ${
+                      activeInMore
+                        ? "text-primary font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                    }`}
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${
+                        moreOpen ? "rotate-0" : "-rotate-90"
+                      }`}
+                    />
+                    {!collapsed && (
+                      <span className="flex-1 flex items-center justify-between">
+                        <span>More</span>
+                        <Badge className="bg-muted/50 text-muted-foreground text-[9px] px-1.5 py-0 ml-auto">
+                          {moreItems.length}
+                        </Badge>
+                      </span>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                {(moreOpen || collapsed) && moreItems.map(renderItem)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
