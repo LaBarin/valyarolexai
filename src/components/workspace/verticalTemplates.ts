@@ -169,4 +169,30 @@ export const VERTICAL_TEMPLATES: VerticalTemplate[] = [
     presetId: "tiktok-15",
     mood: "energetic",
   },
+  {
+    id: "vert-commercial",
+    name: "Commercial Ad",
+    industry: "Commercial",
+    icon: Megaphone,
+    accent: "from-cyan-500/20 to-blue-500/10",
+    prompt:
+      "Create a polished 30-second TV-style commercial. Open with an attention-grabbing hook, introduce the product/service with cinematic b-roll, highlight 3 key benefits with bold on-screen text, include a brief customer moment, and close with a strong brand logo lockup and clear CTA.",
+    cta: "Learn More",
+    styleId: "live-broadcast",
+    presetId: "tv-spot-30",
+    mood: "cinematic",
+  },
+  {
+    id: "vert-professional",
+    name: "Professional Services",
+    industry: "Professional",
+    icon: Briefcase,
+    accent: "from-slate-500/20 to-blue-500/10",
+    prompt:
+      "Create a 30-second professional services ad (consulting, finance, B2B agency). Confident on-camera spokesperson, sleek office b-roll, 3 credibility points with clean kinetic text (clients served, years of experience, results delivered), end with a polished logo lockup and 'Schedule a consultation' CTA.",
+    cta: "Schedule a Consultation",
+    styleId: "minimal-luxe",
+    presetId: "youtube-30",
+    mood: "calm",
+  },
 ];
