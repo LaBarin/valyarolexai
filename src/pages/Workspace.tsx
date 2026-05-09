@@ -6,7 +6,8 @@ import { Navigate } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, Calendar, ListTodo, Bot, BarChart3,
   Plug, Presentation, Megaphone, MessageSquare, Menu, Video,
-  ArrowLeft, LogOut, Coins, Sparkles, Palette, FolderOpen
+  ArrowLeft, LogOut, Coins, Sparkles, Palette, FolderOpen,
+  ChevronDown,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/valyarolex-logo.png";
