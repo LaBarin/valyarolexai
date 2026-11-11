@@ -124,7 +124,14 @@ export default function MediaLibrary() {
       .order("created_at", { ascending: false })
       .limit(200);
     for (const t of tracks ?? []) {
-      const url = await signedUrl("audio-assets", t.storage_path);
+      // Curated tracks are served via the get-audio-url function (no direct storage read).
+      let url: string | null = null;
+      if (t.is_curated) {
+        const { data } = await supabase.functions.invoke("get-audio-url", { body: { path: t.storage_path } });
+        url = data?.url ?? null;
+      } else {
+        url = await signedUrl("audio-assets", t.storage_path);
+      }
       if (!url) continue;
       collected.push({
         id: `music:${t.id}`,
