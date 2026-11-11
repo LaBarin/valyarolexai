@@ -1,8 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Shield, Zap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import logo from "@/assets/valyarolex-logo.png";
 
@@ -23,6 +23,26 @@ const SectionFallback = () => (
 );
 
 const LandingPage = () => {
+  const location = useLocation();
+
+  // Scroll to the hash target; sections are lazy-loaded, so retry until it exists.
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = decodeURIComponent(location.hash.slice(1));
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const attempt = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (tries++ < 40) {
+        timer = setTimeout(attempt, 100);
+      }
+    };
+    attempt();
+    return () => clearTimeout(timer);
+  }, [location.hash]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
